@@ -2,11 +2,12 @@ import { Module } from '@nestjs/common';
 import { WebhooksController } from './webhooks.controller';
 import { WebhooksService } from './webhooks.service';
 import { StripeModule } from '../stripe/stripe.module';
-import { EsimModule } from '../esim/esim.module'; // Assuming we might need it later, though worker handles most
+import { EsimModule } from '../esim/esim.module';
+import { OrdersModule } from '../orders/orders.module';
 import { PrismaService } from '../../prisma.service';
 
 @Module({
-  imports: [StripeModule, EsimModule],
+  imports: [StripeModule, EsimModule, OrdersModule],
   controllers: [WebhooksController],
   providers: [WebhooksService, PrismaService],
 })

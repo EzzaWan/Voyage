@@ -2,12 +2,16 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PlanDetails } from "@/components/PlanDetails";
+import { PlanDetailsSkeleton } from "@/components/skeletons";
+import { Suspense } from "react";
 
 // Server Component
 export default async function PlanPage({ params }: { params: { id: string } }) {
   const { id } = params;
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
   
+  console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
+
   let plan = null;
 
   try {
@@ -21,24 +25,26 @@ export default async function PlanPage({ params }: { params: { id: string } }) {
 
   if (!plan) {
     return (
-      <div className="container mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">Plan Not Found</h1>
+      <div className="container mx-auto px-4 py-20 text-center">
+        <h1 className="text-3xl font-bold text-white mb-4">Plan Not Found</h1>
         <Link href="/countries">
-          <Button>Browse Plans</Button>
+          <Button variant="secondary">Browse Plans</Button>
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="space-y-6">
       <Link href={`/countries/${plan.location || ''}`}>
-          <Button variant="ghost" className="pl-0 hover:pl-2 transition-all mb-6 text-gray-500">
+          <Button variant="ghost" className="pl-0 hover:pl-2 transition-all text-[var(--voyage-muted)] hover:text-white hover:bg-transparent">
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Plans
           </Button>
       </Link>
       
-      <PlanDetails plan={plan} />
+      <Suspense fallback={<PlanDetailsSkeleton />}>
+         <PlanDetails plan={plan} />
+      </Suspense>
     </div>
   );
 }
