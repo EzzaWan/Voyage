@@ -1,0 +1,19 @@
+{
+  "name": "voyage-monorepo",
+  "version": "0.0.1",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "libs/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -k \"npm run dev --workspace apps/web\" \"npm run start:dev --workspace apps/backend\" \"npm run dev --workspace apps/worker\"",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.0",
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  }
+}

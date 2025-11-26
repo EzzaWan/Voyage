@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String        @id @default(uuid())
+  email     String        @unique
+  name      String?
+  orders    Order[]
+  profiles  EsimProfile[] @relation("UserProfiles")
+  createdAt DateTime      @default(now())
+}
+
+model Plan {
+  id           String   @id
+  providerId   String
+  locationCode String
+  name         String
+  dataBytes    BigInt
+  validityDays Int
+  priceCents   Int
+  currency     String
+  externalSlug String
+  createdAt    DateTime @default(now())
+}
+
+model Order {
+  id            String        @id @default(uuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  planId        String
+  amountCents   Int
+  currency      String
+  status        String        // pending, paid, provisioning, active, failed, cancelled
+  paymentMethod String
+  paymentRef    String?
+  esimOrderNo   String?       // eSIM Access orderNo
+  profiles      EsimProfile[]
+  createdAt     DateTime      @default(now())
+}
+
+model EsimProfile {
+  id          String    @id @default(uuid())
+  orderId     String
+  order       Order     @relation(fields: [orderId], references: [id])
+  esimTranNo  String
+  iccid       String
+  qrCodeUrl   String?
+  ac          String?   // activation code
+  smdpStatus  String?
+  esimStatus  String?
+  totalVolume BigInt?
+  orderUsage  BigInt?
+  expiredTime DateTime?
+  userId      String?   // Optional initially, but linked to User for direct access
+  user        User?     @relation("UserProfiles", fields: [userId], references: [id])
+}
+
+model WebhookEvent {
+  id        String   @id @default(uuid())
+  source    String
+  payload   Json
+  processed Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
