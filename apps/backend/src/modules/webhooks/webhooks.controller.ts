@@ -1,33 +1,36 @@
-import { Controller, Post, Headers, Body, Req, UnauthorizedException } from '@nestjs/common';
-import { WebhooksService } from './webhooks.service';
-import { Request } from 'express';
+import { Controller, Post, Req, Res } from '@nestjs/common';
+import { StripeService } from '../stripe/stripe.service';
+import { OrdersService } from '../orders/orders.service';
+import { ConfigService } from '@nestjs/config';
+import Stripe from 'stripe';
+import { Request, Response } from 'express';
 
 @Controller('webhooks')
 export class WebhooksController {
-  constructor(private readonly webhooksService: WebhooksService) {}
+  constructor(
+    private readonly stripe: StripeService,
+    private readonly ordersService: OrdersService,
+    private readonly config: ConfigService,
+  ) {}
 
   @Post('stripe')
-  async handleStripe(@Headers('stripe-signature') signature: string, @Req() req: Request) {
-    // Use raw body for Stripe
-    await this.webhooksService.handleStripeWebhook(signature, req.body as any);
-    return { received: true };
-  }
+  async stripeWebhook(@Req() req: Request, @Res() res: Response) {
+    const raw = (req as any).rawBody;
+    const sig = req.headers['stripe-signature'] as string;
+    const secret = this.config.get<string>('STRIPE_WEBHOOK_SECRET');
 
-  @Post('esim')
-  async handleEsim(@Headers() headers: Record<string, string>, @Body() body: any) {
-    // Headers are usually lowercase in Express
-    const signature = headers['rt-signature'];
-    const timestamp = headers['rt-timestamp'];
-    const requestId = headers['rt-requestid'];
-    const accessCode = headers['rt-accesscode'];
-
-    if (!signature || !timestamp || !requestId) {
-       // For initial dev testing, we might skip validation if tools don't send headers,
-       // but strictly we should fail.
-       // throw new UnauthorizedException('Missing headers');
+    let event: Stripe.Event;
+    try {
+      event = this.stripe.stripe.webhooks.constructEvent(raw, sig, secret);
+    } catch (err: any) {
+      return res.status(400).send(`Webhook Error: ${err.message}`);
     }
-    
-    await this.webhooksService.handleEsimWebhook(body, { signature, timestamp, requestId, accessCode });
-    return { received: true };
+
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object as Stripe.Checkout.Session;
+      await this.ordersService.handleStripePayment(session);
+    }
+
+    return res.json({ received: true });
   }
 }

@@ -57,7 +57,7 @@ export class EsimAccessClient {
     this.lastRequestTime = Date.now();
   }
 
-  private async request<T>(method: string, url: string, data?: any, config?: AxiosRequestConfig): Promise<BaseResponse<T>> {
+  public async request<T>(method: string, url: string, data?: any, config?: AxiosRequestConfig): Promise<BaseResponse<T>> {
     try {
       const response = await this.axiosInstance.request<BaseResponse<T>>({
         method,
