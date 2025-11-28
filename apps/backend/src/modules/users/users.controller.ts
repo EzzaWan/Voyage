@@ -6,9 +6,9 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('esims')
-  async getEsims(@Query('userId') userId: string) {
-    // In real app, get userId from AuthGuard/Request
-    return this.usersService.getUserEsims(userId);
+  async getEsims(@Query('email') email: string) {
+    // User identified by email (from Clerk frontend)
+    return this.usersService.getUserEsimsByEmail(email);
   }
 }
 

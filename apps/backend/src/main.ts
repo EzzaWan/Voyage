@@ -1,25 +1,40 @@
 import { NestFactory } from '@nestjs/core';
+
 import { AppModule } from './app.module';
-import * as bodyParser from 'body-parser';
+
+import { json } from 'express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  
-  // Global prefix
+
+  const app = await NestFactory.create(AppModule, {
+
+    rawBody: true,     // THIS exposes req.rawBody
+
+  });
+
+
+
   app.setGlobalPrefix('api');
 
-  // Enable CORS
-  app.enableCors();
 
-  app.use(
-    bodyParser.json({
-      verify: (req: any, res, buf) => {
-        req.rawBody = buf.toString();
-      },
-    }),
-  );
 
-  await app.listen(process.env.PORT || 3001);
-  console.log(`Application is running on: ${await app.getUrl()}`);
+  // JSON parser for non-webhook routes only
+  const jsonParser = json({ limit: '10mb' });
+  app.use((req, res, next) => {
+    if (req.path === '/api/webhooks/stripe') {
+      // Skip JSON parsing for Stripe webhook - use rawBody instead
+      return next();
+    }
+    jsonParser(req, res, next);
+  });
+
+  app.enableCors({
+    origin: ['http://localhost:3000'],
+    credentials: true,
+  });
+
+  await app.listen(3001);
+
 }
+
 bootstrap();

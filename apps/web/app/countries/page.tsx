@@ -1,12 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { SearchBar } from "@/components/SearchBar";
-import { FlagIcon } from "@/components/FlagIcon";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronRight } from "lucide-react";
+import { CountryCard } from "@/components/CountryCard";
+import { CountrySkeleton } from "@/components/skeletons";
+import { Globe } from "lucide-react";
 
 interface Country {
   code: string;
@@ -26,7 +24,6 @@ export default function CountriesPage() {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
         const res = await fetch(`${apiUrl}/countries`);
         const data = await res.json();
-        // Sort alphabetically
         const sorted = (data || []).sort((a: Country, b: Country) => a.name.localeCompare(b.name));
         setCountries(sorted);
         setFiltered(sorted);
@@ -49,40 +46,43 @@ export default function CountriesPage() {
   }, [search, countries]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8 space-y-4">
-        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">
-           Where are you traveling?
-        </h1>
-        <SearchBar value={search} onChange={setSearch} />
-      </div>
+    <div className="min-h-[80vh] flex flex-col">
+       <div className="text-center max-w-2xl mx-auto mb-12 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="inline-flex items-center justify-center p-3 rounded-full bg-[var(--voyage-bg-light)] border border-[var(--voyage-border)] mb-4">
+             <Globe className="h-6 w-6 text-[var(--voyage-accent)]" />
+          </div>
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white">
+             Where are you <br />
+             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--voyage-accent)] to-purple-400">traveling next?</span>
+          </h1>
+          <p className="text-lg text-[var(--voyage-muted)]">
+             Stay connected in 200+ countries with instant eSIM delivery. No hidden fees. No roaming charges.
+          </p>
+          
+          <div className="pt-4">
+             <SearchBar value={search} onChange={setSearch} />
+          </div>
+       </div>
 
-      {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-           {[...Array(12)].map((_, i) => (
-             <Skeleton key={i} className="h-20 rounded-xl" />
-           ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-           {filtered.map((country) => (
-             <Link key={country.code} href={`/countries/${country.code}`}>
-                <Card className="hover:border-blue-500 transition-all hover:shadow-md group">
-                   <CardContent className="flex items-center justify-between p-4">
-                      <div className="flex items-center gap-3">
-                         <FlagIcon logoUrl={country.locationLogo} alt={country.name} />
-                         <span className="font-medium group-hover:text-blue-600 transition-colors">
-                           {country.name}
-                         </span>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-blue-500" />
-                   </CardContent>
-                </Card>
-             </Link>
-           ))}
-        </div>
-      )}
+       {loading ? (
+         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            {[...Array(12)].map((_, i) => (
+              <CountrySkeleton key={i} />
+            ))}
+         </div>
+       ) : (
+         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 animate-in fade-in duration-1000">
+            {filtered.map((country) => (
+               <CountryCard key={country.code} country={country} />
+            ))}
+            
+            {filtered.length === 0 && (
+               <div className="col-span-full text-center py-20 text-[var(--voyage-muted)]">
+                  No countries found matching "{search}"
+               </div>
+            )}
+         </div>
+       )}
     </div>
   );
 }
-

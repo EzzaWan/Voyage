@@ -4,6 +4,7 @@ import { PrismaService } from '../../prisma.service';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 import { EsimService } from '../esim/esim.service';
+import { QueryProfilesResponse } from '../../../../../libs/esim-access/types';
 
 @Injectable()
 export class OrdersService {
@@ -113,7 +114,7 @@ export class OrdersService {
     const pollQuery = async (attempts = 10, delayMs = 3000) => {
       for (let i = 0; i < attempts; i++) {
         try {
-          const res = await this.esimService.sdk.client.request(
+          const res = await this.esimService.sdk.client.request<QueryProfilesResponse>(
             'POST',
             '/esim/query',
             { orderNo, pager: { pageNum: 1, pageSize: 50 } }
@@ -152,7 +153,6 @@ export class OrdersService {
         esimStatus: profile.esimStatus || null,
         expiredTime: profile.expiredTime ? new Date(profile.expiredTime) : null,
         totalVolume: profile.totalVolume ?? null,
-        totalDuration: profile.totalDuration ?? null,
       },
     });
 

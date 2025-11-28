@@ -1,7 +1,6 @@
 "use client";
 
 import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
 
 interface SearchBarProps {
   value: string;
@@ -11,15 +10,14 @@ interface SearchBarProps {
 
 export function SearchBar({ value, onChange, placeholder = "Search countries..." }: SearchBarProps) {
   return (
-    <div className="relative w-full max-w-sm">
-      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-      <Input
+    <div className="relative w-full max-w-lg group">
+      <Search className="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--voyage-muted)] group-focus-within:text-[var(--voyage-accent)] transition-colors" />
+      <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="pl-10 bg-white/80 backdrop-blur-sm transition-all focus:bg-white"
+        className="bg-[var(--voyage-bg-light)] border border-[var(--voyage-border)] rounded-full pl-12 pr-6 py-4 w-full text-[var(--voyage-text)] placeholder-[var(--voyage-muted)] focus:ring-2 focus:ring-[var(--voyage-accent)] focus:border-transparent outline-none transition-all shadow-lg focus:shadow-[var(--voyage-accent)]/20"
         placeholder={placeholder}
       />
     </div>
   );
 }
-

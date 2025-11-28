@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 
 @Controller('orders')
@@ -6,13 +6,12 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post()
-  async createOrder(@Body() body: { planId: string; userId: string; amountCents: number; currency: string }) {
-    return this.ordersService.createOrder(body);
-  }
-
-  @Get(':id')
-  async getOrder(@Param('id') id: string) {
-    return this.ordersService.getOrder(id);
+  async createOrder(@Body() body: {
+    planCode: string;
+    amount: number;
+    currency: string;
+    planName: string;
+  }) {
+    return this.ordersService.createStripeCheckout(body);
   }
 }
-

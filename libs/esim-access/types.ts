@@ -105,6 +105,8 @@ export interface EsimProfile {
   qrCodeUrl: string;
   smdpStatus: string;
   esimStatus: string;
+  expiredTime?: string;
+  totalVolume?: number;
   packageList: {
     packageCode: string;
     duration: number;

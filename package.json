@@ -12,8 +12,11 @@
     "test": "npm run test --workspaces"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
+    "autoprefixer": "^10.4.22",
     "concurrently": "^8.0.0",
-    "typescript": "^5.0.0",
-    "@types/node": "^20.0.0"
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.17",
+    "typescript": "^5.0.0"
   }
 }
