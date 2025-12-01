@@ -24,7 +24,9 @@ export default function CountriesPage() {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
         const res = await fetch(`${apiUrl}/countries`);
         const data = await res.json();
-        const sorted = (data || []).sort((a: Country, b: Country) => a.name.localeCompare(b.name));
+        // Handle both array and { locationList: [...] } formats
+        const countriesArray = Array.isArray(data) ? data : (data.locationList || []);
+        const sorted = (countriesArray || []).sort((a: Country, b: Country) => a.name.localeCompare(b.name));
         setCountries(sorted);
         setFiltered(sorted);
       } catch (error) {
