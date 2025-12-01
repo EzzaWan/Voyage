@@ -1,0 +1,11 @@
+Your Profile Information:
+=========================
+
+Profile ID: 22b0ca0c-1979-422f-9e02-b19590acdfc5
+User ID: e56319e4-9917-406a-a329-3fb09c5d0615
+ICCID: 8997250230000291441
+Plan: Netherlands 1GB/Day (P7B64E9XP)
+Status: GOT_RESOURCE (Ready)
+
+Now you can test the topup endpoint with your profile ID!
+

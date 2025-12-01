@@ -13,6 +13,7 @@ model User {
   name      String?
   orders    Order[]
   profiles  EsimProfile[] @relation("UserProfiles")
+  topups    TopUp[]
   createdAt DateTime      @default(now())
 }
 
@@ -59,6 +60,22 @@ model EsimProfile {
   expiredTime DateTime?
   userId      String?   // Optional initially, but linked to User for direct access
   user        User?     @relation("UserProfiles", fields: [userId], references: [id])
+  topups      TopUp[]
+}
+
+model TopUp {
+  id            String      @id @default(uuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  profileId     String
+  profile       EsimProfile @relation(fields: [profileId], references: [id])
+  planCode      String
+  amountCents   Int
+  currency      String
+  status        String      // pending, processing, completed, failed
+  paymentRef    String?
+  rechargeOrder String?     // provider recharge orderNo
+  createdAt     DateTime    @default(now())
 }
 
 model WebhookEvent {

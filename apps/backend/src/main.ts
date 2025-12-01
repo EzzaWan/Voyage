@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
 import { json } from 'express';
+import { BigIntSerializerInterceptor } from './interceptors/bigint-serializer.interceptor';
 
 async function bootstrap() {
 
@@ -16,7 +17,8 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
 
-
+  // Add global interceptor to serialize BigInt values
+  app.useGlobalInterceptors(new BigIntSerializerInterceptor());
 
   // JSON parser for non-webhook routes only
   const jsonParser = json({ limit: '10mb' });

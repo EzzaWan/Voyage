@@ -1,6 +1,7 @@
-import { Controller, Post, Req, Headers, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Req, Headers, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { StripeService } from '../stripe/stripe.service';
 import { OrdersService } from '../orders/orders.service';
+import { TopUpService } from '../topup/topup.service';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 
@@ -9,6 +10,8 @@ export class WebhooksController {
   constructor(
     private readonly stripe: StripeService,
     private readonly ordersService: OrdersService,
+    @Inject(forwardRef(() => TopUpService))
+    private readonly topUpService: TopUpService,
     private readonly config: ConfigService,
   ) {}
 
@@ -36,7 +39,15 @@ export class WebhooksController {
 
     try {
       if (event.type === "checkout.session.completed") {
-        await this.ordersService.handleStripePayment(event.data.object);
+        const session = event.data.object as Stripe.Checkout.Session;
+        
+        // Check if this is a topup webhook
+        if (session.metadata?.type === 'topup') {
+          await this.topUpService.handleStripeTopUp(session);
+        } else {
+          // Regular order payment
+          await this.ordersService.handleStripePayment(session);
+        }
       }
 
       if (event.type === 'payment_intent.succeeded' || event.type === 'charge.succeeded') {

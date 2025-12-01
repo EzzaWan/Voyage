@@ -5,6 +5,7 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { StripeModule } from './modules/stripe/stripe.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { UsersModule } from './modules/users/users.module';
+import { TopUpModule } from './modules/topup/topup.module';
 import { CronModule } from './cron/cron.module';
 
 @Module({
@@ -15,6 +16,7 @@ import { CronModule } from './cron/cron.module';
     OrdersModule,
     StripeModule,
     WebhooksModule,
+    TopUpModule,
     CronModule,
   ],
 })

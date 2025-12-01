@@ -7,6 +7,11 @@ const nextConfig = {
         hostname: 'flagcdn.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'p.qrsim.net',
+        pathname: '/**',
+      },
     ],
   },
 };
