@@ -9,6 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { QrCode, Signal, RefreshCw, Calendar, HardDrive, Download, Copy, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
 
+import Link from "next/link";
+
 interface PlanDetails {
   name?: string;
   packageCode?: string;
@@ -260,6 +262,14 @@ export default function MyEsimsPage() {
                            <QrCode className="mr-2 h-4 w-4" /> View QR Code
                         </Button>
                      )}
+
+                     <Link href={`/my-esims/${esim.iccid}/topup`} className="block w-full">
+                       <Button 
+                          className="w-full h-10 text-md font-bold bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white shadow-[0_0_20px_rgba(30,144,255,0.3)] transition-all mt-2"
+                       >
+                          Top Up
+                       </Button>
+                     </Link>
                      
                      {esim.ac && (
                         <Button 

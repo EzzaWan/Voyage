@@ -239,6 +239,19 @@ export class OrdersService {
   }
 
   // ============================================
+  // HELPER: FIND PROFILE BY ICCID
+  // ============================================
+  async findByIccid(iccid: string) {
+    return this.prisma.esimProfile.findFirst({
+      where: { iccid },
+      include: {
+        order: true,
+        user: true,
+      },
+    });
+  }
+
+  // ============================================
   // FEATURE 1: AUTOMATIC RETRY FOR FAILED ORDERS
   // ============================================
   async retryPendingOrders() {

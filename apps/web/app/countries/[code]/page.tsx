@@ -1,29 +1,59 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowLeft, MapPin } from "lucide-react";
 import { PlanCard, Plan } from "@/components/PlanCard";
 import { Button } from "@/components/ui/button";
 import { FlagIcon } from "@/components/FlagIcon";
 import { formatUsdDollars } from "@/lib/utils";
+import { PlanListWithFilters } from "@/components/PlanListWithFilters";
+import { useEffect, useState } from "react";
 
-// Server Component
-export default async function CountryPlansPage({ params }: { params: { code: string } }) {
+export default function CountryPlansPage({ params }: { params: { code: string } }) {
   const { code } = params;
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
   
-  let plans: Plan[] = [];
-  // We could fetch country details here if API supported it, or filter from plans
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const res = await fetch(`${apiUrl}/countries/${code}/plans`);
+        if (res.ok) {
+          const data = await res.json();
+          setPlans(data);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPlans();
+  }, [code, apiUrl]);
+  
+  const lowestPrice = plans.length > 0 ? Math.min(...plans.map(p => p.price)) : 0;
+  
+  // Derive country name:
+  // 1. Try to get from first plan
+  // 2. Use Intl.DisplayNames to convert code (e.g. AZ -> Azerbaijan)
+  // 3. Fallback to code
+  let countryName = code;
   try {
-    const res = await fetch(`${apiUrl}/countries/${code}/plans`, { cache: 'no-store' });
-    if (res.ok) {
-      plans = await res.json();
+    if (plans.length > 0 && plans[0].location && plans[0].location !== code) {
+      countryName = plans[0].location;
+    } else {
+      const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
+      countryName = regionNames.of(code.toUpperCase()) || code;
     }
   } catch (e) {
-    console.error(e);
+    // Fallback to code if Intl fails or code is invalid
+    countryName = code;
   }
   
-  // Calculate lowest price
-  const lowestPrice = plans.length > 0 ? Math.min(...plans.map(p => p.price)) : 0;
+  // Construct flag URL directly
+  const flagUrl = `https://flagcdn.com/w320/${code.toLowerCase().split('-')[0]}.png`;
 
   return (
     <div className="space-y-8">
@@ -42,14 +72,13 @@ export default async function CountryPlansPage({ params }: { params: { code: str
          <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center">
             <div className="h-24 w-24 md:h-32 md:w-32 rounded-full bg-white p-1 shadow-2xl shadow-[var(--voyage-accent)]/30">
                <div className="h-full w-full rounded-full overflow-hidden bg-gray-100 relative">
-                 <FlagIcon alt={code} className="h-full w-full border-none rounded-full object-cover" />
-                 {/* Ideally pass image url if available */}
+                 <FlagIcon logoUrl={flagUrl} alt={code} className="h-full w-full border-none rounded-full object-cover" />
                </div>
             </div>
             
             <div className="text-center md:text-left space-y-2">
                <h1 className="text-4xl md:text-5xl font-bold text-white">
-                  {code} eSIMs
+                  {countryName} eSIMs
                </h1>
                <div className="flex items-center justify-center md:justify-start gap-2 text-[var(--voyage-muted)]">
                   <MapPin className="h-4 w-4" />
@@ -64,22 +93,21 @@ export default async function CountryPlansPage({ params }: { params: { code: str
          </div>
       </div>
 
-      {/* Plans Grid */}
+      {/* Plans Grid with Filters */}
       <div className="space-y-4">
          <h2 className="text-2xl font-bold text-white pl-2">Available Packages</h2>
          
-         {plans.length === 0 ? (
-            <div className="text-center py-20 bg-[var(--voyage-card)] rounded-xl border border-[var(--voyage-border)]">
-               <p className="text-[var(--voyage-muted)]">No plans currently available for this region.</p>
-            </div>
+         {loading ? (
+             <div className="text-center py-20 text-[var(--voyage-muted)]">Loading plans...</div>
          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-               {plans.map((plan) => (
-                  <PlanCard key={plan.packageCode} plan={plan} />
-               ))}
-            </div>
+             <PlanListWithFilters 
+                plans={plans} 
+                renderItem={(plan) => <PlanCard key={plan.packageCode} plan={plan} />}
+                emptyMessage="No plans available for this region matching your filters."
+             />
          )}
       </div>
     </div>
   );
 }
+

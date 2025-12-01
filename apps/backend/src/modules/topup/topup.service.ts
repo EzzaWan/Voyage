@@ -83,6 +83,18 @@ export class TopUpService {
     return { url: session.url };
   }
 
+  async createStripeTopUpCheckoutByIccid(iccid: string, planCode: string, amount: number, currency: string) {
+    const profile = await this.prisma.esimProfile.findFirst({
+      where: { iccid },
+    });
+
+    if (!profile) {
+      throw new NotFoundException(`Profile with ICCID ${iccid} not found`);
+    }
+
+    return this.createStripeTopUpCheckout(profile.id, planCode, amount, currency);
+  }
+
   async handleStripeTopUp(session: Stripe.Checkout.Session) {
     this.logger.log(`[TOPUP] Handling Stripe payment for session ${session.id}`);
 
@@ -280,6 +292,26 @@ export class TopUpService {
   async getUserTopUps(userId: string) {
     return this.prisma.topUp.findMany({
       where: { userId },
+      include: {
+        profile: {
+          select: {
+            id: true,
+            iccid: true,
+            esimTranNo: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getTopUpsByIccid(iccid: string) {
+    return this.prisma.topUp.findMany({
+      where: {
+        profile: {
+          iccid: iccid
+        }
+      },
       include: {
         profile: {
           select: {
