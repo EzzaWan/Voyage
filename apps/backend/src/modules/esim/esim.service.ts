@@ -14,12 +14,58 @@ export class EsimService {
     });
   }
 
+  // Helper to generate flag URL from country code
+  private getFlagUrl(code: string, type: number): string | undefined {
+    // Only generate flags for countries (type 1), not continents (type 2)
+    if (type !== 1) return undefined;
+    
+    // Handle special codes (e.g., "NA-3" should use "NA" or skip)
+    const countryCode = code.split('-')[0].toLowerCase();
+    
+    // Use flagcdn.com for reliable flag images
+    // Format: https://flagcdn.com/w320/{code}.png or .svg
+    // Using w320 for HD quality on retina displays
+    return `https://flagcdn.com/w320/${countryCode}.png`;
+  }
+
   // ---- 1. GET SUPPORTED REGIONS ----
   async getLocations() {
     // SDK uses client.post for raw endpoints
     const result = await this.esimAccess.client.post<any>('/location/list', {});
+    const rawLocationList = result?.obj?.locationList || [];
+    
+    // Normalize and add flag URLs
+    const normalizedList: any[] = [];
+    const seenCodes = new Set<string>(); // Track codes to avoid duplicates
+    
+    for (const location of rawLocationList) {
+      // Add country/continent directly (if not already seen)
+      if (!seenCodes.has(location.code)) {
+        normalizedList.push({
+          code: location.code,
+          name: location.name,
+          locationLogo: this.getFlagUrl(location.code, location.type),
+        });
+        seenCodes.add(location.code);
+      }
+      
+      // If it's a continent (type 2), also add sub-locations
+      if (location.type === 2 && location.subLocation && Array.isArray(location.subLocation)) {
+        for (const subLoc of location.subLocation) {
+          if (!seenCodes.has(subLoc.code)) {
+            normalizedList.push({
+              code: subLoc.code,
+              name: subLoc.name,
+              locationLogo: this.getFlagUrl(subLoc.code, 1), // Sub-locations are countries (type 1)
+            });
+            seenCodes.add(subLoc.code);
+          }
+        }
+      }
+    }
+    
     return {
-      locationList: result?.obj?.locationList || [],
+      locationList: normalizedList,
     };
   }
 

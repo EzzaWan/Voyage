@@ -237,4 +237,269 @@ export class OrdersService {
       await this.performEsimOrderForOrder(order, user, order.planId, undefined as any);
     }
   }
+
+  // ============================================
+  // FEATURE 1: AUTOMATIC RETRY FOR FAILED ORDERS
+  // ============================================
+  async retryPendingOrders() {
+    this.logger.log('[RETRY] Starting retry cycle for pending orders...');
+
+    const pendingOrders = await this.prisma.order.findMany({
+      where: {
+        status: {
+          in: ['esim_no_orderno', 'esim_pending', 'esim_order_failed'],
+        },
+      },
+      include: {
+        user: true,
+      },
+      take: 10, // Process max 10 orders per cycle to avoid overwhelming
+    });
+
+    this.logger.log(`[RETRY] Found ${pendingOrders.length} pending order(s) to retry`);
+
+    for (const order of pendingOrders) {
+      try {
+        this.logger.log(`[RETRY] Processing order ${order.id} (status: ${order.status})`);
+
+        // Build the same transactionId format as original
+        const transactionId = `stripe_${order.id}`;
+        
+        // Convert Stripe cents to provider format (1/10000th units)
+        const amountInProviderUnits = (order.amountCents ?? 0) * 100;
+
+        const body = {
+          transactionId,
+          packageInfoList: [
+            {
+              packageCode: order.planId,
+              count: 1,
+              price: amountInProviderUnits,
+            },
+          ],
+          amount: amountInProviderUnits,
+        };
+
+        // Call eSIM provider
+        let esimResult: any = null;
+        try {
+          this.logger.log(
+            `[RETRY] Calling provider for order ${order.id}...\n` +
+            `transactionId=${transactionId}\n` +
+            `packageCode=${order.planId}\n` +
+            `amount=${amountInProviderUnits}`
+          );
+
+          esimResult = await this.esimService.sdk.client.request(
+            'POST',
+            '/esim/order',
+            body
+          );
+
+          this.logger.log(`[RETRY] Provider response for order ${order.id}: ${JSON.stringify(esimResult, null, 2)}`);
+        } catch (err) {
+          this.logger.error(`[RETRY] Provider request failed for order ${order.id}:`, err);
+          // Leave order as pending, don't fail permanently
+          continue;
+        }
+
+        // Check if we got an orderNo
+        const orderNo = esimResult?.obj?.orderNo;
+
+        if (!orderNo) {
+          this.logger.warn(`[RETRY] Still no orderNo for order ${order.id}, leaving as pending`);
+          // Leave status unchanged, will retry next cycle
+          continue;
+        }
+
+        // Update order with orderNo and set status to provisioning
+        await this.prisma.order.update({
+          where: { id: order.id },
+          data: {
+            esimOrderNo: orderNo,
+            status: 'provisioning',
+          },
+        });
+
+        this.logger.log(`[RETRY] Got orderNo ${orderNo} for order ${order.id}, querying profiles...`);
+
+        // Immediately query for eSIM profile
+        const pollQuery = async (attempts = 5, delayMs = 3000) => {
+          for (let i = 0; i < attempts; i++) {
+            try {
+              this.logger.log(`[RETRY] Query attempt ${i + 1}/${attempts} for orderNo=${orderNo}`);
+
+              const res = await this.esimService.sdk.client.request<QueryProfilesResponse>(
+                'POST',
+                '/esim/query',
+                { orderNo, pager: { pageNum: 1, pageSize: 50 } }
+              );
+
+              if (res?.obj?.esimList?.length > 0) {
+                return res;
+              }
+            } catch (err) {
+              this.logger.warn(`[RETRY] Query failed for orderNo=${orderNo}:`, err);
+            }
+            await new Promise((r) => setTimeout(r, delayMs));
+          }
+          return null;
+        };
+
+        const queryResult = await pollQuery();
+
+        if (!queryResult || !queryResult.obj?.esimList?.length) {
+          this.logger.warn(`[RETRY] No profile yet for order ${order.id}, setting status to esim_pending`);
+          await this.prisma.order.update({
+            where: { id: order.id },
+            data: { status: 'esim_pending' },
+          });
+          continue;
+        }
+
+        const profile = queryResult.obj.esimList[0];
+
+        // Check if profile already exists for this order
+        const existingProfile = await this.prisma.esimProfile.findFirst({
+          where: { orderId: order.id },
+        });
+
+        if (existingProfile) {
+          // Update existing profile
+          await this.prisma.esimProfile.update({
+            where: { id: existingProfile.id },
+            data: {
+              esimTranNo: profile.esimTranNo || existingProfile.esimTranNo,
+              iccid: profile.iccid || existingProfile.iccid,
+              qrCodeUrl: profile.qrCodeUrl || existingProfile.qrCodeUrl,
+              ac: profile.ac || existingProfile.ac,
+              smdpStatus: profile.smdpStatus || existingProfile.smdpStatus,
+              esimStatus: profile.esimStatus || existingProfile.esimStatus,
+              expiredTime: profile.expiredTime ? new Date(profile.expiredTime) : existingProfile.expiredTime,
+              totalVolume: profile.totalVolume ?? existingProfile.totalVolume,
+            },
+          });
+        } else {
+          // Create new profile
+          await this.prisma.esimProfile.create({
+            data: {
+              orderId: order.id,
+              userId: order.userId,
+              esimTranNo: profile.esimTranNo || `TEMP_${order.id}`,
+              iccid: profile.iccid || '',
+              qrCodeUrl: profile.qrCodeUrl || null,
+              ac: profile.ac || null,
+              smdpStatus: profile.smdpStatus || null,
+              esimStatus: profile.esimStatus || null,
+              expiredTime: profile.expiredTime ? new Date(profile.expiredTime) : null,
+              totalVolume: profile.totalVolume ?? null,
+            },
+          });
+        }
+
+        // Update order status to esim_created
+        await this.prisma.order.update({
+          where: { id: order.id },
+          data: { status: 'esim_created' },
+        });
+
+        this.logger.log(`[RETRY] Successfully created/updated eSIM profile for order ${order.id}`);
+      } catch (err) {
+        this.logger.error(`[RETRY] Error processing order ${order.id}:`, err);
+        // Continue with next order, don't fail permanently
+      }
+    }
+
+    this.logger.log('[RETRY] Retry cycle completed');
+  }
+
+  // ============================================
+  // FEATURE 3: SYNC FOR USAGE & STATUS
+  // ============================================
+  async syncEsimProfiles() {
+    this.logger.log('[SYNC] Starting sync cycle for all eSIM profiles...');
+
+    const profiles = await this.prisma.esimProfile.findMany({
+      include: {
+        order: true,
+      },
+    });
+
+    this.logger.log(`[SYNC] Found ${profiles.length} profile(s) to sync`);
+
+    for (const profile of profiles) {
+      try {
+        const orderNo = profile.order?.esimOrderNo;
+
+        if (!orderNo) {
+          this.logger.warn(`[SYNC] Skipping profile ${profile.id} - no orderNo found`);
+          continue;
+        }
+
+        this.logger.log(`[SYNC] Syncing profile ${profile.id} (orderNo: ${orderNo})`);
+
+        // Query provider for latest profile data
+        const res = await this.esimService.sdk.client.request<QueryProfilesResponse>(
+          'POST',
+          '/esim/query',
+          { orderNo, pager: { pageNum: 1, pageSize: 50 } }
+        );
+
+        if (!res?.obj?.esimList || res.obj.esimList.length === 0) {
+          this.logger.warn(`[SYNC] No profile data found for orderNo ${orderNo}`);
+          continue;
+        }
+
+        // Find matching profile by iccid or esimTranNo
+        const providerProfile = res.obj.esimList.find(
+          (p) => p.iccid === profile.iccid || p.esimTranNo === profile.esimTranNo
+        ) || res.obj.esimList[0]; // Fallback to first if no match
+
+        // Update profile with latest data
+        const updateData: any = {};
+
+        if (providerProfile.esimStatus !== undefined) {
+          updateData.esimStatus = providerProfile.esimStatus;
+        }
+        if (providerProfile.totalVolume !== undefined) {
+          updateData.totalVolume = providerProfile.totalVolume;
+        }
+        // Note: orderUsage is not provided by the eSIM Access API in the profile response
+        if (providerProfile.expiredTime) {
+          updateData.expiredTime = new Date(providerProfile.expiredTime);
+        }
+        if (providerProfile.smdpStatus !== undefined) {
+          updateData.smdpStatus = providerProfile.smdpStatus;
+        }
+        if (providerProfile.qrCodeUrl !== undefined) {
+          updateData.qrCodeUrl = providerProfile.qrCodeUrl;
+        }
+        if (providerProfile.ac !== undefined) {
+          updateData.ac = providerProfile.ac;
+        }
+        if (providerProfile.iccid !== undefined && providerProfile.iccid !== profile.iccid) {
+          updateData.iccid = providerProfile.iccid;
+        }
+        if (providerProfile.esimTranNo !== undefined && providerProfile.esimTranNo !== profile.esimTranNo) {
+          updateData.esimTranNo = providerProfile.esimTranNo;
+        }
+
+        if (Object.keys(updateData).length > 0) {
+          await this.prisma.esimProfile.update({
+            where: { id: profile.id },
+            data: updateData,
+          });
+
+          this.logger.log(`[SYNC] Updated profile ${profile.id} with: ${Object.keys(updateData).join(', ')}`);
+        } else {
+          this.logger.log(`[SYNC] No updates needed for profile ${profile.id}`);
+        }
+      } catch (err) {
+        this.logger.error(`[SYNC] Error syncing profile ${profile.id}:`, err);
+        // Continue with next profile
+      }
+    }
+
+    this.logger.log('[SYNC] Sync cycle completed');
+  }
 }

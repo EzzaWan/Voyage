@@ -5,6 +5,7 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { StripeModule } from './modules/stripe/stripe.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { UsersModule } from './modules/users/users.module';
+import { CronModule } from './cron/cron.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { UsersModule } from './modules/users/users.module';
     OrdersModule,
     StripeModule,
     WebhooksModule,
+    CronModule,
   ],
 })
 export class AppModule {}

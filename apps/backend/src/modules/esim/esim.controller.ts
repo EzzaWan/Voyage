@@ -1,9 +1,13 @@
 import { Controller, Get, Param, Post, Body } from '@nestjs/common';
 import { EsimService } from './esim.service';
+import { OrdersService } from '../orders/orders.service';
 
 @Controller() // Do NOT prefix with /api. Global prefix handles it.
 export class EsimController {
-  constructor(private readonly esimService: EsimService) {}
+  constructor(
+    private readonly esimService: EsimService,
+    private readonly ordersService: OrdersService,
+  ) {}
 
   @Get('countries')
   async getCountries() {
@@ -28,5 +32,14 @@ export class EsimController {
     @Body() body: { packageCode: string }
   ) {
     return { status: 'not_implemented_yet', id };
+  }
+
+  // ============================================
+  // FEATURE 5: MANUAL SYNC TRIGGER ENDPOINT
+  // ============================================
+  @Get('sync-now')
+  async syncNow() {
+    await this.ordersService.syncEsimProfiles();
+    return { message: 'Sync cycle completed', timestamp: new Date().toISOString() };
   }
 }
