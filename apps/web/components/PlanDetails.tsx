@@ -6,9 +6,11 @@ import { PriceTag } from "./PriceTag";
 import { FlagIcon } from "./FlagIcon";
 
 export function PlanDetails({ plan }: { plan: any }) {
+  console.log("PLAN DEBUG:", plan);
   const sizeGB = (plan.volume / 1024 / 1024 / 1024).toFixed(1);
   
   async function buyNow() {
+    console.log("FRONT price dollars:", plan.price);
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders`, {
         method: "POST",
@@ -16,7 +18,7 @@ export function PlanDetails({ plan }: { plan: any }) {
         body: JSON.stringify({
           planCode: plan.packageCode,
           currency: plan.currencyCode?.toLowerCase() || 'usd',
-          amount: plan.price,
+          amount: plan.price,  // Send price in USD dollars (e.g. 0.25)
           planName: plan.name,
         }),
       });

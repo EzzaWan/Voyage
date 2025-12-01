@@ -17,7 +17,7 @@ export class WebhooksController {
     @Req() req: any,
     @Headers('stripe-signature') signature: string,
   ) {
-    const raw = req.rawBody; // must exist now
+    const raw = req.rawBody;
 
     let event;
 
@@ -34,8 +34,27 @@ export class WebhooksController {
 
     console.log("🔥 Webhook received:", event.type);
 
-    if (event.type === "checkout.session.completed") {
-      await this.ordersService.handleStripePayment(event.data.object);
+    try {
+      if (event.type === "checkout.session.completed") {
+        await this.ordersService.handleStripePayment(event.data.object);
+      }
+
+      if (event.type === 'payment_intent.succeeded' || event.type === 'charge.succeeded') {
+        const obj = event.data.object as any;
+        const ref =
+          obj.id ||
+          obj.payment_intent ||
+          obj.payment_intent?.id ||
+          obj.checkout_session ||
+          obj.session_id;
+
+        if (ref) {
+          await this.ordersService.retryPendingForPaymentRef(ref);
+        }
+      }
+    } catch (err) {
+      console.error('Webhook handling error:', err);
+      throw err;
     }
 
     return { received: true };

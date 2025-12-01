@@ -3,6 +3,7 @@ import { ArrowLeft, MapPin } from "lucide-react";
 import { PlanCard, Plan } from "@/components/PlanCard";
 import { Button } from "@/components/ui/button";
 import { FlagIcon } from "@/components/FlagIcon";
+import { formatUsdDollars } from "@/lib/utils";
 
 // Server Component
 export default async function CountryPlansPage({ params }: { params: { code: string } }) {
@@ -56,7 +57,7 @@ export default async function CountryPlansPage({ params }: { params: { code: str
                </div>
                {lowestPrice > 0 && (
                   <div className="inline-block mt-2 px-4 py-1 rounded-full bg-[var(--voyage-accent)] text-white font-bold text-sm shadow-lg shadow-[var(--voyage-accent)]/30">
-                     Plans starting from ${(lowestPrice / 10000).toFixed(2)}
+                     Plans starting from {formatUsdDollars(lowestPrice)}
                   </div>
                )}
             </div>

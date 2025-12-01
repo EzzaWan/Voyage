@@ -8,7 +8,7 @@ import { FlagIcon } from "./FlagIcon";
 export interface Plan {
   packageCode: string;
   name: string;
-  price: number;
+  price: number; // in USD dollars (e.g. 0.25 = $0.25, 3.00 = $3.00)
   volume: number; // bytes
   duration: number;
   durationUnit: string;

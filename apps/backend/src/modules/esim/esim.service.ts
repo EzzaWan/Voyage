@@ -29,8 +29,20 @@ export class EsimService {
       locationCode
     );
 
+    // Convert prices from provider format (1/10000th units) to dollars
+    // Architecture doc: map price / 10000 -> decimal (2500 = $0.25)
+    const packageList = (result?.obj?.packageList || []).map((pkg: any) => {
+      const priceFromProvider = pkg.price;
+      const priceInDollars = priceFromProvider ? priceFromProvider / 10000 : priceFromProvider;
+      console.log(`[ESIM] Converting price: ${priceFromProvider} provider units → ${priceInDollars} dollars`);
+      return {
+        ...pkg,
+        price: priceInDollars,
+      };
+    });
+
     return {
-      packageList: result?.obj?.packageList || [],
+      packageList,
     };
   }
 
@@ -46,7 +58,16 @@ export class EsimService {
       throw new NotFoundException(`Package ${packageCode} not found`);
     }
 
-    return plan;
+    // Convert prices from provider format (1/10000th units) to dollars
+    // Architecture doc: map price / 10000 -> decimal (2500 = $0.25)
+    const priceFromProvider = plan.price;
+    const priceInDollars = priceFromProvider ? priceFromProvider / 10000 : priceFromProvider;
+    console.log(`[ESIM] Single plan conversion: ${priceFromProvider} provider units → ${priceInDollars} dollars`);
+    
+    return {
+      ...plan,
+      price: priceInDollars,
+    };
   }
 
   get sdk() {
