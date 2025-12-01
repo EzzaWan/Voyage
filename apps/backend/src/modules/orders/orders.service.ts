@@ -4,7 +4,7 @@ import { PrismaService } from '../../prisma.service';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 import { EsimService } from '../esim/esim.service';
-import { QueryProfilesResponse } from '../../../../../libs/esim-access/types';
+import { QueryProfilesResponse, UsageItem } from '../../../../../libs/esim-access/types';
 
 @Injectable()
 export class OrdersService {
@@ -440,6 +440,7 @@ export class OrdersService {
 
     this.logger.log(`[SYNC] Found ${profiles.length} profile(s) to sync`);
 
+    // Step 1: Sync profile status, volume, expiry, etc. from /esim/query
     for (const profile of profiles) {
       try {
         const orderNo = profile.order?.esimOrderNo;
@@ -477,7 +478,6 @@ export class OrdersService {
         if (providerProfile.totalVolume !== undefined) {
           updateData.totalVolume = providerProfile.totalVolume;
         }
-        // Note: orderUsage is not provided by the eSIM Access API in the profile response
         if (providerProfile.expiredTime) {
           updateData.expiredTime = new Date(providerProfile.expiredTime);
         }
@@ -510,6 +510,130 @@ export class OrdersService {
       } catch (err) {
         this.logger.error(`[SYNC] Error syncing profile ${profile.id}:`, err);
         // Continue with next profile
+      }
+    }
+
+    // Step 2: Sync usage data (orderUsage) from /esim/usage/query
+    this.logger.log('[SYNC] Starting usage sync for all profiles...');
+    
+    // Collect all esimTranNo values from profiles that have them
+    const profilesWithTranNo = profiles.filter(p => p.esimTranNo);
+    
+    this.logger.log(`[SYNC] Found ${profilesWithTranNo.length} profile(s) with esimTranNo out of ${profiles.length} total`);
+    
+    if (profilesWithTranNo.length === 0) {
+      this.logger.log('[SYNC] No profiles with esimTranNo found, skipping usage sync');
+      this.logger.log('[SYNC] Sync cycle completed');
+      return;
+    }
+    
+    // Log all esimTranNos for debugging
+    const tranNos = profilesWithTranNo.map(p => p.esimTranNo).filter(Boolean);
+    this.logger.log(`[SYNC] Will query usage for esimTranNos: ${JSON.stringify(tranNos)}`);
+
+    // Batch process usage queries (API may have limits, so we'll do in chunks of 50)
+    const BATCH_SIZE = 50;
+    const tranNoBatches: string[][] = [];
+    
+    for (let i = 0; i < profilesWithTranNo.length; i += BATCH_SIZE) {
+      tranNoBatches.push(
+        profilesWithTranNo
+          .slice(i, i + BATCH_SIZE)
+          .map(p => p.esimTranNo!)
+          .filter(Boolean)
+      );
+    }
+
+    this.logger.log(`[SYNC] Processing ${profilesWithTranNo.length} profiles in ${tranNoBatches.length} batch(es)`);
+
+    for (let batchIdx = 0; batchIdx < tranNoBatches.length; batchIdx++) {
+      const tranNoBatch = tranNoBatches[batchIdx];
+      
+      try {
+        this.logger.log(`[SYNC] Fetching usage for batch ${batchIdx + 1}/${tranNoBatches.length} (${tranNoBatch.length} profiles)`);
+        this.logger.log(`[SYNC] Requesting usage for esimTranNos: ${JSON.stringify(tranNoBatch)}`);
+        
+        // Call usage API
+        const usageResponse: any = await this.esimService.sdk.usage.getUsage(tranNoBatch);
+        
+        this.logger.log(`[SYNC] Usage API response: ${JSON.stringify(usageResponse, null, 2)}`);
+        
+        // Check for API errors (errorCode "0" means success, anything else is an error)
+        const isError = usageResponse?.success === false || 
+                       usageResponse?.success === "false" ||
+                       (usageResponse?.errorCode && usageResponse.errorCode !== "0" && usageResponse.errorCode !== 0);
+        
+        if (isError) {
+          this.logger.error(`[SYNC] Usage API error: ${usageResponse.errorCode} - ${usageResponse.errorMessage || usageResponse.errorMsg || 'Unknown error'}`);
+          continue;
+        }
+        
+        // The API actually returns: { obj: { esimUsageList: UsageItem[] } }
+        // Check both possible structures for compatibility
+        let usageData: UsageItem[] = [];
+        
+        if (usageResponse?.obj) {
+          if (Array.isArray(usageResponse.obj)) {
+            // Direct array format
+            usageData = usageResponse.obj;
+          } else if ((usageResponse.obj as any).esimUsageList && Array.isArray((usageResponse.obj as any).esimUsageList)) {
+            // Nested esimUsageList format (actual API structure)
+            usageData = (usageResponse.obj as any).esimUsageList;
+          }
+        }
+        
+        if (!usageData || usageData.length === 0) {
+          this.logger.log(`[SYNC] No usage data returned for batch ${batchIdx + 1} - profile may be unused or not ready yet`);
+          continue;
+        }
+        this.logger.log(`[SYNC] Received usage data for ${usageData.length} profile(s) in batch ${batchIdx + 1}`);
+
+        // Update each profile with usage data
+        for (const usageItem of usageData) {
+          try {
+            const profile = profilesWithTranNo.find(p => p.esimTranNo === usageItem.esimTranNo);
+            
+            if (!profile) {
+              this.logger.warn(`[SYNC] Usage data received for unknown esimTranNo: ${usageItem.esimTranNo}`);
+              continue;
+            }
+
+            const updateData: any = {};
+
+            // dataUsage is the consumed amount (this is orderUsage)
+            // Even if 0, we should update it to indicate the profile has been checked
+            if (usageItem.dataUsage !== undefined) {
+              updateData.orderUsage = BigInt(usageItem.dataUsage); // Can be 0 if unused
+            }
+
+            // Optionally update totalVolume if different (though we already sync this above)
+            if (usageItem.totalData !== undefined) {
+              const totalDataBigInt = BigInt(usageItem.totalData);
+              // Only update if it's different from what we have
+              if (!profile.totalVolume || profile.totalVolume !== totalDataBigInt) {
+                updateData.totalVolume = totalDataBigInt;
+              }
+            }
+
+            if (Object.keys(updateData).length > 0) {
+              await this.prisma.esimProfile.update({
+                where: { id: profile.id },
+                data: updateData,
+              });
+
+              this.logger.log(
+                `[SYNC] Updated usage for profile ${profile.id}: ` +
+                `orderUsage=${usageItem.dataUsage}, totalData=${usageItem.totalData}`
+              );
+            }
+          } catch (err) {
+            this.logger.error(`[SYNC] Error updating usage for esimTranNo ${usageItem.esimTranNo}:`, err);
+            // Continue with next usage item
+          }
+        }
+      } catch (err) {
+        this.logger.error(`[SYNC] Error fetching usage for batch ${batchIdx + 1}:`, err);
+        // Continue with next batch
       }
     }
 

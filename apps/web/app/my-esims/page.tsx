@@ -195,24 +195,25 @@ export default function MyEsimsPage() {
            {esims.map((esim) => {
              const status = getStatusDisplay(esim.esimStatus);
              return (
-               <Card key={esim.id} className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] overflow-hidden hover:border-[var(--voyage-accent)] transition-colors">
-                  <div className="h-2 bg-gradient-to-r from-[var(--voyage-accent)] to-purple-500" />
-                  <CardHeader className="flex flex-row items-start justify-between pb-2">
-                     <div className="flex-1 min-w-0 pr-2">
-                        <h3 className="font-bold text-lg text-white mb-1 truncate">
-                          {formatPlanName(esim.planDetails, esim.order?.planId)}
-                        </h3>
-                        {esim.planDetails?.locationCode && (
-                          <p className="text-sm text-[var(--voyage-muted)]">
-                            {esim.planDetails.locationCode}
-                          </p>
-                        )}
-                     </div>
-                     <Badge className={status.color}>
-                        {status.label}
-                     </Badge>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
+               <Link key={esim.id} href={`/my-esims/${esim.iccid}`} className="block">
+                 <Card className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] overflow-hidden hover:border-[var(--voyage-accent)] transition-colors cursor-pointer">
+                    <div className="h-2 bg-gradient-to-r from-[var(--voyage-accent)] to-purple-500" />
+                    <CardHeader className="flex flex-row items-start justify-between pb-2">
+                       <div className="flex-1 min-w-0 pr-2">
+                          <h3 className="font-bold text-lg text-white mb-1 truncate">
+                            {formatPlanName(esim.planDetails, esim.order?.planId)}
+                          </h3>
+                          {esim.planDetails?.locationCode && (
+                            <p className="text-sm text-[var(--voyage-muted)]">
+                              {esim.planDetails.locationCode}
+                            </p>
+                          )}
+                       </div>
+                       <Badge className={status.color}>
+                          {status.label}
+                       </Badge>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
                      <div className="space-y-2">
                         <div className="p-3 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)] flex items-center justify-between">
                            <span className="text-sm text-[var(--voyage-muted)]">ICCID</span>
@@ -257,13 +258,17 @@ export default function MyEsimsPage() {
                      {esim.qrCodeUrl && (
                         <Button 
                           className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white"
-                          onClick={() => setSelectedEsim(esim)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setSelectedEsim(esim);
+                          }}
                         >
                            <QrCode className="mr-2 h-4 w-4" /> View QR Code
                         </Button>
                      )}
 
-                     <Link href={`/my-esims/${esim.iccid}/topup`} className="block w-full">
+                     <Link href={`/my-esims/${esim.iccid}/topup`} className="block w-full" onClick={(e) => e.stopPropagation()}>
                        <Button 
                           className="w-full h-10 text-md font-bold bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white shadow-[0_0_20px_rgba(30,144,255,0.3)] transition-all mt-2"
                        >
@@ -275,7 +280,9 @@ export default function MyEsimsPage() {
                         <Button 
                           variant="outline"
                           className="w-full bg-[var(--voyage-bg-light)] hover:bg-[var(--voyage-border)] text-white border border-[var(--voyage-border)]"
-                          onClick={async () => {
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
                             await navigator.clipboard.writeText(esim.ac);
                             setCopied(true);
                             setTimeout(() => setCopied(false), 2000);
@@ -293,7 +300,8 @@ export default function MyEsimsPage() {
                         </Button>
                      )}
                   </CardContent>
-               </Card>
+                 </Card>
+               </Link>
              );
            })}
         </div>

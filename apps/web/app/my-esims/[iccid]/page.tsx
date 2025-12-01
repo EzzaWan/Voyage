@@ -8,6 +8,20 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
+// Helper function to format user-friendly status
+function getStatusDisplay(esimStatus: string | undefined): { label: string; color: string } {
+  if (!esimStatus) return { label: "Pending", color: "bg-gray-500/20 text-gray-400" };
+  
+  const statusMap: Record<string, { label: string; color: string }> = {
+    GOT_RESOURCE: { label: "Ready", color: "bg-green-500/20 text-green-400 hover:bg-green-500/30" },
+    IN_USE: { label: "Active", color: "bg-blue-500/20 text-blue-400 hover:bg-blue-500/30" },
+    EXPIRED: { label: "Expired", color: "bg-red-500/20 text-red-400 hover:bg-red-500/30" },
+    SUSPENDED: { label: "Suspended", color: "bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30" },
+  };
+  
+  return statusMap[esimStatus] || { label: esimStatus, color: "bg-gray-500/20 text-gray-400" };
+}
+
 // Helper function to format bytes to readable format
 function formatBytes(bytes: string | number | null | undefined): string {
   if (bytes === null || bytes === undefined) return "N/A";
@@ -37,6 +51,9 @@ export default function EsimDetailPage() {
   const [profile, setProfile] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // State to store plan details for top-ups
+  const [planDetailsMap, setPlanDetailsMap] = useState<Record<string, any>>({});
 
   const fetchData = async () => {
     setLoading(true);
@@ -53,6 +70,26 @@ export default function EsimDetailPage() {
       if (resHistory.ok) {
         const data = await resHistory.json();
         setHistory(data);
+        
+        // Fetch plan details for each top-up
+        const planCodes = [...new Set(data.map((item: any) => item.planCode).filter(Boolean))];
+        const planDetails: Record<string, any> = {};
+        
+        await Promise.all(
+          planCodes.map(async (planCode: string) => {
+            try {
+              const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/plans/${planCode}`);
+              if (res.ok) {
+                const plan = await res.json();
+                planDetails[planCode] = plan;
+              }
+            } catch (e) {
+              console.error(`Failed to fetch plan ${planCode}:`, e);
+            }
+          })
+        );
+        
+        setPlanDetailsMap(planDetails);
       }
     } catch (e) {
       console.error(e);
@@ -82,7 +119,25 @@ export default function EsimDetailPage() {
   }
 
   const sizeGB = profile.totalVolume ? formatBytes(profile.totalVolume) : "0 GB";
-  const expiryDate = profile.expiredTime ? new Date(profile.expiredTime).toLocaleDateString() : "N/A";
+  
+  // Format expiry date properly
+  const formatExpiryDate = (dateStr: string | null | undefined): string => {
+    if (!dateStr) return "N/A";
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return "N/A";
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    } catch (e) {
+      return "N/A";
+    }
+  };
+  
+  const expiryDate = formatExpiryDate(profile.expiredTime);
+  const statusDisplay = getStatusDisplay(profile.esimStatus);
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
@@ -106,8 +161,8 @@ export default function EsimDetailPage() {
           
           <div className="relative z-10">
               <div className="flex items-center gap-3 mb-4">
-                  <Badge className="bg-[var(--voyage-accent)]/20 text-[var(--voyage-accent)] border-[var(--voyage-accent)]/30">
-                      {profile.esimStatus || "Active"}
+                  <Badge className={getStatusDisplay(profile.esimStatus).color}>
+                      {getStatusDisplay(profile.esimStatus).label}
                   </Badge>
                   <span className="px-3 py-1 rounded-full bg-purple-500/20 text-purple-400 text-sm font-medium border border-purple-500/30">
                       eSIM
@@ -143,7 +198,7 @@ export default function EsimDetailPage() {
          </div>
          <div className="bg-[var(--voyage-card)] rounded-xl p-5 border border-[var(--voyage-border)] flex flex-col items-center justify-center text-center">
             <span className="text-[var(--voyage-muted)] text-sm mb-1">Status</span>
-            <span className="text-xl font-bold text-white">{profile.smdpStatus || "Unknown"}</span>
+            <span className="text-xl font-bold text-white">{statusDisplay.label}</span>
          </div>
          <div className="bg-[var(--voyage-card)] rounded-xl p-5 border border-[var(--voyage-border)] flex flex-col items-center justify-center text-center">
             <span className="text-[var(--voyage-muted)] text-sm mb-1">ICCID</span>
@@ -167,16 +222,33 @@ export default function EsimDetailPage() {
          <h3 className="text-xl font-bold text-white mb-6">Top-Up History</h3>
          {history.length > 0 ? (
              <div className="space-y-4">
-                 {history.map((item: any) => (
+                 {history.map((item: any) => {
+                   const planDetails = planDetailsMap[item.planCode];
+                   const planName = planDetails?.name || item.planCode;
+                   
+                   return (
                      <div key={item.id} className="flex items-center justify-between p-4 rounded-lg bg-[var(--voyage-bg-light)] border border-[var(--voyage-border)]">
                          <div className="flex items-center gap-4">
                              <div className="h-10 w-10 rounded-full bg-[var(--voyage-bg)] flex items-center justify-center border border-[var(--voyage-border)]">
                                  <Clock className="h-5 w-5 text-[var(--voyage-accent)]" />
                              </div>
                              <div>
-                               <p className="font-bold text-white">{item.planCode}</p>
+                               <p className="font-bold text-white">{planName}</p>
                                <p className="text-sm text-[var(--voyage-muted)]">
-                                 {new Date(item.createdAt).toLocaleDateString()}
+                                 {(() => {
+                                   if (!item.createdAt) return 'N/A';
+                                   try {
+                                     const date = new Date(item.createdAt);
+                                     if (isNaN(date.getTime())) return 'N/A';
+                                     return date.toLocaleDateString('en-US', { 
+                                       year: 'numeric', 
+                                       month: 'short', 
+                                       day: 'numeric' 
+                                     });
+                                   } catch (e) {
+                                     return 'N/A';
+                                   }
+                                 })()}
                                </p>
                              </div>
                          </div>
@@ -191,7 +263,8 @@ export default function EsimDetailPage() {
                              </Badge>
                          </div>
                      </div>
-                 ))}
+                   );
+                 })}
              </div>
          ) : (
              <div className="flex items-center gap-3 p-4 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)] text-[var(--voyage-muted)]">

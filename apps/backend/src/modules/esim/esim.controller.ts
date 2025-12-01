@@ -89,7 +89,14 @@ export class EsimController {
       } catch (e) {}
     }
 
-    return { ...profile, planDetails };
+    // Serialize Date and BigInt fields for JSON response
+    return {
+      ...profile,
+      expiredTime: profile.expiredTime ? profile.expiredTime.toISOString() : null,
+      totalVolume: profile.totalVolume ? profile.totalVolume.toString() : null,
+      orderUsage: profile.orderUsage ? profile.orderUsage.toString() : null,
+      planDetails,
+    };
   }
 
   // ============================================
