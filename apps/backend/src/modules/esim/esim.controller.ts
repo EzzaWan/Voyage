@@ -64,7 +64,12 @@ export class EsimController {
   @Get('esim/topups')
   async getTopUps(@Query('iccid') iccid: string) {
     if (!iccid) return [];
-    return this.topUpService.getTopUpsByIccid(iccid);
+    const topups = await this.topUpService.getTopUpsByIccid(iccid);
+    // Serialize Date objects for JSON response
+    return topups.map(topup => ({
+      ...topup,
+      createdAt: topup.createdAt ? topup.createdAt.toISOString() : null,
+    }));
   }
 
   @Get('esim/:iccid')
