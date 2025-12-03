@@ -8,7 +8,8 @@ import { FlagIcon } from "./FlagIcon";
 export interface Plan {
   packageCode: string;
   name: string;
-  price: number; // in USD dollars (e.g. 0.25 = $0.25, 3.00 = $3.00)
+  price: number; // Price amount (e.g. 0.25, 10.50)
+  currencyCode?: string; // ISO currency code (e.g. "USD", "PLN", "EUR")
   volume: number; // bytes
   duration: number;
   durationUnit: string;
@@ -79,7 +80,7 @@ export function PlanCard({ plan }: PlanCardProps) {
         <div className="mt-6 pt-4 border-t border-[var(--voyage-border)] flex items-center justify-between">
            <div className="flex flex-col">
               <span className="text-xs text-[var(--voyage-muted)] uppercase tracking-wider">Price</span>
-              <PriceTag price={plan.price} className="text-xl text-white" />
+              <PriceTag price={plan.price} currencyCode={plan.currencyCode} className="text-xl text-white" />
            </div>
            <Button size="sm" className="bg-[var(--voyage-bg-light)] hover:bg-[var(--voyage-accent)] text-[var(--voyage-text)] hover:text-white border border-[var(--voyage-border)] group-hover:border-[var(--voyage-accent)] transition-all">
               Select <ArrowRight className="ml-2 h-4 w-4" />

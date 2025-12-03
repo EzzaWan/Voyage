@@ -253,7 +253,7 @@ export default function EsimDetailPage() {
                              </div>
                          </div>
                          <div className="text-right">
-                             <PriceTag price={item.amountCents / 100} className="text-lg text-white block" />
+                             <PriceTag price={item.amountCents / 100} currencyCode={item.currency} className="text-lg text-white block" />
                              <Badge variant="outline" className={
                                item.status === 'completed' ? 'text-green-400 border-green-500/30' : 
                                item.status === 'pending' ? 'text-yellow-400 border-yellow-500/30' : 

@@ -1,17 +1,43 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EsimAccess } from '../../../../../libs/esim-access';
+import { AdminSettingsService } from '../admin/admin-settings.service';
+import { CurrencyConverterService } from '../admin/currency-converter.service';
+import { QueryProfilesResponse } from '../../../../../libs/esim-access/types';
 
 @Injectable()
 export class EsimService {
   private esimAccess: EsimAccess;
+  private readonly logger = new Logger(EsimService.name);
 
-  constructor(private config: ConfigService) {
+  constructor(
+    private config: ConfigService,
+    @Inject(forwardRef(() => AdminSettingsService))
+    private adminSettingsService: AdminSettingsService,
+    @Inject(forwardRef(() => CurrencyConverterService))
+    private currencyConverter: CurrencyConverterService,
+  ) {
     this.esimAccess = new EsimAccess({
       accessCode: this.config.get<string>('ESIM_ACCESS_CODE')!,
       secretKey: this.config.get<string>('ESIM_SECRET_KEY')!,
       baseUrl: this.config.get<string>('ESIM_API_BASE')!,
     });
+  }
+
+  // Check if mock mode is enabled
+  async mockEnabled(): Promise<boolean> {
+    return await this.adminSettingsService.getMockMode();
+  }
+
+  // Apply markup to price
+  async applyMarkup(providerPriceCents: number): Promise<number> {
+    const markupPercent = await this.adminSettingsService.getDefaultMarkupPercent();
+    if (markupPercent === 0) {
+      return providerPriceCents;
+    }
+    const finalPriceCents = Math.round(providerPriceCents * (1 + markupPercent / 100));
+    this.logger.log(`[MARKUP] Applied ${markupPercent}% markup: ${providerPriceCents} → ${finalPriceCents} cents`);
+    return finalPriceCents;
   }
 
   // Helper to generate flag URL from country code
@@ -28,10 +54,73 @@ export class EsimService {
     return `https://flagcdn.com/w320/${countryCode}.png`;
   }
 
+  // ---- MOCK HANDLERS ----
+  private async mockRequest(endpoint: string, data?: any): Promise<any> {
+    this.logger.log(`[MOCK] Handling mock request: ${endpoint}`);
+    
+    if (endpoint === '/esim/order') {
+      return {
+        success: true,
+        obj: {
+          orderNo: `MOCK-${Date.now()}`,
+        },
+      };
+    }
+
+    if (endpoint === '/esim/query') {
+      const now = new Date();
+      const futureDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
+      return {
+        success: true,
+        obj: {
+          esimList: [
+            {
+              esimTranNo: `MOCK-${Date.now()}`,
+              iccid: `MOCK-ICCID-${Date.now()}`,
+              qrCodeUrl: 'https://mock.qr',
+              ac: 'MOCK-AC',
+              smdpStatus: 'RELEASED',
+              esimStatus: 'GOT_RESOURCE',
+              totalVolume: 1073741824, // 1GB
+              expiredTime: futureDate.toISOString(),
+              orderNo: data?.orderNo || `MOCK-ORDER-${Date.now()}`,
+            },
+          ],
+        },
+      };
+    }
+
+    if (endpoint === '/esim/topup') {
+      return {
+        success: true,
+        obj: {
+          orderNo: `MOCK-TOPUP-${Date.now()}`,
+        },
+      };
+    }
+
+    // Default mock response
+    return {
+      success: true,
+      obj: {},
+    };
+  }
+
+  // Wrapper for client requests that checks mock mode
+  private async makeRequest(method: string, endpoint: string, data?: any): Promise<any> {
+    const isMock = await this.mockEnabled();
+    
+    if (isMock) {
+      return this.mockRequest(endpoint, data);
+    }
+
+    // Real provider request
+    return this.esimAccess.client.request(method, endpoint, data);
+  }
+
   // ---- 1. GET SUPPORTED REGIONS ----
   async getLocations() {
-    // SDK uses client.post for raw endpoints
-    const result = await this.esimAccess.client.post<any>('/location/list', {});
+    const result = await this.makeRequest('POST', '/location/list', {});
     const rawLocationList = result?.obj?.locationList || [];
     
     // Normalize and add flag URLs
@@ -71,21 +160,51 @@ export class EsimService {
 
   // ---- 2. GET PACKAGES FOR A COUNTRY ----
   async getPackages(locationCode: string) {
-    const result = await this.esimAccess.packages.getPackagesByLocation(
-      locationCode
-    );
+    const result = await this.esimAccess.packages.getPackagesByLocation(locationCode);
+    const isMock = await this.mockEnabled();
 
     // Convert prices from provider format (1/10000th units) to dollars
     // Architecture doc: map price / 10000 -> decimal (2500 = $0.25)
-    const packageList = (result?.obj?.packageList || []).map((pkg: any) => {
-      const priceFromProvider = pkg.price;
-      const priceInDollars = priceFromProvider ? priceFromProvider / 10000 : priceFromProvider;
-      console.log(`[ESIM] Converting price: ${priceFromProvider} provider units → ${priceInDollars} dollars`);
+    const packageList = await Promise.all((result?.obj?.packageList || []).map(async (pkg: any) => {
+      const priceFromProvider = pkg.price; // Provider price in 1/10000th units
+      
+      // Convert to cents: provider units / 10000 * 100 = cents
+      // Example: 2500 units / 10000 * 100 = 25 cents
+      const providerPriceCents = priceFromProvider ? Math.round((priceFromProvider / 10000) * 100) : 0;
+      
+      // Apply markup
+      const finalPriceCents = await this.applyMarkup(providerPriceCents);
+      
+      // Convert to dollars for frontend
+      const priceInDollars = finalPriceCents / 100;
+      
+      // Handle currency - always use defaultCurrency setting (overrides provider currencyCode)
+      // Provider prices are always in USD, but we display in defaultCurrency
+      const defaultCurrency = await this.adminSettingsService.getDefaultCurrency();
+      // Use defaultCurrency setting (which defaults to 'USD' if not configured)
+      const currency = defaultCurrency || 'USD';
+      
+      // Convert currency if target is not USD (provider prices are always in USD)
+      let finalPrice = priceInDollars;
+      if (currency && currency.toUpperCase() !== 'USD') {
+        this.logger.log(`[CURRENCY] Converting ${pkg.packageCode} from USD to ${currency}: ${priceInDollars} USD`);
+        const convertedCents = await this.currencyConverter.convertCurrency(finalPriceCents, 'USD', currency.toUpperCase());
+        finalPrice = convertedCents / 100;
+        this.logger.log(`[CURRENCY] Converted to ${finalPrice} ${currency}`);
+      } else {
+        this.logger.log(`[CURRENCY] Using USD for ${pkg.packageCode}: ${priceInDollars} USD`);
+      }
+      
+      if (!isMock) {
+        this.logger.log(`[ESIM] Package ${pkg.packageCode}: ${priceFromProvider} provider units → ${priceInDollars} dollars (with markup)`);
+      }
+      
       return {
         ...pkg,
-        price: priceInDollars,
+        price: finalPrice,
+        currencyCode: currency,
       };
-    });
+    }));
 
     return {
       packageList,
@@ -94,9 +213,8 @@ export class EsimService {
 
   // ---- 3. GET SINGLE PLAN ----
   async getPlan(packageCode: string) {
-    const result = await this.esimAccess.packages.getPackageDetails(
-      packageCode
-    );
+    const result = await this.esimAccess.packages.getPackageDetails(packageCode);
+    const isMock = await this.mockEnabled();
 
     const plan = result?.obj?.packageList?.[0];
 
@@ -105,18 +223,133 @@ export class EsimService {
     }
 
     // Convert prices from provider format (1/10000th units) to dollars
-    // Architecture doc: map price / 10000 -> decimal (2500 = $0.25)
-    const priceFromProvider = plan.price;
-    const priceInDollars = priceFromProvider ? priceFromProvider / 10000 : priceFromProvider;
-    console.log(`[ESIM] Single plan conversion: ${priceFromProvider} provider units → ${priceInDollars} dollars`);
+    const priceFromProvider = plan.price; // Provider price in 1/10000th units
+    
+    // Convert to cents: provider units / 10000 * 100 = cents
+    // Example: 2500 units / 10000 * 100 = 25 cents
+    const providerPriceCents = priceFromProvider ? Math.round((priceFromProvider / 10000) * 100) : 0;
+    
+    // Apply markup
+    const finalPriceCents = await this.applyMarkup(providerPriceCents);
+    
+    // Convert to dollars for frontend
+    const priceInDollars = finalPriceCents / 100;
+    
+    // Handle currency - always use defaultCurrency setting (overrides provider currencyCode)
+    // Provider prices are always in USD, but we display in defaultCurrency
+    const defaultCurrency = await this.adminSettingsService.getDefaultCurrency();
+    // Use defaultCurrency setting (which defaults to 'USD' if not configured)
+    const currency = defaultCurrency || 'USD';
+    
+    // Convert currency if target is not USD (provider prices are always in USD)
+    let finalPrice = priceInDollars;
+    if (currency && currency.toUpperCase() !== 'USD') {
+      this.logger.log(`[CURRENCY] Converting plan ${packageCode} from USD to ${currency}: ${priceInDollars} USD`);
+      const convertedCents = await this.currencyConverter.convertCurrency(finalPriceCents, 'USD', currency.toUpperCase());
+      finalPrice = convertedCents / 100;
+      this.logger.log(`[CURRENCY] Converted to ${finalPrice} ${currency}`);
+    } else {
+      this.logger.log(`[CURRENCY] Using USD for plan ${packageCode}: ${priceInDollars} USD`);
+    }
+    
+    if (!isMock) {
+      this.logger.log(`[ESIM] Single plan conversion: ${priceFromProvider} provider units → ${priceInDollars} dollars (with markup)`);
+    }
     
     return {
       ...plan,
-      price: priceInDollars,
+      price: finalPrice,
+      currencyCode: currency,
     };
   }
 
+  // Get SDK with mock-aware client and services
   get sdk() {
-    return this.esimAccess;
+    const service = this;
+    
+    // Create proxied client
+    const proxiedClient = new Proxy(this.esimAccess.client, {
+      get(clientTarget, clientProp) {
+        if (clientProp === 'request' || clientProp === 'post' || clientProp === 'get') {
+          return async function(methodOrUrl: string, urlOrData?: any, data?: any) {
+            let method = 'POST';
+            let endpoint = '';
+            let requestData: any = undefined;
+
+            if (clientProp === 'request') {
+              method = methodOrUrl;
+              endpoint = urlOrData;
+              requestData = data;
+            } else if (clientProp === 'post') {
+              method = 'POST';
+              endpoint = methodOrUrl;
+              requestData = urlOrData;
+            } else if (clientProp === 'get') {
+              method = 'GET';
+              endpoint = methodOrUrl;
+              requestData = urlOrData;
+            }
+
+            // Check mock mode and intercept if needed
+            const isMock = await service.mockEnabled();
+            if (isMock && (endpoint === '/esim/order' || endpoint === '/esim/query' || endpoint === '/esim/topup')) {
+              return service.mockRequest(endpoint, requestData);
+            }
+
+            // Real request
+            if (clientProp === 'request') {
+              return clientTarget.request(method, endpoint, requestData);
+            } else if (clientProp === 'post') {
+              return clientTarget.post(endpoint, requestData);
+            } else {
+              return clientTarget.get(endpoint, requestData);
+            }
+          };
+        }
+        return clientTarget[clientProp as keyof typeof clientTarget];
+      },
+    });
+
+    // Return proxy that intercepts both client and service access
+    return new Proxy(this.esimAccess, {
+      get(target, prop) {
+        if (prop === 'client') {
+          return proxiedClient;
+        }
+        // Proxy services that use the client
+        if (prop === 'topup' || prop === 'orders' || prop === 'query') {
+          const originalService = target[prop as keyof typeof target];
+          return new Proxy(originalService, {
+            get(serviceTarget, serviceProp) {
+              const originalMethod = serviceTarget[serviceProp as keyof typeof serviceTarget];
+              if (typeof originalMethod === 'function') {
+                const methodFunc = originalMethod as (...args: any[]) => Promise<any>;
+                return async function(...args: any[]) {
+                  const isMock = await service.mockEnabled();
+                  
+                  // Intercept service methods when mock mode is enabled
+                  if (isMock) {
+                    if (prop === 'topup' && serviceProp === 'topupProfile') {
+                      return service.mockRequest('/esim/topup', args[0]);
+                    }
+                    if (prop === 'orders' && serviceProp === 'orderProfiles') {
+                      return service.mockRequest('/esim/order', args[0]);
+                    }
+                    if (prop === 'query' && serviceProp === 'queryProfiles') {
+                      return service.mockRequest('/esim/query', args[0]);
+                    }
+                  }
+                  
+                  // For non-mocked or other methods, call original
+                  return methodFunc.apply(serviceTarget, args);
+                };
+              }
+              return originalMethod;
+            },
+          });
+        }
+        return target[prop as keyof typeof target];
+      },
+    });
   }
 }

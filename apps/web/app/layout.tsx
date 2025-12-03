@@ -10,6 +10,7 @@ import {
   SignedOut,
   UserButton,
 } from "@clerk/nextjs";
+import { AdminNavLink } from "@/components/AdminNavLink";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -38,6 +39,7 @@ export default function RootLayout({
                   <Link href="/countries" className="hover:text-[var(--voyage-accent)] transition-colors">Store</Link>
                   <SignedIn>
                     <Link href="/my-esims" className="hover:text-[var(--voyage-accent)] transition-colors">My eSIMs</Link>
+                    <AdminNavLink />
                   </SignedIn>
                   
                   <SignedOut>

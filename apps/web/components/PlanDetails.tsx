@@ -120,7 +120,7 @@ export function PlanDetails({ plan }: { plan: any }) {
              <div className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-2xl p-6 shadow-2xl shadow-black/40">
                  <div className="flex justify-between items-center mb-6 pb-6 border-b border-[var(--voyage-border)]">
                      <span className="text-[var(--voyage-muted)]">Total Price</span>
-                     <PriceTag price={plan.price} className="text-4xl text-white" />
+                     <PriceTag price={plan.price} currencyCode={plan.currencyCode} className="text-4xl text-white" />
                  </div>
                  
                  <div className="space-y-4 mb-8">

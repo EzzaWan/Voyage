@@ -13,6 +13,7 @@ interface TopUpOption {
   packageCode: string;
   name: string;
   price: number;
+  currencyCode?: string;
   volume: number;
   duration: number;
   durationUnit: string;
@@ -156,7 +157,7 @@ export default function TopUpSelectionPage() {
                 <div className="mt-6 pt-4 border-t border-[var(--voyage-border)] flex items-center justify-between">
                    <div className="flex flex-col">
                       <span className="text-xs text-[var(--voyage-muted)] uppercase tracking-wider">Price</span>
-                      <PriceTag price={plan.price} className="text-xl text-white" />
+                      <PriceTag price={plan.price} currencyCode={plan.currencyCode} className="text-xl text-white" />
                    </div>
                    <Button 
                       size="sm" 

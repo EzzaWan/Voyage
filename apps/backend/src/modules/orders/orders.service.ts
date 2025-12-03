@@ -89,7 +89,7 @@ export class OrdersService {
     await this.performEsimOrderForOrder(order, user, planCode, session);
   }
 
-  private async performEsimOrderForOrder(order, user, planCode: string, session?: Stripe.Checkout.Session) {
+  async performEsimOrderForOrder(order, user, planCode: string, session?: Stripe.Checkout.Session) {
     // provider requires transactionId < 50 chars
     const transactionId = `stripe_${order.id}`;  
     // "stripe_" (7 chars) + UUID (36 chars) = 43 chars (valid)
@@ -194,20 +194,45 @@ export class OrdersService {
 
     const profile = queryResult.obj.esimList[0];
 
-    await this.prisma.esimProfile.create({
-      data: {
-        orderId: order.id,
-        userId: user.id,
-        esimTranNo: profile.esimTranNo || null,
-        iccid: profile.iccid || null,
-        qrCodeUrl: profile.qrCodeUrl || null,
-        ac: profile.ac || null,
-        smdpStatus: profile.smdpStatus || null,
-        esimStatus: profile.esimStatus || null,
-        expiredTime: profile.expiredTime ? new Date(profile.expiredTime) : null,
-        totalVolume: profile.totalVolume ?? null,
-      },
+    // Check if profile already exists for this order
+    const existingProfile = await this.prisma.esimProfile.findFirst({
+      where: { orderId: order.id },
     });
+
+    if (existingProfile) {
+      // Update existing profile instead of creating duplicate
+      await this.prisma.esimProfile.update({
+        where: { id: existingProfile.id },
+        data: {
+          esimTranNo: profile.esimTranNo || existingProfile.esimTranNo,
+          iccid: profile.iccid || existingProfile.iccid,
+          qrCodeUrl: profile.qrCodeUrl || existingProfile.qrCodeUrl,
+          ac: profile.ac || existingProfile.ac,
+          smdpStatus: profile.smdpStatus || existingProfile.smdpStatus,
+          esimStatus: profile.esimStatus || existingProfile.esimStatus,
+          expiredTime: profile.expiredTime ? new Date(profile.expiredTime) : existingProfile.expiredTime,
+          totalVolume: profile.totalVolume ?? existingProfile.totalVolume,
+        },
+      });
+      this.logger.log(`Updated existing eSIM profile for order ${order.id}`);
+    } else {
+      // Create new profile
+      await this.prisma.esimProfile.create({
+        data: {
+          orderId: order.id,
+          userId: user.id,
+          esimTranNo: profile.esimTranNo || null,
+          iccid: profile.iccid || null,
+          qrCodeUrl: profile.qrCodeUrl || null,
+          ac: profile.ac || null,
+          smdpStatus: profile.smdpStatus || null,
+          esimStatus: profile.esimStatus || null,
+          expiredTime: profile.expiredTime ? new Date(profile.expiredTime) : null,
+          totalVolume: profile.totalVolume ?? null,
+        },
+      });
+      this.logger.log(`Created new eSIM profile for order ${order.id}`);
+    }
 
     await this.prisma.order.update({
       where: { id: order.id },

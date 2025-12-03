@@ -85,3 +85,23 @@ model WebhookEvent {
   processed Boolean  @default(false)
   createdAt DateTime @default(now())
 }
+
+model AdminLog {
+  id         String   @id @default(uuid())
+  action     String
+  adminEmail String
+  entityType String
+  entityId   String
+  data       Json
+  createdAt  DateTime @default(now())
+}
+
+model AdminSettings {
+  id                  String   @id @default("settings")
+  mockMode            Boolean  @default(false)
+  defaultMarkupPercent Float    @default(0)
+  defaultCurrency     String   @default("USD")
+  adminEmails         String[]
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}

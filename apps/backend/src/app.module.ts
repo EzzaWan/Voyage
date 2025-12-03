@@ -7,6 +7,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { UsersModule } from './modules/users/users.module';
 import { TopUpModule } from './modules/topup/topup.module';
 import { CronModule } from './cron/cron.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { CronModule } from './cron/cron.module';
     WebhooksModule,
     TopUpModule,
     CronModule,
+    AdminModule,
   ],
 })
 export class AppModule {}

@@ -1,13 +1,13 @@
-import { cn, formatUsdDollars } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 
 interface PriceTagProps {
-  price: number; // in USD dollars (e.g. 0.25 = $0.25, 3.00 = $3.00)
+  price: number; // Price amount (e.g. 0.25, 10.50)
   className?: string;
   currencyCode?: string;
 }
 
 export function PriceTag({ price, className, currencyCode = "USD" }: PriceTagProps) {
-  const formattedPrice = formatUsdDollars(price);
+  const formattedPrice = formatCurrency(price, currencyCode);
 
   return (
     <span className={cn("font-bold text-blue-600", className)}>
