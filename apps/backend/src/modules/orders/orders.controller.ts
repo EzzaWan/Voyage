@@ -21,6 +21,7 @@ export class OrdersController {
     currency: string;
     planName: string;
     displayCurrency?: string;
+    referralCode?: string;
   }) {
     return this.ordersService.createStripeCheckout(body);
   }

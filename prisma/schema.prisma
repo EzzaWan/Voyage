@@ -14,6 +14,8 @@ model User {
   orders    Order[]
   profiles  EsimProfile[] @relation("UserProfiles")
   topups    TopUp[]
+  affiliate Affiliate?
+  referral  Referral?
   createdAt DateTime      @default(now())
 }
 
@@ -31,19 +33,21 @@ model Plan {
 }
 
 model Order {
-  id            String        @id @default(uuid())
-  userId        String
-  user          User          @relation(fields: [userId], references: [id])
-  planId        String
-  amountCents   Int
-  currency      String
-  status        String        // pending, paid, provisioning, active, failed, cancelled
-  paymentMethod String
-  paymentRef    String?
-  esimOrderNo   String?       // eSIM Access orderNo
-  receiptSent   Boolean       @default(false)
-  profiles      EsimProfile[]
-  createdAt     DateTime      @default(now())
+  id               String        @id @default(uuid())
+  userId           String
+  user             User          @relation(fields: [userId], references: [id])
+  planId           String
+  amountCents      Int
+  currency         String        // Always "usd" - stored internally in USD
+  displayCurrency  String?       // Currency user actually paid in (e.g., "PLN", "EUR")
+  displayAmountCents Int?        // Amount actually paid in display currency (cents)
+  status           String        // pending, paid, provisioning, active, failed, cancelled
+  paymentMethod    String
+  paymentRef       String?
+  esimOrderNo      String?       // eSIM Access orderNo
+  receiptSent      Boolean       @default(false)
+  profiles         EsimProfile[]
+  createdAt        DateTime      @default(now())
 }
 
 model EsimProfile {
@@ -66,18 +70,20 @@ model EsimProfile {
 }
 
 model TopUp {
-  id            String      @id @default(uuid())
-  userId        String
-  user          User        @relation(fields: [userId], references: [id])
-  profileId     String
-  profile       EsimProfile @relation(fields: [profileId], references: [id])
-  planCode      String
-  amountCents   Int
-  currency      String
-  status        String      // pending, processing, completed, failed
-  paymentRef    String?
-  rechargeOrder String?     // provider recharge orderNo
-  createdAt     DateTime    @default(now())
+  id               String      @id @default(uuid())
+  userId           String
+  user             User        @relation(fields: [userId], references: [id])
+  profileId        String
+  profile          EsimProfile @relation(fields: [profileId], references: [id])
+  planCode         String
+  amountCents      Int
+  currency         String      // Always "usd" - stored internally in USD
+  displayCurrency  String?     // Currency user actually paid in (e.g., "PLN", "EUR")
+  displayAmountCents Int?      // Amount actually paid in display currency (cents)
+  status           String      // pending, processing, completed, failed
+  paymentRef       String?
+  rechargeOrder    String?     // provider recharge orderNo
+  createdAt        DateTime    @default(now())
 }
 
 model WebhookEvent {
@@ -133,4 +139,42 @@ model EsimUsageHistory {
 
   @@index([profileId])
   @@index([profileId, recordedAt])
+}
+
+model Affiliate {
+  id              String       @id @default(uuid())
+  userId          String       @unique
+  user            User         @relation(fields: [userId], references: [id])
+  referralCode    String       @unique
+  totalCommission Int          @default(0)
+  createdAt       DateTime     @default(now())
+  referrals       Referral[]
+  commissions     Commission[]
+
+  @@index([referralCode])
+}
+
+model Referral {
+  id             String     @id @default(uuid())
+  affiliateId    String
+  affiliate      Affiliate  @relation(fields: [affiliateId], references: [id])
+  referredUserId String     @unique
+  user           User       @relation(fields: [referredUserId], references: [id])
+  createdAt      DateTime   @default(now())
+
+  @@index([affiliateId])
+  @@index([referredUserId])
+}
+
+model Commission {
+  id          String     @id @default(uuid())
+  affiliateId String
+  affiliate   Affiliate  @relation(fields: [affiliateId], references: [id])
+  orderId     String?    // Can be Order or TopUp ID
+  orderType   String     // "order" or "topup"
+  amountCents Int
+  createdAt   DateTime   @default(now())
+
+  @@index([affiliateId])
+  @@index([orderId])
 }

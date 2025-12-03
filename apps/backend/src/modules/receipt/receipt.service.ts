@@ -159,8 +159,10 @@ export class ReceiptService {
         doc.fontSize(14).font('Helvetica-Bold').text('Price Breakdown', { underline: true });
         doc.fontSize(11).font('Helvetica');
         
-        const amount = (order.amountCents / 100).toFixed(2);
-        const currency = order.currency?.toUpperCase() || 'USD';
+        // Use display currency and amount if available, otherwise fallback to USD
+        const currency = order.displayCurrency?.toUpperCase() || order.currency?.toUpperCase() || 'USD';
+        const displayAmountCents = order.displayAmountCents || order.amountCents;
+        const amount = (displayAmountCents / 100).toFixed(2);
         
         doc.text(`Base Price: ${sanitize(currency)} ${sanitize(amount)}`);
         doc.text(`Fees: ${sanitize(currency)} 0.00`);

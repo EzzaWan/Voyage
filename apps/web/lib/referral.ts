@@ -1,0 +1,77 @@
+/**
+ * Referral code utilities
+ * Detects referral codes from URL params and stores them
+ */
+
+const REFERRAL_COOKIE_NAME = 'voyage_ref';
+const REFERRAL_COOKIE_MAX_AGE = 365 * 24 * 60 * 60 * 1000; // 1 year
+
+/**
+ * Get referral code from URL query params
+ */
+export function getReferralFromUrl(): string | null {
+  if (typeof window === 'undefined') return null;
+  
+  const params = new URLSearchParams(window.location.search);
+  return params.get('ref')?.toUpperCase().trim() || null;
+}
+
+/**
+ * Store referral code in cookie
+ */
+export function storeReferralCode(code: string): void {
+  if (typeof window === 'undefined') return;
+  
+  const expires = new Date();
+  expires.setTime(expires.getTime() + REFERRAL_COOKIE_MAX_AGE);
+  
+  document.cookie = `${REFERRAL_COOKIE_NAME}=${code}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+}
+
+/**
+ * Get stored referral code from cookie
+ */
+export function getStoredReferralCode(): string | null {
+  if (typeof window === 'undefined') return null;
+  
+  const cookies = document.cookie.split(';');
+  for (const cookie of cookies) {
+    const [name, value] = cookie.trim().split('=');
+    if (name === REFERRAL_COOKIE_NAME && value) {
+      return value.toUpperCase().trim();
+    }
+  }
+  return null;
+}
+
+/**
+ * Initialize referral tracking
+ * Call this on app load to detect and store referral codes
+ */
+export function initReferralTracking(): string | null {
+  // Check URL first (highest priority)
+  const urlRef = getReferralFromUrl();
+  if (urlRef) {
+    storeReferralCode(urlRef);
+    // Clean up URL param to avoid showing it
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('ref');
+      window.history.replaceState({}, '', url.toString());
+    }
+    return urlRef;
+  }
+  
+  // Fall back to stored cookie
+  return getStoredReferralCode();
+}
+
+/**
+ * Clear stored referral code
+ */
+export function clearReferralCode(): void {
+  if (typeof window === 'undefined') return;
+  
+  document.cookie = `${REFERRAL_COOKIE_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+}
+

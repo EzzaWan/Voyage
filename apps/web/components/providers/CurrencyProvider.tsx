@@ -24,23 +24,19 @@ const defaultContext: CurrencyContextType = {
 const CurrencyContext = createContext<CurrencyContextType>(defaultContext);
 
 export function CurrencyProvider({ children }: { children: ReactNode }) {
-  // Initialize with defaults immediately - don't wait for async detection
-  const [selectedCurrency, setSelectedCurrency] = useState<string>(() => {
-    // Try to get from localStorage immediately (client-side only)
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('selectedCurrency');
-      if (saved) return saved.toUpperCase();
-    }
-    return 'USD';
-  });
+  // Always start with USD to match server-side rendering (prevents hydration mismatch)
+  const [selectedCurrency, setSelectedCurrency] = useState<string>('USD');
   const [rates, setRates] = useState<Record<string, number>>({ USD: 1 }); // Default USD rate
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
-  // Initialize currency and fetch rates
+  // Initialize currency and fetch rates AFTER mount (client-side only)
   useEffect(() => {
+    setMounted(true);
+    
     async function initialize() {
       try {
-        // Detect or load currency
+        // Detect or load currency (this reads localStorage, so only on client)
         const detected = await detectCurrency();
         setSelectedCurrency(detected);
 

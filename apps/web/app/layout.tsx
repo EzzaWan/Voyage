@@ -13,6 +13,7 @@ import {
 import { AdminNavLink } from "@/components/AdminNavLink";
 import { CurrencyProvider } from "@/components/providers/CurrencyProvider";
 import { CurrencySelector } from "@/components/CurrencySelector";
+import { ReferralTracker } from "@/components/ReferralTracker";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -42,6 +43,7 @@ export default function RootLayout({
                     <Link href="/countries" className="hover:text-[var(--voyage-accent)] transition-colors">Store</Link>
                     <SignedIn>
                       <Link href="/my-esims" className="hover:text-[var(--voyage-accent)] transition-colors">My eSIMs</Link>
+                      <Link href="/account" className="hover:text-[var(--voyage-accent)] transition-colors">Account</Link>
                       <AdminNavLink />
                     </SignedIn>
                     
@@ -74,6 +76,7 @@ export default function RootLayout({
             </nav>
             
             <div className="max-w-6xl mx-auto px-6 py-10">
+               <ReferralTracker />
                {children}
             </div>
           </body>

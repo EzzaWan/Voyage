@@ -11,6 +11,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { EmailModule } from './modules/email/email.module';
 import { ReceiptModule } from './modules/receipt/receipt.module';
 import { CurrencyModule } from './modules/currency/currency.module';
+import { AffiliateModule } from './modules/affiliate/affiliate.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { CurrencyModule } from './modules/currency/currency.module';
     EmailModule,
     ReceiptModule,
     CurrencyModule,
+    AffiliateModule,
   ],
 })
 export class AppModule {}

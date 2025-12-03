@@ -9,13 +9,15 @@ import { AdminTopupController } from './controllers/admin-topup.controller';
 import { AdminUsersController } from './controllers/admin-users.controller';
 import { AdminSettingsController } from './controllers/admin-settings.controller';
 import { AdminLogsController } from './controllers/admin-logs.controller';
+import { AdminAffiliatesController } from './controllers/admin-affiliates.controller';
 import { PrismaService } from '../../prisma.service';
 import { OrdersModule } from '../orders/orders.module';
 import { EsimModule } from '../esim/esim.module';
+import { AffiliateModule } from '../affiliate/affiliate.module';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [forwardRef(() => OrdersModule), forwardRef(() => EsimModule), ConfigModule],
+  imports: [forwardRef(() => OrdersModule), forwardRef(() => EsimModule), AffiliateModule, ConfigModule],
   controllers: [
     AdminOrdersController,
     AdminEsimsController,
@@ -23,6 +25,7 @@ import { ConfigModule } from '@nestjs/config';
     AdminUsersController,
     AdminSettingsController,
     AdminLogsController,
+    AdminAffiliatesController,
   ],
   providers: [AdminService, AdminSettingsService, CurrencyConverterService, AdminGuard, PrismaService],
   exports: [AdminService, AdminSettingsService, CurrencyConverterService, AdminGuard],

@@ -7,6 +7,7 @@ import { EsimService } from '../esim/esim.service';
 import { QueryProfilesResponse, UsageItem } from '../../../../../libs/esim-access/types';
 import { EmailService } from '../email/email.service';
 import { CurrencyService } from '../currency/currency.service';
+import { AffiliateService } from '../affiliate/affiliate.service';
 
 @Injectable()
 export class OrdersService {
@@ -16,17 +17,19 @@ export class OrdersService {
     private config: ConfigService,
     private esimService: EsimService,
     private currencyService: CurrencyService,
+    private affiliateService: AffiliateService,
     @Inject(forwardRef(() => EmailService))
     private emailService?: EmailService,
   ) {}
   private readonly logger = new Logger(OrdersService.name);
 
-  async createStripeCheckout({ planCode, amount, currency, planName, displayCurrency }: {
+  async createStripeCheckout({ planCode, amount, currency, planName, displayCurrency, referralCode }: {
     planCode: string;
     amount: number;
     currency: string;
     planName: string;
     displayCurrency?: string;
+    referralCode?: string;
   }) {
     // amount is in USD (base price)
     // currency is the target currency for Stripe checkout
@@ -90,6 +93,7 @@ export class OrdersService {
         planCode,
         amountUSD: amount.toString(), // Store original USD amount in metadata
         displayCurrency: displayCurrency || targetCurrency,
+        ...(referralCode ? { referralCode } : {}), // Include referral code if provided
       },
     });
 
@@ -102,6 +106,12 @@ export class OrdersService {
 
     const email = session.customer_details?.email || 'guest@voyage.app';
     const planCode = session.metadata?.planCode || null;
+    const referralCode = session.metadata?.referralCode || null;
+
+    // Check if user exists before upsert
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email },
+    });
 
     const user = await this.prisma.user.upsert({
       where: { email },
@@ -111,6 +121,21 @@ export class OrdersService {
       },
       update: {},
     });
+
+    // Create affiliate record for user (if new user, this will create one)
+    if (!existingUser) {
+      // New user - create affiliate record
+      this.affiliateService.createAffiliateForUser(user.id).catch((err) => {
+        this.logger.error(`[AFFILIATE] Failed to create affiliate for user ${user.id}:`, err);
+      });
+
+      // Handle referral if referral code provided
+      if (referralCode) {
+        this.handleReferral(referralCode, user.id).catch((err) => {
+          this.logger.error(`[AFFILIATE] Failed to handle referral:`, err);
+        });
+      }
+    }
 
     // Get original USD amount from metadata, or convert from Stripe amount
     let amountUSD = parseFloat(session.metadata?.amountUSD || '0');
@@ -133,7 +158,13 @@ export class OrdersService {
     // Store amount in USD cents (always store in USD internally)
     const amountUSDCents = Math.round(amountUSD * 100);
     
-    this.logger.log(`[CHECKOUT] Storing order: ${amountUSDCents} cents (${amountUSD.toFixed(2)} USD) in database`);
+    // Get display currency (currency user actually paid in)
+    const displayCurrency = (session.metadata?.displayCurrency || session.currency?.toUpperCase() || 'USD').toUpperCase();
+    
+    // Get display amount (amount actually paid in display currency, in cents)
+    const displayAmountCents = session.amount_total || amountUSDCents;
+    
+    this.logger.log(`[CHECKOUT] Storing order: ${amountUSDCents} cents (${amountUSD.toFixed(2)} USD) in database, displayCurrency=${displayCurrency}, displayAmountCents=${displayAmountCents}`);
 
     const order = await this.prisma.order.create({
       data: {
@@ -141,6 +172,8 @@ export class OrdersService {
         planId: planCode || 'unknown',
         amountCents: amountUSDCents, // Always store in USD cents
         currency: currencyUSD, // Always store as USD
+        displayCurrency: displayCurrency, // Currency user actually paid in
+        displayAmountCents: displayAmountCents, // Amount actually paid in display currency
         status: 'paid',
         paymentMethod: 'stripe',
         paymentRef: (session.payment_intent as string) || session.id,
@@ -307,6 +340,11 @@ export class OrdersService {
     });
 
     this.logger.log(`Created REAL eSIM profile for order ${order.id}`);
+
+    // Add commission if user was referred
+    this.addCommissionForOrder(order).catch((err) => {
+      this.logger.error(`[AFFILIATE] Failed to add commission for order ${order.id}:`, err);
+    });
 
     // Send eSIM ready email with receipt download link included (fire and forget)
     this.sendEsimReadyEmail(order, user, planCode, profile).catch((err) => {
@@ -1061,4 +1099,64 @@ export class OrdersService {
       throw err;
     }
   }
+
+  // ============================================
+  // AFFILIATE METHODS
+  // ============================================
+
+  /**
+   * Handle referral when a new user signs up with a referral code
+   */
+  private async handleReferral(referralCode: string, referredUserId: string): Promise<void> {
+      try {
+        const affiliate = await this.affiliateService.findAffiliateByCode(referralCode);
+        if (!affiliate) {
+          this.logger.warn(`[AFFILIATE] Invalid referral code: ${referralCode}`);
+          return;
+        }
+
+        // Prevent self-referral
+        if (affiliate.userId === referredUserId) {
+          this.logger.warn(`[AFFILIATE] User tried to refer themselves: ${referredUserId}`);
+          return;
+        }
+
+        await this.affiliateService.createReferral(affiliate.id, referredUserId);
+        this.logger.log(`[AFFILIATE] Created referral for user ${referredUserId} from affiliate ${affiliate.id}`);
+      } catch (error) {
+        this.logger.error(`[AFFILIATE] Failed to handle referral:`, error);
+      }
+    }
+
+  /**
+   * Add commission for a completed order
+   */
+  private async addCommissionForOrder(order: any): Promise<void> {
+      try {
+        // Find if the user was referred
+        const referral = await this.prisma.referral.findUnique({
+          where: { referredUserId: order.userId },
+          include: {
+            affiliate: true,
+          },
+        });
+
+        if (!referral || !referral.affiliate) {
+          // User was not referred, no commission
+          return;
+        }
+
+        // Add 10% commission
+        await this.affiliateService.addCommission(
+          referral.affiliateId,
+          order.id,
+          'order',
+          order.amountCents,
+        );
+
+        this.logger.log(`[AFFILIATE] Added commission for order ${order.id} to affiliate ${referral.affiliateId}`);
+      } catch (error) {
+        this.logger.error(`[AFFILIATE] Failed to add commission for order:`, error);
+      }
+    }
 }

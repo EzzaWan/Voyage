@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { PriceTag } from "./PriceTag";
 import { FlagIcon } from "./FlagIcon";
 import { useCurrency } from "./providers/CurrencyProvider";
+import { getStoredReferralCode } from "@/lib/referral";
 
 export function PlanDetails({ plan }: { plan: any }) {
   console.log("PLAN DEBUG:", plan);
@@ -18,6 +19,9 @@ export function PlanDetails({ plan }: { plan: any }) {
   async function buyNow() {
     console.log("FRONT price dollars:", plan.price);
     try {
+      // Get referral code if available
+      const referralCode = getStoredReferralCode();
+      
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -27,6 +31,7 @@ export function PlanDetails({ plan }: { plan: any }) {
           displayCurrency: selectedCurrency,
           amount: priceUSD,  // Send original USD price
           planName: plan.name,
+          referralCode: referralCode || undefined, // Only include if exists
         }),
       });
 

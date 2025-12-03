@@ -7,6 +7,7 @@ import { EsimService } from '../esim/esim.service';
 import { QueryProfilesResponse } from '../../../../../libs/esim-access/types';
 import { EmailService } from '../email/email.service';
 import { CurrencyService } from '../currency/currency.service';
+import { AffiliateService } from '../affiliate/affiliate.service';
 
 @Injectable()
 export class TopUpService {
@@ -18,6 +19,7 @@ export class TopUpService {
     private config: ConfigService,
     private esimService: EsimService,
     private currencyService: CurrencyService,
+    private affiliateService: AffiliateService,
     @Inject(forwardRef(() => EmailService))
     private emailService?: EmailService,
   ) {}
@@ -148,6 +150,18 @@ export class TopUpService {
       this.logger.error(`[TOPUP] Topup not found for paymentRef ${session.id}`);
       return;
     }
+
+    // Update topup with display currency and amount
+    const displayCurrency = (session.metadata?.displayCurrency || session.currency?.toUpperCase() || 'USD').toUpperCase();
+    const displayAmountCents = session.amount_total || topup.amountCents;
+    
+    await this.prisma.topUp.update({
+      where: { id: topup.id },
+      data: {
+        displayCurrency: displayCurrency,
+        displayAmountCents: displayAmountCents,
+      },
+    });
 
     // Get profile to access esimTranNo
     const profile = topup.profile;
@@ -296,6 +310,11 @@ export class TopUpService {
 
           this.logger.log(`[TOPUP] Topup ${topupId} completed! Volume increased from ${oldTotalVolume} to ${newTotalVolume}`);
 
+          // Add commission if user was referred
+          this.addCommissionForTopup(topup).catch((err) => {
+            this.logger.error(`[AFFILIATE] Failed to add commission for topup ${topup.id}:`, err);
+          });
+
           // Send top-up confirmation email (fire and forget)
           this.sendTopupConfirmationEmail(topup).catch((err) => {
             this.logger.error(`[EMAIL] Failed to send top-up confirmation: ${err.message}`);
@@ -320,6 +339,11 @@ export class TopUpService {
         });
 
         this.logger.log(`[TOPUP] Topup ${topupId} completed! Volume set to ${newTotalVolume}`);
+
+        // Add commission if user was referred
+        this.addCommissionForTopup(topup).catch((err) => {
+          this.logger.error(`[AFFILIATE] Failed to add commission for topup ${topup.id}:`, err);
+        });
       }
     } catch (err) {
       this.logger.error(`[TOPUP] Error polling recharge order for topup ${topupId}:`, err);
@@ -443,6 +467,38 @@ export class TopUpService {
     } catch (err) {
       this.logger.error(`[EMAIL] Error sending top-up confirmation: ${err.message}`);
       throw err;
+    }
+  }
+
+  /**
+   * Add commission for a completed top-up
+   */
+  private async addCommissionForTopup(topup: any): Promise<void> {
+    try {
+      // Find if the user was referred
+      const referral = await this.prisma.referral.findUnique({
+        where: { referredUserId: topup.userId },
+        include: {
+          affiliate: true,
+        },
+      });
+
+      if (!referral || !referral.affiliate) {
+        // User was not referred, no commission
+        return;
+      }
+
+      // Add 10% commission
+      await this.affiliateService.addCommission(
+        referral.affiliateId,
+        topup.id,
+        'topup',
+        topup.amountCents,
+      );
+
+      this.logger.log(`[AFFILIATE] Added commission for topup ${topup.id} to affiliate ${referral.affiliateId}`);
+    } catch (error) {
+      this.logger.error(`[AFFILIATE] Failed to add commission for topup:`, error);
     }
   }
 }

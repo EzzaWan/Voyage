@@ -1,7 +1,7 @@
 "use client";
 
 import { useCurrency } from './providers/CurrencyProvider';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const SUPPORTED_CURRENCIES = [
   { code: 'USD', symbol: '$', name: 'US Dollar' },
@@ -19,6 +19,12 @@ const SUPPORTED_CURRENCIES = [
 export function CurrencySelector() {
   const { selectedCurrency, setCurrency } = useCurrency();
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch by only showing currency after mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const selectedCurrencyInfo = SUPPORTED_CURRENCIES.find(c => c.code === selectedCurrency) || SUPPORTED_CURRENCIES[0];
 
@@ -29,7 +35,7 @@ export function CurrencySelector() {
         className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--voyage-bg-light)] border border-[var(--voyage-border)] hover:bg-[var(--voyage-card)] transition-colors text-white"
         aria-label="Select currency"
       >
-        <span className="text-sm font-medium">{selectedCurrency}</span>
+        <span className="text-sm font-medium">{mounted ? selectedCurrency : 'USD'}</span>
         <svg
           className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           fill="none"

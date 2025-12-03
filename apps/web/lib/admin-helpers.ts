@@ -8,11 +8,16 @@ export function getOrderStatusDisplay(status: string): { label: string; classNam
     pending: { label: "Pending", className: "bg-yellow-500/20 text-yellow-400" },
     payment_pending: { label: "Payment Pending", className: "bg-yellow-500/20 text-yellow-400" },
     paid: { label: "Paid", className: "bg-blue-500/20 text-blue-400" },
+    provisioning: { label: "Provisioning", className: "bg-blue-500/20 text-blue-400" },
     esim_created: { label: "eSIM Created", className: "bg-green-500/20 text-green-400" },
+    active: { label: "Active", className: "bg-green-500/20 text-green-400" },
     completed: { label: "Completed", className: "bg-green-500/20 text-green-400" },
     failed: { label: "Failed", className: "bg-red-500/20 text-red-400" },
     cancelled: { label: "Cancelled", className: "bg-gray-500/20 text-gray-400" },
     canceled: { label: "Cancelled", className: "bg-gray-500/20 text-gray-400" },
+    esim_pending: { label: "eSIM Pending", className: "bg-yellow-500/20 text-yellow-400" },
+    esim_order_failed: { label: "eSIM Order Failed", className: "bg-red-500/20 text-red-400" },
+    esim_no_orderno: { label: "eSIM Pending", className: "bg-yellow-500/20 text-yellow-400" },
   };
   
   return statusMap[statusLower] || { label: status, className: "bg-gray-500/20 text-gray-400" };
