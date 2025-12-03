@@ -70,9 +70,9 @@ export default function CountryPlansPage({ params }: { params: { code: string } 
          <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-[var(--voyage-accent)]/20 blur-3xl" />
          
          <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center">
-            <div className="h-24 w-24 md:h-32 md:w-32 rounded-full bg-white p-1 shadow-2xl shadow-[var(--voyage-accent)]/30">
-               <div className="h-full w-full rounded-full overflow-hidden bg-gray-100 relative">
-                 <FlagIcon logoUrl={flagUrl} alt={code} className="h-full w-full border-none rounded-full object-cover" />
+            <div className="h-24 w-32 md:h-32 md:w-44 rounded-xl bg-white p-1 shadow-2xl shadow-[var(--voyage-accent)]/30">
+               <div className="h-full w-full rounded-lg overflow-hidden bg-gray-100 relative">
+                 <FlagIcon logoUrl={flagUrl} alt={code} className="h-full w-full border-none rounded-none object-cover" />
                </div>
             </div>
             

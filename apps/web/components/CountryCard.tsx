@@ -13,7 +13,7 @@ export function CountryCard({ country }: { country: Country }) {
     <Link href={`/countries/${country.code}`}>
       <div className="group bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl p-5 shadow-sm hover:shadow-xl hover:bg-[var(--voyage-card-hover)] hover:border-[var(--voyage-accent)]/30 transition-all cursor-pointer flex items-center justify-between relative overflow-hidden">
         <div className="flex items-center gap-4 z-10">
-           <FlagIcon logoUrl={country.locationLogo} alt={country.name} className="h-10 w-10 border-2 border-[var(--voyage-border)] shadow-sm" />
+           <FlagIcon logoUrl={country.locationLogo} alt={country.name} className="h-8 w-11 rounded-md border-2 border-[var(--voyage-border)] shadow-sm" />
            <span className="font-medium text-lg text-[var(--voyage-text)] group-hover:text-white transition-colors">
              {country.name}
            </span>

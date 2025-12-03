@@ -26,19 +26,15 @@ export function FlagIcon({ logoUrl, alt, className }: FlagIconProps) {
   }
 
   return (
-    <div className={cn("relative h-8 w-8 overflow-hidden rounded-full border bg-gray-100", className)}>
-      <div className="h-full w-full p-[12%]">
-        <div className="relative h-full w-full overflow-hidden rounded-full shadow-sm">
-          <Image
-            src={logoUrl}
-            alt={alt}
-            fill
-            className="object-cover"
-            onError={() => setImageError(true)}
-            unoptimized // External images may need this
-          />
-        </div>
-      </div>
+    <div className={cn("relative h-8 w-8 overflow-hidden border bg-gray-100", className)}>
+      <Image
+        src={logoUrl}
+        alt={alt}
+        fill
+        className="object-cover"
+        onError={() => setImageError(true)}
+        unoptimized // External images may need this
+      />
     </div>
   );
 }
