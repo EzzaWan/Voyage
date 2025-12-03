@@ -32,6 +32,7 @@ export class AdminSettingsService {
           defaultMarkupPercent: 0,
           defaultCurrency: 'USD',
           adminEmails: [],
+          emailEnabled: true,
         },
       });
       this.logger.log('Created default AdminSettings');

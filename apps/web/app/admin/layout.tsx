@@ -13,6 +13,7 @@ import {
   Settings,
   FileText,
   ShieldX,
+  Mail,
 } from "lucide-react";
 
 export default function AdminLayout({
@@ -99,6 +100,7 @@ export default function AdminLayout({
     { href: "/admin/topups", label: "Top-ups", icon: CreditCard },
     { href: "/admin/users", label: "Users", icon: Users },
     { href: "/admin/settings", label: "Settings", icon: Settings },
+    { href: "/admin/emails", label: "Email Logs", icon: Mail },
     { href: "/admin/logs", label: "Logs", icon: FileText },
   ];
 

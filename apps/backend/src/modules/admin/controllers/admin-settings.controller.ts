@@ -50,6 +50,9 @@ export class AdminSettingsController {
       defaultMarkupPercent?: number;
       defaultCurrency?: string;
       adminEmails?: string[];
+      emailFrom?: string;
+      emailProvider?: string;
+      emailEnabled?: boolean;
     },
     @Req() req: any,
   ) {
@@ -60,6 +63,9 @@ export class AdminSettingsController {
         defaultMarkupPercent: body.defaultMarkupPercent,
         defaultCurrency: body.defaultCurrency,
         adminEmails: body.adminEmails || [],
+        emailFrom: body.emailFrom,
+        emailProvider: body.emailProvider,
+        emailEnabled: body.emailEnabled,
       },
       create: {
         id: 'settings',
@@ -67,6 +73,9 @@ export class AdminSettingsController {
         defaultMarkupPercent: body.defaultMarkupPercent ?? 0,
         defaultCurrency: body.defaultCurrency ?? 'USD',
         adminEmails: body.adminEmails || [],
+        emailFrom: body.emailFrom,
+        emailProvider: body.emailProvider,
+        emailEnabled: body.emailEnabled ?? true,
       },
     });
 

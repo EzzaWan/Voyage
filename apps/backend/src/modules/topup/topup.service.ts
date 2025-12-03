@@ -1,10 +1,11 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { StripeService } from '../stripe/stripe.service';
 import { PrismaService } from '../../prisma.service';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 import { EsimService } from '../esim/esim.service';
 import { QueryProfilesResponse } from '../../../../../libs/esim-access/types';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class TopUpService {
@@ -15,6 +16,8 @@ export class TopUpService {
     private prisma: PrismaService,
     private config: ConfigService,
     private esimService: EsimService,
+    @Inject(forwardRef(() => EmailService))
+    private emailService?: EmailService,
   ) {}
 
   async createStripeTopUpCheckout(profileId: string, planCode: string, amount: number, currency: string) {
@@ -263,6 +266,11 @@ export class TopUpService {
           });
 
           this.logger.log(`[TOPUP] Topup ${topupId} completed! Volume increased from ${oldTotalVolume} to ${newTotalVolume}`);
+
+          // Send top-up confirmation email (fire and forget)
+          this.sendTopupConfirmationEmail(topup).catch((err) => {
+            this.logger.error(`[EMAIL] Failed to send top-up confirmation: ${err.message}`);
+          });
         } else {
           this.logger.log(`[TOPUP] Topup ${topupId} still processing, volume not increased yet`);
         }
@@ -340,6 +348,73 @@ export class TopUpService {
         },
       },
     });
+  }
+
+  // Email helper method
+  private async sendTopupConfirmationEmail(topup: any) {
+    if (!this.emailService) {
+      this.logger.warn('[EMAIL] EmailService not available, skipping top-up confirmation');
+      return;
+    }
+
+    try {
+      // Fetch topup with relations
+      const fullTopup = await this.prisma.topUp.findUnique({
+        where: { id: topup.id },
+        include: {
+          user: true,
+          profile: {
+            include: {
+              order: true,
+            },
+          },
+        },
+      });
+
+      if (!fullTopup) {
+        this.logger.warn(`[EMAIL] Topup ${topup.id} not found for email`);
+        return;
+      }
+
+      // Fetch plan details
+      let planDetails: any = null;
+      try {
+        planDetails = await this.esimService.getPlan(fullTopup.planCode);
+      } catch (err) {
+        this.logger.warn(`[EMAIL] Could not fetch plan details for ${fullTopup.planCode}: ${err.message}`);
+      }
+
+      const appUrl = this.config.get('WEB_URL') || 'http://localhost:3000';
+      const amount = (fullTopup.amountCents / 100).toFixed(2);
+
+      await this.emailService.sendTopupConfirmation(
+        fullTopup.user.email,
+        {
+          user: {
+            name: fullTopup.user.name || 'Customer',
+            email: fullTopup.user.email,
+          },
+          topup: {
+            id: fullTopup.id,
+            amount,
+            currency: fullTopup.currency?.toUpperCase() || 'USD',
+            status: fullTopup.status,
+          },
+          profile: {
+            iccid: fullTopup.profile.iccid,
+          },
+          plan: {
+            name: planDetails?.name || fullTopup.planCode,
+            packageCode: fullTopup.planCode,
+          },
+          appUrl,
+        },
+        `topup-${fullTopup.id}`,
+      );
+    } catch (err) {
+      this.logger.error(`[EMAIL] Error sending top-up confirmation: ${err.message}`);
+      throw err;
+    }
   }
 }
 

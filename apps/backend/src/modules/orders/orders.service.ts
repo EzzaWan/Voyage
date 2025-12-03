@@ -1,10 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { StripeService } from '../stripe/stripe.service';
 import { PrismaService } from '../../prisma.service';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 import { EsimService } from '../esim/esim.service';
 import { QueryProfilesResponse, UsageItem } from '../../../../../libs/esim-access/types';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class OrdersService {
@@ -13,6 +14,8 @@ export class OrdersService {
     private prisma: PrismaService,
     private config: ConfigService,
     private esimService: EsimService,
+    @Inject(forwardRef(() => EmailService))
+    private emailService?: EmailService,
   ) {}
   private readonly logger = new Logger(OrdersService.name);
 
@@ -84,6 +87,11 @@ export class OrdersService {
         paymentRef: (session.payment_intent as string) || session.id,
         esimOrderNo: `PENDING-${session.id}`,
       },
+    });
+
+    // Send order confirmation email (fire and forget)
+    this.sendOrderConfirmationEmail(order, user, planCode).catch((err) => {
+      this.logger.error(`[EMAIL] Failed to send order confirmation: ${err.message}`);
     });
 
     await this.performEsimOrderForOrder(order, user, planCode, session);
@@ -240,6 +248,11 @@ export class OrdersService {
     });
 
     this.logger.log(`Created REAL eSIM profile for order ${order.id}`);
+
+    // Send eSIM ready email (fire and forget)
+    this.sendEsimReadyEmail(order, user, planCode, profile).catch((err) => {
+      this.logger.error(`[EMAIL] Failed to send eSIM ready email: ${err.message}`);
+    });
   }
 
   async retryPendingForPaymentRef(paymentRef: string) {
@@ -663,5 +676,98 @@ export class OrdersService {
     }
 
     this.logger.log('[SYNC] Sync cycle completed');
+  }
+
+  // Email helper methods (made public for resend endpoint)
+  async sendOrderConfirmationEmail(order: any, user: any, planCode: string) {
+    if (!this.emailService) {
+      this.logger.warn('[EMAIL] EmailService not available, skipping order confirmation');
+      return;
+    }
+
+    try {
+      // Fetch plan details
+      let planDetails: any = null;
+      try {
+        planDetails = await this.esimService.getPlan(planCode);
+      } catch (err) {
+        this.logger.warn(`[EMAIL] Could not fetch plan details for ${planCode}: ${err.message}`);
+      }
+
+      const appUrl = this.config.get('WEB_URL') || 'http://localhost:3000';
+      const amount = (order.amountCents / 100).toFixed(2);
+
+      await this.emailService.sendOrderConfirmation(
+        user.email,
+        {
+          user: {
+            name: user.name || 'Customer',
+            email: user.email,
+          },
+          order: {
+            id: order.id,
+            amount,
+            currency: order.currency?.toUpperCase() || 'USD',
+            status: order.status,
+          },
+          plan: {
+            name: planDetails?.name || planCode,
+            packageCode: planCode,
+          },
+          appUrl,
+        },
+        `order-${order.id}`,
+      );
+    } catch (err) {
+      this.logger.error(`[EMAIL] Error sending order confirmation: ${err.message}`);
+      throw err;
+    }
+  }
+
+  private async sendEsimReadyEmail(order: any, user: any, planCode: string, profile: any) {
+    if (!this.emailService) {
+      this.logger.warn('[EMAIL] EmailService not available, skipping eSIM ready email');
+      return;
+    }
+
+    try {
+      // Fetch plan details
+      let planDetails: any = null;
+      try {
+        planDetails = await this.esimService.getPlan(planCode);
+      } catch (err) {
+        this.logger.warn(`[EMAIL] Could not fetch plan details for ${planCode}: ${err.message}`);
+      }
+
+      const appUrl = this.config.get('WEB_URL') || 'http://localhost:3000';
+      const totalVolumeGB = profile.totalVolume ? (Number(profile.totalVolume) / (1024 * 1024 * 1024)).toFixed(2) + ' GB' : null;
+
+      await this.emailService.sendEsimReady(
+        user.email,
+        {
+          user: {
+            name: user.name || 'Customer',
+            email: user.email,
+          },
+          profile: {
+            id: profile.id,
+            iccid: profile.iccid,
+            esimStatus: profile.esimStatus,
+            totalVolume: totalVolumeGB,
+            expiredTime: profile.expiredTime ? new Date(profile.expiredTime).toLocaleDateString() : null,
+            qrCodeUrl: profile.qrCodeUrl,
+          },
+          plan: {
+            name: planDetails?.name || planCode,
+            packageCode: planCode,
+          },
+          appUrl,
+        },
+        `esim-${profile.id || order.id}`,
+      );
+    } catch (err) {
+      this.logger.error(`[EMAIL] Error sending eSIM ready email: ${err.message}`);
+      throw err;
+    }
   }
 }

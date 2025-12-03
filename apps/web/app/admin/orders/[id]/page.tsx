@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, RefreshCw, RotateCcw } from "lucide-react";
+import { ArrowLeft, RefreshCw, RotateCcw, Mail } from "lucide-react";
 import { formatUsdDollars } from "@/lib/utils";
 import { getOrderStatusDisplay, getEsimStatusDisplay, getPlanName } from "@/lib/admin-helpers";
 
@@ -148,6 +148,27 @@ export default function AdminOrderDetailPage() {
     } catch (error) {
       console.error("Failed to sync order:", error);
       alert("Failed to sync order");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleResendReceipt = async () => {
+    setActionLoading("resend");
+    try {
+      const res = await fetch(`${apiUrl}/orders/${params.id}/resend-receipt`, {
+        method: "POST",
+      });
+
+      if (res.ok) {
+        alert("Receipt email sent successfully!");
+      } else {
+        const data = await res.json();
+        alert(`Failed to resend receipt: ${data.error || "Unknown error"}`);
+      }
+    } catch (error: any) {
+      console.error("Failed to resend receipt:", error);
+      alert(`Failed to resend receipt: ${error.message || "Unknown error"}`);
     } finally {
       setActionLoading(null);
     }
@@ -326,6 +347,19 @@ export default function AdminOrderDetailPage() {
                   <RefreshCw className="h-4 w-4 mr-2" />
                 )}
                 Sync
+              </Button>
+              <Button
+                onClick={handleResendReceipt}
+                disabled={actionLoading !== null}
+                variant="outline"
+                className="border-[var(--voyage-border)] hover:bg-[var(--voyage-bg-light)]"
+              >
+                {actionLoading === "resend" ? (
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Mail className="h-4 w-4 mr-2" />
+                )}
+                Resend Receipt
               </Button>
             </div>
           </div>

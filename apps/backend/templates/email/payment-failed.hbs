@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Failed</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+    <h1 style="color: white; margin: 0;">Payment Failed</h1>
+  </div>
+  
+  <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0;">
+    <p>Hi {{user.name}},</p>
+    
+    <p>We encountered an issue processing your payment for order <strong>{{order.id}}</strong>.</p>
+    
+    <div style="background: #fee2e2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ef4444;">
+      <h2 style="margin-top: 0; color: #dc2626;">Order Details</h2>
+      <p><strong>Order ID:</strong> {{order.id}}</p>
+      <p><strong>Plan:</strong> {{plan.name}}</p>
+      <p><strong>Amount:</strong> {{order.currency}} {{order.amount}}</p>
+      <p><strong>Status:</strong> Failed</p>
+    </div>
+    
+    <p>This could be due to:</p>
+    <ul>
+      <li>Insufficient funds</li>
+      <li>Card declined by your bank</li>
+      <li>Expired card</li>
+      <li>Incorrect card details</li>
+    </ul>
+    
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="{{appUrl}}/plans/{{plan.id}}" style="display: inline-block; padding: 15px 30px; background: #1e90ff; color: white; text-decoration: none; border-radius: 5px;">Try Again</a>
+    </div>
+    
+    <p>If you continue to experience issues, please contact our support team.</p>
+    
+    <p>Best regards,<br>The Voyage Team</p>
+  </div>
+  
+  <div style="text-align: center; margin-top: 20px; color: #999; font-size: 12px;">
+    <p>This is an automated email. Please do not reply.</p>
+  </div>
+</body>
+</html>
+

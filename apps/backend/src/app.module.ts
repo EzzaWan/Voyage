@@ -8,6 +8,7 @@ import { UsersModule } from './modules/users/users.module';
 import { TopUpModule } from './modules/topup/topup.module';
 import { CronModule } from './cron/cron.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { EmailModule } from './modules/email/email.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AdminModule } from './modules/admin/admin.module';
     TopUpModule,
     CronModule,
     AdminModule,
+    EmailModule,
   ],
 })
 export class AppModule {}

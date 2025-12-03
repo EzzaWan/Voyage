@@ -102,6 +102,22 @@ model AdminSettings {
   defaultMarkupPercent Float    @default(0)
   defaultCurrency     String   @default("USD")
   adminEmails         String[]
+  emailFrom           String?
+  emailProvider       String?
+  emailEnabled        Boolean  @default(true)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+}
+
+model EmailLog {
+  id         String   @id @default(uuid())
+  to         String
+  from       String
+  subject    String
+  template   String
+  variables  Json?
+  providerId String?
+  status     String   // sent, failed, mock, pending
+  error      String?
+  createdAt  DateTime @default(now())
 }

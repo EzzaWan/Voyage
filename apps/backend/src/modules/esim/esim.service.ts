@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { EsimAccess } from '../../../../../libs/esim-access';
 import { AdminSettingsService } from '../admin/admin-settings.service';
 import { CurrencyConverterService } from '../admin/currency-converter.service';
-import { QueryProfilesResponse } from '../../../../../libs/esim-access/types';
+import { QueryProfilesResponse, BaseResponse, LocationListResponse } from '../../../../../libs/esim-access/types';
 
 @Injectable()
 export class EsimService {
@@ -120,8 +120,11 @@ export class EsimService {
 
   // ---- 1. GET SUPPORTED REGIONS ----
   async getLocations() {
-    const result = await this.makeRequest('POST', '/location/list', {});
-    const rawLocationList = result?.obj?.locationList || [];
+    // Always fetch real locations (not mocked) - locations are read-only data
+    // Mock mode only affects order/query/topup operations, not data fetching
+    const result = await this.esimAccess.client.request('POST', '/location/list', {}) as any;
+    const locationData = result?.obj as LocationListResponse | undefined;
+    const rawLocationList: any[] = locationData?.locationList || [];
     
     // Normalize and add flag URLs
     const normalizedList: any[] = [];
