@@ -311,9 +311,11 @@ export default function MyEsimsPage() {
                           onClick={async (e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            await navigator.clipboard.writeText(esim.ac);
-                            setCopied(true);
-                            setTimeout(() => setCopied(false), 2000);
+                            if (esim.ac) {
+                              await navigator.clipboard.writeText(esim.ac);
+                              setCopied(true);
+                              setTimeout(() => setCopied(false), 2000);
+                            }
                           }}
                         >
                            {copied ? (
