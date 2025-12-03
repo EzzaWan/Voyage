@@ -30,9 +30,9 @@
 - Dashboard → "New +" → "Web Service"
 - Connect GitHub repo
 - Name: `voyage-backend`
-- Root Directory: `apps/backend`
-- Build: `npm install && npm run build`
-- Start: `npm run start:prod`
+- **Root Directory**: `.` (monorepo root - IMPORTANT!)
+- **Build Command**: `npm install && cd apps/backend && npm run build`
+- **Start Command**: `cd apps/backend && npm run start:prod`
 
 **Important:** The build script uses TypeScript compiler directly (`tsc`) instead of NestJS CLI. TypeScript is in dependencies so it's always available. If build fails, try using `npx tsc` in the build script instead.
 - Plan: Starter ($7/month)
