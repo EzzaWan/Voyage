@@ -18,7 +18,7 @@ Quick deployment guide for Voyage eSIM marketplace.
 3. Railway will detect it - click "Add Service"
 4. In service settings, set:
    - **Root Directory**: `.` (repo root)
-   - **Build Command**: `npm install && cd apps/backend && npx prisma generate --schema=../prisma/schema.prisma && npm run build`
+   - **Build Command**: `npm install && npx prisma generate --schema=prisma/schema.prisma && cd apps/backend && npm run build`
    - **Start Command**: `cd apps/backend && npm run start:prod`
 5. Go to "Variables" tab and add these:
 
