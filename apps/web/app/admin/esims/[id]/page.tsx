@@ -219,9 +219,9 @@ export default function AdminEsimDetailPage() {
     if (!bytes) return "N/A";
     try {
       const num = BigInt(bytes);
-      const kb = 1024n;
-      const mb = kb * 1024n;
-      const gb = mb * 1024n;
+      const kb = BigInt(1024);
+      const mb = kb * BigInt(1024);
+      const gb = mb * BigInt(1024);
       
       if (num >= gb) return `${Number(num / gb)} GB`;
       if (num >= mb) return `${Number(num / mb)} MB`;
