@@ -3,12 +3,12 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && ls -la dist/ | head -10 && test -f dist/main.js && echo 'Build successful: dist/main.js exists' || echo 'ERROR: dist/main.js not found'",
     "start": "nest start",
     "dev": "nest start --watch --exec \"node -r ts-node/register/transpile-only src/main.ts\"",
     "start:dev": "nest start --watch --exec \"node -r ts-node/register/transpile-only src/main.ts\"",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main.js"
+    "start:prod": "pwd && ls -la dist/ 2>&1 | head -10 && node dist/main.js"
   },
   "dependencies": {
     "@nestjs/bull": "^10.0.0",
