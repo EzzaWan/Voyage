@@ -90,7 +90,7 @@ export default function EsimDetailPage() {
         setHistory(data);
         
         // Fetch plan details for each top-up
-        const planCodes = [...new Set(data.map((item: any) => item.planCode).filter(Boolean))];
+        const planCodes = Array.from(new Set(data.map((item: any) => item.planCode).filter(Boolean))) as string[];
         const planDetails: Record<string, any> = {};
         
         await Promise.all(

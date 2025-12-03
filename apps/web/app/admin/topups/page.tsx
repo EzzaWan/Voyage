@@ -47,7 +47,7 @@ export default function AdminTopupsPage() {
           setTopups(data);
           
           // Fetch plan names for all unique plan codes
-          const uniquePlanCodes = [...new Set(data.map((t: TopUp) => t.planCode))];
+          const uniquePlanCodes = Array.from(new Set(data.map((t: TopUp) => t.planCode))) as string[];
           const names = await getPlanNames(uniquePlanCodes, apiUrl);
           setPlanNames(names);
         }

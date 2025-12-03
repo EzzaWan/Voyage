@@ -62,7 +62,7 @@ export default function AdminUserDetailPage() {
           // Fetch plan names for orders and top-ups
           const orderPlanIds = data.orders?.map((o: { planId: string }) => o.planId) || [];
           const topupPlanCodes = data.topups?.map((t: { planCode: string }) => t.planCode) || [];
-          const allPlanIds = [...new Set([...orderPlanIds, ...topupPlanCodes])];
+          const allPlanIds = Array.from(new Set([...orderPlanIds, ...topupPlanCodes])) as string[];
           
           if (allPlanIds.length > 0) {
             const names = await getPlanNames(allPlanIds, apiUrl);

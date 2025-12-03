@@ -48,7 +48,7 @@ export default function AdminOrdersPage() {
           setOrders(data);
           
           // Fetch plan names for all unique plan IDs
-          const uniquePlanIds = [...new Set(data.map((o: Order) => o.planId))];
+          const uniquePlanIds = Array.from(new Set(data.map((o: Order) => o.planId))) as string[];
           const names = await getPlanNames(uniquePlanIds, apiUrl);
           setPlanNames(names);
         }
