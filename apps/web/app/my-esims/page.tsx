@@ -221,12 +221,40 @@ export default function MyEsimsPage() {
                         </div>
                         
                         {esim.totalVolume !== null && esim.totalVolume !== undefined && (
-                          <div className="p-3 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)] flex items-center justify-between">
-                             <div className="flex items-center gap-2">
-                                <HardDrive className="h-4 w-4 text-[var(--voyage-muted)]" />
-                                <span className="text-sm text-[var(--voyage-muted)]">Data</span>
+                          <div className="p-3 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)] space-y-2">
+                             <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                   <HardDrive className="h-4 w-4 text-[var(--voyage-muted)]" />
+                                   <span className="text-sm text-[var(--voyage-muted)]">Total Data</span>
+                                </div>
+                                <span className="text-sm text-white font-medium">{formatBytes(esim.totalVolume)}</span>
                              </div>
-                             <span className="text-sm text-white font-medium">{formatBytes(esim.totalVolume)}</span>
+                             
+                             {/* Usage Progress Bar */}
+                             {esim.orderUsage !== null && esim.orderUsage !== undefined && esim.totalVolume && (
+                                <>
+                                   <div className="space-y-1">
+                                      <div className="flex items-center justify-between text-xs">
+                                         <span className="text-[var(--voyage-muted)]">Data Used</span>
+                                         <span className="text-white font-medium">{formatBytes(esim.orderUsage)}</span>
+                                      </div>
+                                      <div className="w-full bg-[var(--voyage-border)] rounded-full h-2 overflow-hidden">
+                                         <div 
+                                            className="h-full bg-gradient-to-r from-[var(--voyage-accent)] to-purple-500 transition-all duration-300"
+                                            style={{
+                                               width: `${Math.min(100, (Number(esim.orderUsage) / Number(esim.totalVolume)) * 100)}%`
+                                            }}
+                                         />
+                                      </div>
+                                      <div className="flex items-center justify-between text-xs">
+                                         <span className="text-[var(--voyage-muted)]">Remaining</span>
+                                         <span className="text-white font-medium">
+                                            {formatBytes(Number(esim.totalVolume) - Number(esim.orderUsage))}
+                                         </span>
+                                      </div>
+                                   </div>
+                                </>
+                             )}
                           </div>
                         )}
                         

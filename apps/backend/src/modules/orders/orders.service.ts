@@ -750,7 +750,26 @@ export class OrdersService {
             // dataUsage is the consumed amount (this is orderUsage)
             // Even if 0, we should update it to indicate the profile has been checked
             if (usageItem.dataUsage !== undefined) {
-              updateData.orderUsage = BigInt(usageItem.dataUsage); // Can be 0 if unused
+              const newUsage = BigInt(usageItem.dataUsage);
+              const oldUsage = profile.orderUsage;
+
+              // Create usage history record if usage changed
+              if (!oldUsage || oldUsage !== newUsage) {
+                try {
+                  await this.prisma.esimUsageHistory.create({
+                    data: {
+                      profileId: profile.id,
+                      usedBytes: newUsage,
+                    },
+                  });
+                  this.logger.log(`[SYNC] Created usage history record for profile ${profile.id}: ${newUsage} bytes`);
+                } catch (err) {
+                  // Don't fail sync if history creation fails
+                  this.logger.warn(`[SYNC] Failed to create usage history for profile ${profile.id}:`, err);
+                }
+              }
+
+              updateData.orderUsage = newUsage;
             }
 
             // Optionally update totalVolume if different (though we already sync this above)

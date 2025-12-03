@@ -13,6 +13,7 @@ import { AdminGuard } from '../guards/admin.guard';
 import { OrdersService } from '../../orders/orders.service';
 import { AdminService } from '../admin.service';
 import { PrismaService } from '../../../prisma.service';
+import { UsageService } from '../../esim/usage.service';
 
 @Controller('admin/esims')
 @UseGuards(AdminGuard)
@@ -21,6 +22,7 @@ export class AdminEsimsController {
     private readonly ordersService: OrdersService,
     private readonly adminService: AdminService,
     private readonly prisma: PrismaService,
+    private readonly usageService: UsageService,
   ) {}
 
   @Get()
@@ -167,6 +169,61 @@ export class AdminEsimsController {
     );
 
     return { success: true, message: 'eSIM profile deleted successfully' };
+  }
+
+  @Post(':id/sync-usage')
+  async syncUsage(@Param('id') id: string, @Req() req: any) {
+    const profile = await this.prisma.esimProfile.findUnique({
+      where: { id },
+    });
+
+    if (!profile) {
+      throw new NotFoundException(`eSIM profile ${id} not found`);
+    }
+
+    if (!profile.esimTranNo) {
+      throw new BadRequestException('Profile has no esimTranNo');
+    }
+
+    try {
+      await this.usageService.syncUsageForProfile(id, profile.esimTranNo);
+
+      // Log action
+      await this.adminService.logAction(
+        req.adminEmail,
+        'sync_usage',
+        'esim_profile',
+        id,
+        { profileId: id, iccid: profile.iccid },
+      );
+
+      return { success: true, message: 'Usage synced successfully' };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
+
+  @Get(':id/usage-history')
+  async getUsageHistory(@Param('id') id: string, @Req() req: any) {
+    const profile = await this.prisma.esimProfile.findUnique({
+      where: { id },
+    });
+
+    if (!profile) {
+      throw new NotFoundException(`eSIM profile ${id} not found`);
+    }
+
+    const history = await this.usageService.getUsageHistory(id, 100);
+
+    return history.map((record) => ({
+      id: record.id,
+      profileId: record.profileId,
+      usedBytes: record.usedBytes.toString(),
+      recordedAt: record.recordedAt.toISOString(),
+    }));
   }
 }
 

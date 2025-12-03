@@ -6,9 +6,10 @@ import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, RefreshCw, Trash2 } from "lucide-react";
+import { ArrowLeft, RefreshCw, Trash2, BarChart3 } from "lucide-react";
 import { getEsimStatusDisplay, getPlanName, getTopUpStatusDisplay, getPlanNames } from "@/lib/admin-helpers";
 import { formatUsdDollars } from "@/lib/utils";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 interface EsimProfile {
   id: string;
@@ -48,6 +49,8 @@ export default function AdminEsimDetailPage() {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [planName, setPlanName] = useState<string>("");
   const [topUpPlanNames, setTopUpPlanNames] = useState<Map<string, string>>(new Map());
+  const [usageHistory, setUsageHistory] = useState<any[]>([]);
+  const [usageHistoryLoading, setUsageHistoryLoading] = useState(false);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
   useEffect(() => {
@@ -75,6 +78,21 @@ export default function AdminEsimDetailPage() {
             const names = await getPlanNames(uniquePlanCodes, apiUrl);
             setTopUpPlanNames(names);
           }
+        }
+        
+        // Fetch usage history
+        try {
+          const resUsage = await fetch(`${apiUrl}/admin/esims/${params.id}/usage-history`, {
+            headers: {
+              "x-admin-email": user?.primaryEmailAddress?.emailAddress || "",
+            },
+          });
+          if (resUsage.ok) {
+            const usageData = await resUsage.json();
+            setUsageHistory(usageData);
+          }
+        } catch (e) {
+          console.error("Failed to fetch usage history:", e);
         }
       } catch (error) {
         console.error("Failed to fetch esim:", error);
@@ -116,6 +134,53 @@ export default function AdminEsimDetailPage() {
       alert("Failed to sync eSIM");
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleSyncUsage = async () => {
+    setUsageHistoryLoading(true);
+    try {
+      const res = await fetch(`${apiUrl}/admin/esims/${params.id}/sync-usage`, {
+        method: "POST",
+        headers: {
+          "x-admin-email": user?.primaryEmailAddress?.emailAddress || "",
+        },
+      });
+
+      if (res.ok) {
+        alert("Usage synced successfully");
+        // Reload usage history and esim data
+        const [resHistory, resEsim] = await Promise.all([
+          fetch(`${apiUrl}/admin/esims/${params.id}/usage-history`, {
+            headers: {
+              "x-admin-email": user?.primaryEmailAddress?.emailAddress || "",
+            },
+          }),
+          fetch(`${apiUrl}/admin/esims/${params.id}`, {
+            headers: {
+              "x-admin-email": user?.primaryEmailAddress?.emailAddress || "",
+            },
+          }),
+        ]);
+        
+        if (resHistory.ok) {
+          const usageData = await resHistory.json();
+          setUsageHistory(usageData);
+        }
+        
+        if (resEsim.ok) {
+          const data = await resEsim.json();
+          setEsim(data);
+        }
+      } else {
+        const error = await res.json().catch(() => ({ error: "Failed to sync usage" }));
+        alert(error.error || "Failed to sync usage");
+      }
+    } catch (error) {
+      console.error("Failed to sync usage:", error);
+      alert("Failed to sync usage");
+    } finally {
+      setUsageHistoryLoading(false);
     }
   };
 
@@ -309,6 +374,101 @@ export default function AdminEsimDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Usage History */}
+      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-white flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Data Usage History
+            </CardTitle>
+            <Button
+              onClick={handleSyncUsage}
+              disabled={usageHistoryLoading}
+              variant="outline"
+              size="sm"
+              className="border-[var(--voyage-border)] hover:bg-[var(--voyage-bg-light)]"
+            >
+              {usageHistoryLoading ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4 mr-2" />
+              )}
+              Sync Usage
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {usageHistory.length > 0 ? (
+            <>
+              <div className="h-80 mb-6">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={usageHistory.map((record) => ({
+                    date: new Date(record.recordedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit' }),
+                    usedGB: (Number(record.usedBytes) / (1024 * 1024 * 1024)).toFixed(2),
+                    timestamp: record.recordedAt,
+                  }))}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                    <XAxis 
+                      dataKey="date" 
+                      stroke="#888"
+                      style={{ fontSize: '12px' }}
+                    />
+                    <YAxis 
+                      stroke="#888"
+                      style={{ fontSize: '12px' }}
+                      label={{ value: 'GB Used', angle: -90, position: 'insideLeft', style: { fill: '#888' } }}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'var(--voyage-bg-light)',
+                        border: '1px solid var(--voyage-border)',
+                        borderRadius: '8px',
+                        color: 'white',
+                      }}
+                      formatter={(value: any) => [`${value} GB`, 'Data Used']}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="usedGB" 
+                      stroke="var(--voyage-accent)" 
+                      strokeWidth={2}
+                      dot={{ fill: 'var(--voyage-accent)', r: 4 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+              
+              {/* Usage History Table */}
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {usageHistory.slice().reverse().map((record) => (
+                  <div
+                    key={record.id}
+                    className="p-3 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)] flex items-center justify-between"
+                  >
+                    <div>
+                      <p className="text-white text-sm font-medium">
+                        {formatBytes(record.usedBytes)}
+                      </p>
+                      <p className="text-xs text-[var(--voyage-muted)]">
+                        {new Date(record.recordedAt).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-8 text-[var(--voyage-muted)]">
+              <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No usage history yet</p>
+              <p className="text-xs mt-2">Usage data will appear here after syncing</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
         <CardHeader>

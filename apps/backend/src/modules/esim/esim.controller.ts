@@ -1,13 +1,17 @@
 import { Controller, Get, Param, Post, Body, Query, Inject, forwardRef, NotFoundException } from '@nestjs/common';
 import { EsimService } from './esim.service';
+import { UsageService } from './usage.service';
 import { OrdersService } from '../orders/orders.service';
 import { TopUpService } from '../topup/topup.service';
+import { PrismaService } from '../../prisma.service';
 
 @Controller() // Do NOT prefix with /api. Global prefix handles it.
 export class EsimController {
   constructor(
     private readonly esimService: EsimService,
+    private readonly usageService: UsageService,
     private readonly ordersService: OrdersService,
+    private readonly prisma: PrismaService,
     @Inject(forwardRef(() => TopUpService))
     private readonly topUpService: TopUpService,
   ) {}
@@ -111,5 +115,36 @@ export class EsimController {
   async syncNow() {
     await this.ordersService.syncEsimProfiles();
     return { message: 'Sync cycle completed', timestamp: new Date().toISOString() };
+  }
+
+  // ============================================
+  // FEATURE: USAGE HISTORY
+  // ============================================
+  @Get('esim/usage/history/:profileId')
+  async getUsageHistory(
+    @Param('profileId') profileId: string,
+    @Query('limit') limit?: string
+  ) {
+    // Verify profile exists
+    const profile = await this.prisma.esimProfile.findUnique({
+      where: { id: profileId },
+    });
+
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
+    }
+
+    const history = await this.usageService.getUsageHistory(
+      profileId,
+      limit ? parseInt(limit, 10) : undefined
+    );
+
+    // Serialize BigInt and Date fields for JSON response
+    return history.map((record) => ({
+      id: record.id,
+      profileId: record.profileId,
+      usedBytes: record.usedBytes.toString(),
+      recordedAt: record.recordedAt.toISOString(),
+    }));
   }
 }

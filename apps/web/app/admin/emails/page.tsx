@@ -72,51 +72,63 @@ export default function AdminEmailLogsPage() {
   const columns = [
     {
       header: "To",
-      accessor: (row: EmailLog) => row.to,
-      className: "min-w-[200px]",
+      accessor: (row: EmailLog) => (
+        <div className="truncate max-w-[180px]" title={row.to}>
+          {row.to}
+        </div>
+      ),
+      className: "w-[150px]",
     },
     {
       header: "Subject",
-      accessor: (row: EmailLog) => row.subject,
-      className: "min-w-[200px]",
+      accessor: (row: EmailLog) => (
+        <div className="truncate max-w-[220px]" title={row.subject}>
+          {row.subject}
+        </div>
+      ),
+      className: "w-[150px]",
     },
     {
       header: "Template",
       accessor: (row: EmailLog) => (
         <span className="font-mono text-xs">{row.template}</span>
       ),
-      className: "min-w-[150px]",
+      className: "w-[100px]",
     },
     {
       header: "Status",
       accessor: (row: EmailLog) => getStatusBadge(row.status),
-      className: "min-w-[100px]",
+      className: "w-[80px]",
     },
     {
       header: "Provider ID",
       accessor: (row: EmailLog) =>
         row.providerId ? (
-          <span className="font-mono text-xs">{row.providerId}</span>
+          <div className="font-mono text-xs truncate max-w-[120px]" title={row.providerId}>
+            {row.providerId}
+          </div>
         ) : (
           <span className="text-[var(--voyage-muted)]">—</span>
         ),
-      className: "min-w-[150px]",
+      className: "w-[120px]",
     },
     {
       header: "Error",
       accessor: (row: EmailLog) =>
         row.error ? (
-          <span className="text-red-400 text-xs break-words">{row.error}</span>
+          <div className="text-red-400 text-xs truncate max-w-[150px]" title={row.error}>
+            {row.error}
+          </div>
         ) : (
           <span className="text-[var(--voyage-muted)]">—</span>
         ),
-      className: "min-w-[200px]",
+      className: "w-[150px]",
     },
     {
       header: "Sent At",
       accessor: (row: EmailLog) =>
         new Date(row.createdAt).toLocaleString(),
-      className: "min-w-[150px]",
+      className: "w-[150px]",
     },
   ];
 

@@ -30,13 +30,14 @@ export function AdminTable<T extends { id: string }>({
   }
 
   return (
-    <table className="w-full border-collapse table-auto">
+    <div className="w-full overflow-x-auto">
+      <table className="w-full border-collapse text-left">
         <thead>
           <tr className="border-b border-[var(--voyage-border)]">
             {columns.map((column, idx) => (
               <th
                 key={idx}
-                className={`text-left px-6 py-4 text-sm font-semibold text-[var(--voyage-muted)] ${
+                className={`text-left px-4 py-3 text-sm font-semibold text-[var(--voyage-muted)] whitespace-nowrap ${
                   column.className || ""
                 }`}
               >
@@ -57,7 +58,7 @@ export function AdminTable<T extends { id: string }>({
               {columns.map((column, idx) => (
                 <td
                   key={idx}
-                  className={`px-6 py-4 text-sm text-white break-words ${
+                  className={`text-left px-4 py-3 text-sm text-white break-words ${
                     column.className || ""
                   }`}
                 >
@@ -70,6 +71,7 @@ export function AdminTable<T extends { id: string }>({
           ))}
         </tbody>
       </table>
+    </div>
   );
 }
 

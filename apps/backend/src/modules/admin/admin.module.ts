@@ -11,10 +11,11 @@ import { AdminSettingsController } from './controllers/admin-settings.controller
 import { AdminLogsController } from './controllers/admin-logs.controller';
 import { PrismaService } from '../../prisma.service';
 import { OrdersModule } from '../orders/orders.module';
+import { EsimModule } from '../esim/esim.module';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [forwardRef(() => OrdersModule), ConfigModule],
+  imports: [forwardRef(() => OrdersModule), forwardRef(() => EsimModule), ConfigModule],
   controllers: [
     AdminOrdersController,
     AdminEsimsController,

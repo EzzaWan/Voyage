@@ -47,21 +47,22 @@ model Order {
 }
 
 model EsimProfile {
-  id          String    @id @default(uuid())
-  orderId     String
-  order       Order     @relation(fields: [orderId], references: [id])
-  esimTranNo  String
-  iccid       String
-  qrCodeUrl   String?
-  ac          String?   // activation code
-  smdpStatus  String?
-  esimStatus  String?
-  totalVolume BigInt?
-  orderUsage  BigInt?
-  expiredTime DateTime?
-  userId      String?   // Optional initially, but linked to User for direct access
-  user        User?     @relation("UserProfiles", fields: [userId], references: [id])
-  topups      TopUp[]
+  id           String             @id @default(uuid())
+  orderId      String
+  order        Order              @relation(fields: [orderId], references: [id])
+  esimTranNo   String
+  iccid        String
+  qrCodeUrl    String?
+  ac           String?            // activation code
+  smdpStatus   String?
+  esimStatus   String?
+  totalVolume  BigInt?
+  orderUsage   BigInt?
+  expiredTime  DateTime?
+  userId       String?            // Optional initially, but linked to User for direct access
+  user         User?              @relation("UserProfiles", fields: [userId], references: [id])
+  topups       TopUp[]
+  usageHistory EsimUsageHistory[]
 }
 
 model TopUp {
@@ -121,4 +122,15 @@ model EmailLog {
   status     String   // sent, failed, mock, pending
   error      String?
   createdAt  DateTime @default(now())
+}
+
+model EsimUsageHistory {
+  id        String      @id @default(uuid())
+  profileId String
+  profile   EsimProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  usedBytes BigInt      // how much used at this timestamp
+  recordedAt DateTime   @default(now())
+
+  @@index([profileId])
+  @@index([profileId, recordedAt])
 }

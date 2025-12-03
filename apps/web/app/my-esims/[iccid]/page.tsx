@@ -8,6 +8,7 @@ import { Wifi, Globe, HardDrive, Calendar, Clock, RefreshCw, ArrowLeft, FileText
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 // Helper function to format user-friendly status
 function getStatusDisplay(esimStatus: string | undefined): { label: string; color: string } {
@@ -52,6 +53,7 @@ export default function EsimDetailPage() {
   const { user } = useUser();
   const [profile, setProfile] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
+  const [usageHistory, setUsageHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   // State to store plan details for top-ups
@@ -65,9 +67,23 @@ export default function EsimDetailPage() {
       if (resProfile.ok) {
         const data = await resProfile.json();
         setProfile(data);
+        
+        // Fetch usage history if profile has an ID
+        if (data.id) {
+          try {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+            const resUsageHistory = await fetch(`${apiUrl}/esim/usage/history/${data.id}?limit=100`);
+            if (resUsageHistory.ok) {
+              const usageData = await resUsageHistory.json();
+              setUsageHistory(usageData);
+            }
+          } catch (e) {
+            console.error('Failed to fetch usage history:', e);
+          }
+        }
       }
 
-      // Fetch History
+      // Fetch History (top-ups)
       const resHistory = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/esim/topups?iccid=${iccid}`);
       if (resHistory.ok) {
         const data = await resHistory.json();
@@ -257,6 +273,51 @@ export default function EsimDetailPage() {
           </Button>
         </Link>
       </div>
+
+      {/* Data Usage History Graph */}
+      {usageHistory.length > 0 && (
+        <div className="bg-[var(--voyage-card)] rounded-2xl p-8 border border-[var(--voyage-border)]">
+          <h3 className="text-xl font-bold text-white mb-6">Data Usage History</h3>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={usageHistory.map((record) => ({
+                date: new Date(record.recordedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                usedGB: (Number(record.usedBytes) / (1024 * 1024 * 1024)).toFixed(2),
+                timestamp: record.recordedAt,
+              }))}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                <XAxis 
+                  dataKey="date" 
+                  stroke="#888"
+                  style={{ fontSize: '12px' }}
+                />
+                <YAxis 
+                  stroke="#888"
+                  style={{ fontSize: '12px' }}
+                  label={{ value: 'GB Used', angle: -90, position: 'insideLeft', style: { fill: '#888' } }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'var(--voyage-bg-light)',
+                    border: '1px solid var(--voyage-border)',
+                    borderRadius: '8px',
+                    color: 'white',
+                  }}
+                  formatter={(value: any) => [`${value} GB`, 'Data Used']}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="usedGB" 
+                  stroke="var(--voyage-accent)" 
+                  strokeWidth={2}
+                  dot={{ fill: 'var(--voyage-accent)', r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
 
       {/* Top-Up History */}
       <div className="bg-[var(--voyage-card)] rounded-2xl p-8 border border-[var(--voyage-border)]">
