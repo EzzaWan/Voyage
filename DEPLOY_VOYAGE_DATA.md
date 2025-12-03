@@ -34,7 +34,7 @@
 - Build: `npm install && npm run build`
 - Start: `npm run start:prod`
 
-**Important:** Make sure devDependencies are installed during build. The build script uses `npx nest build` to find the local NestJS CLI.
+**Important:** The build script uses TypeScript compiler directly (`tsc`) instead of NestJS CLI. TypeScript is in dependencies so it's always available. If build fails, try using `npx tsc` in the build script instead.
 - Plan: Starter ($7/month)
 
 **Environment Variables:**
