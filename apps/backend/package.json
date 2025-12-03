@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "tsc && prisma generate --schema=../../prisma/schema.prisma",
+    "build": "tsc",
     "start": "nest start",
     "dev": "nest start --watch --exec \"node -r ts-node/register/transpile-only src/main.ts\"",
     "start:dev": "nest start --watch --exec \"node -r ts-node/register/transpile-only src/main.ts\"",
