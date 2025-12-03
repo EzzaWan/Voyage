@@ -74,7 +74,7 @@ export default function AdminEsimDetailPage() {
           
           // Fetch top-up plan names
           if (data.topups && data.topups.length > 0) {
-            const uniquePlanCodes = Array.from(new Set(data.topups.map((t: { planCode: string }) => t.planCode)));
+            const uniquePlanCodes = Array.from(new Set(data.topups.map((t: { planCode: string }) => t.planCode))) as string[];
             const names = await getPlanNames(uniquePlanCodes, apiUrl);
             setTopUpPlanNames(names);
           }
