@@ -1,0 +1,36 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.EsimErrorCode = void 0;
+var EsimErrorCode;
+(function (EsimErrorCode) {
+    EsimErrorCode["SERVER_ERROR"] = "000001";
+    EsimErrorCode["MISSING_HEADER"] = "000101";
+    EsimErrorCode["WRONG_HEADER_FORMAT"] = "000102";
+    EsimErrorCode["UNSUPPORTED_METHOD"] = "000103";
+    EsimErrorCode["INVALID_JSON"] = "000104";
+    EsimErrorCode["MISSING_PARAM"] = "000105";
+    EsimErrorCode["PARAM_NULL"] = "000106";
+    EsimErrorCode["INVALID_PARAM_LENGTH"] = "000107";
+    EsimErrorCode["TIMESTAMP_EXPIRED"] = "101001";
+    EsimErrorCode["IP_BLOCKED"] = "101002";
+    EsimErrorCode["SIGNATURE_MISMATCH"] = "101003";
+    EsimErrorCode["ORDER_STATUS_NOT_ALLOWED"] = "200002";
+    EsimErrorCode["PRICE_ERROR"] = "200005";
+    EsimErrorCode["WRONG_TOTAL_AMOUNT"] = "200006";
+    EsimErrorCode["INSUFFICIENT_BALANCE"] = "200007";
+    EsimErrorCode["ORDER_PARAM_ERROR"] = "200008";
+    EsimErrorCode["ABNORMAL_ORDER_STATUS"] = "200009";
+    EsimErrorCode["PROFILE_NOT_ALLOCATED"] = "200010";
+    EsimErrorCode["INSUFFICIENT_PROFILES"] = "200011";
+    EsimErrorCode["BUNDLE_CODE_NOT_EXIST"] = "310201";
+    EsimErrorCode["DATA_PLAN_LOCATION_NOT_EXIST"] = "310211";
+    EsimErrorCode["CURRENCY_NOT_EXIST"] = "310221";
+    EsimErrorCode["CARRIER_NOT_EXIST"] = "310231";
+    EsimErrorCode["PACKAGE_CODE_NOT_EXIST"] = "310241";
+    EsimErrorCode["PACKAGE_NOT_EXIST"] = "310243";
+    EsimErrorCode["VENDOR_NOT_EXIST"] = "310251";
+    EsimErrorCode["ORDER_NO_NOT_EXIST"] = "310272";
+    EsimErrorCode["ICCID_NOT_IN_ORDER"] = "310403";
+    EsimErrorCode["SYSTEM_BUSY"] = "900001";
+})(EsimErrorCode || (exports.EsimErrorCode = EsimErrorCode = {}));
+//# sourceMappingURL=types.js.map

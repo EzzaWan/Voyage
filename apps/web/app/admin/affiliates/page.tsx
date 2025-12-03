@@ -80,27 +80,39 @@ export default function AdminAffiliatesPage() {
   }
 
   const columns = [
-    { key: "user.email", label: "User Email" },
-    { key: "user.name", label: "Name" },
-    { key: "referralCode", label: "Referral Code" },
-    { key: "totalCommission", label: "Total Commission" },
-    { key: "_count.referrals", label: "Referrals" },
-    { key: "_count.commissions", label: "Commissions" },
-    { key: "createdAt", label: "Created" },
+    {
+      header: "User Email",
+      accessor: (row: Affiliate) => row.user.email,
+    },
+    {
+      header: "Name",
+      accessor: (row: Affiliate) => row.user.name || "N/A",
+    },
+    {
+      header: "Referral Code",
+      accessor: (row: Affiliate) => (
+        <span className="font-mono font-bold text-[var(--voyage-accent)]">{row.referralCode}</span>
+      ),
+    },
+    {
+      header: "Total Commission",
+      accessor: (row: Affiliate) => (
+        <span className="font-medium text-green-400">{formatCurrency(row.totalCommission)}</span>
+      ),
+    },
+    {
+      header: "Referrals",
+      accessor: (row: Affiliate) => row._count.referrals,
+    },
+    {
+      header: "Commissions",
+      accessor: (row: Affiliate) => row._count.commissions,
+    },
+    {
+      header: "Created",
+      accessor: (row: Affiliate) => formatDate(row.createdAt),
+    },
   ];
-
-  const rows = affiliates.map((affiliate) => ({
-    id: affiliate.id,
-    "user.email": affiliate.user.email,
-    "user.name": affiliate.user.name || "N/A",
-    referralCode: (
-      <span className="font-mono font-bold text-[var(--voyage-accent)]">{affiliate.referralCode}</span>
-    ),
-    totalCommission: <span className="font-medium text-green-400">{formatCurrency(affiliate.totalCommission)}</span>,
-    "_count.referrals": affiliate._count.referrals,
-    "_count.commissions": affiliate._count.commissions,
-    createdAt: formatDate(affiliate.createdAt),
-  }));
 
   return (
     <div className="space-y-8">
@@ -117,7 +129,7 @@ export default function AdminAffiliatesPage() {
           {affiliates.length === 0 ? (
             <p className="text-center text-[var(--voyage-muted)] py-8">No affiliates found</p>
           ) : (
-            <AdminTable columns={columns} rows={rows} />
+            <AdminTable data={affiliates} columns={columns} emptyMessage="No affiliates found" />
           )}
         </CardContent>
       </Card>
