@@ -62,9 +62,9 @@ EXCHANGE_RATE_API_KEY=your_key
 - Dashboard → "New +" → "Web Service"
 - Connect same GitHub repo
 - Name: `voyage-frontend`
-- Root Directory: `apps/web`
-- Build: `npm install && npm run build`
-- Start: `npm run start`
+- Root Directory: `.` (monorepo root - IMPORTANT!)
+- Build: `npm install && cd apps/web && npm run build`
+- Start: `cd apps/web && npm run start`
 - Plan: Starter ($7/month)
 
 **Environment Variables:**
