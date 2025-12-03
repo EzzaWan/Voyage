@@ -51,7 +51,7 @@ export default function Home() {
 
   return (
     <div className="min-h-[80vh] flex flex-col">
-       <div className="text-center max-w-2xl mx-auto mb-12 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+       <div className="flex flex-col items-center text-center max-w-2xl mx-auto mb-12 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="inline-flex items-center justify-center p-3 rounded-full bg-[var(--voyage-bg-light)] border border-[var(--voyage-border)] mb-4">
              <Globe className="h-6 w-6 text-[var(--voyage-accent)]" />
           </div>
@@ -63,7 +63,7 @@ export default function Home() {
              Stay connected in 200+ countries with instant eSIM delivery. No hidden fees. No roaming charges.
           </p>
           
-          <div className="pt-4">
+          <div className="pt-4 flex justify-center w-full">
              <SearchBar value={search} onChange={setSearch} />
           </div>
        </div>
