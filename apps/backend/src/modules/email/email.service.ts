@@ -64,10 +64,37 @@ export class EmailService {
       return this.templateCache.get(templateName)!;
     }
 
-    const tplPath = join(process.cwd(), 'apps', 'backend', 'templates', 'email', `${templateName}.hbs`);
+    // Determine the correct base path - handle both root and apps/backend working directories
+    const cwd = process.cwd();
+    const possiblePaths: string[] = [];
     
-    if (!existsSync(tplPath)) {
-      this.logger.error(`[EMAIL] Template not found: ${tplPath}`);
+    // Check if templates exist directly in current directory (if running from apps/backend)
+    const directPath = join(cwd, 'templates', 'email', `${templateName}.hbs`);
+    if (existsSync(directPath)) {
+      possiblePaths.push(directPath);
+    }
+    
+    // Check if we're in apps/backend and need to go to root
+    const normalizedCwd = cwd.replace(/\\/g, '/');
+    if (normalizedCwd.includes('/apps/backend') && normalizedCwd.endsWith('/apps/backend')) {
+      // We're in apps/backend, go up to root
+      const rootPath = join(cwd, '..', '..');
+      possiblePaths.push(join(rootPath, 'apps', 'backend', 'templates', 'email', `${templateName}.hbs`));
+    }
+    
+    // Always try from current directory as if we're at root
+    possiblePaths.push(join(cwd, 'apps', 'backend', 'templates', 'email', `${templateName}.hbs`));
+    
+    let tplPath: string | null = null;
+    for (const path of possiblePaths) {
+      if (existsSync(path)) {
+        tplPath = path;
+        break;
+      }
+    }
+    
+    if (!tplPath) {
+      this.logger.error(`[EMAIL] Template not found: ${templateName}. CWD: ${cwd}. Searched: ${possiblePaths.join(', ')}`);
       // Return a simple fallback template
       return Handlebars.compile(`<html><body><h1>{{subject}}</h1><p>Template ${templateName} not found</p></body></html>`);
     }
@@ -269,6 +296,17 @@ export class EmailService {
       subject,
       variables,
       idempotencyKey: idempotency || `expiring-${variables.profile?.id || Date.now()}`,
+    });
+  }
+
+  async sendReceiptEmail(to: string, variables: any, idempotency?: string) {
+    const subject = `Receipt for your purchase — Voyage`;
+    return this.sendEmail({
+      to,
+      template: 'receipt',
+      subject,
+      variables,
+      idempotencyKey: idempotency || `receipt-${variables.orderId || Date.now()}`,
     });
   }
 }

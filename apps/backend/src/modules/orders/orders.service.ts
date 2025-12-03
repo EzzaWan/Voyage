@@ -249,10 +249,21 @@ export class OrdersService {
 
     this.logger.log(`Created REAL eSIM profile for order ${order.id}`);
 
-    // Send eSIM ready email (fire and forget)
+    // Send eSIM ready email with receipt download link included (fire and forget)
     this.sendEsimReadyEmail(order, user, planCode, profile).catch((err) => {
       this.logger.error(`[EMAIL] Failed to send eSIM ready email: ${err.message}`);
     });
+
+    // Also mark receipt as sent (receipt link is included in eSIM ready email)
+    try {
+      await this.prisma.order.update({
+        where: { id: order.id },
+        data: { receiptSent: true },
+      });
+      this.logger.log(`[EMAIL] Marked receipt as sent for order ${order.id} (included in eSIM ready email)`);
+    } catch (err) {
+      this.logger.warn(`[EMAIL] Failed to mark receipt as sent: ${err.message}`);
+    }
   }
 
   async retryPendingForPaymentRef(paymentRef: string) {
@@ -455,6 +466,48 @@ export class OrdersService {
         });
 
         this.logger.log(`[RETRY] Successfully created/updated eSIM profile for order ${order.id}`);
+
+        // Send emails ONLY ONCE if they haven't been sent yet (for orders that transitioned from pending/failed)
+        // IMPORTANT: We only send emails when a profile is successfully created, NOT during pending retries
+        const updatedOrder = await this.prisma.order.findUnique({
+          where: { id: order.id },
+          include: { user: true },
+        });
+
+        // Double-check: Only send if receipt hasn't been sent yet (prevents duplicates during retries)
+        if (updatedOrder && !updatedOrder.receiptSent) {
+          const createdProfile = await this.prisma.esimProfile.findFirst({
+            where: { orderId: order.id },
+            orderBy: { id: 'asc' },
+          });
+
+          // Only send emails if profile actually exists (not for pending orders)
+          if (createdProfile) {
+            this.logger.log(`[RETRY] Sending emails for order ${order.id} (was pending/failed, now succeeded)`);
+            
+            // Send eSIM ready email with receipt link (combined email)
+            this.sendEsimReadyEmail(updatedOrder, updatedOrder.user, order.planId, createdProfile).catch((err) => {
+              this.logger.error(`[RETRY][EMAIL] Failed to send eSIM ready email: ${err.message}`);
+            });
+
+            // Mark receipt as sent IMMEDIATELY to prevent duplicate emails on future retries
+            try {
+              await this.prisma.order.update({
+                where: { id: order.id },
+                data: { receiptSent: true },
+              });
+              this.logger.log(`[RETRY][EMAIL] Marked receipt as sent for order ${order.id} (emails will NOT be sent again)`);
+            } catch (err) {
+              this.logger.warn(`[RETRY][EMAIL] Failed to mark receipt as sent: ${err.message}`);
+            }
+          } else {
+            // No profile yet - don't send emails (order is still pending)
+            this.logger.log(`[RETRY] Order ${order.id} has no profile yet, skipping email send (still pending)`);
+          }
+        } else if (updatedOrder?.receiptSent) {
+          // Receipt already sent - skip to prevent duplicates
+          this.logger.log(`[RETRY] Order ${order.id} already sent receipt, skipping email (no duplicates)`);
+        }
       } catch (err) {
         this.logger.error(`[RETRY] Error processing order ${order.id}:`, err);
         // Continue with next order, don't fail permanently
@@ -462,6 +515,62 @@ export class OrdersService {
     }
 
     this.logger.log('[RETRY] Retry cycle completed');
+
+    // After retry, check for orders with profiles but no emails sent yet
+    // (e.g., profiles created via webhook while retry was running)
+    await this.sendEmailsForPendingReceipts();
+  }
+
+  private async sendEmailsForPendingReceipts() {
+    this.logger.log('[EMAIL] Checking for orders with profiles but no emails sent...');
+
+    // Find orders that have profiles but haven't sent receipt email
+    // IMPORTANT: Only processes orders where receiptSent = false (prevents duplicates)
+    // IMPORTANT: Only processes orders that HAVE profiles (not pending orders)
+    const ordersWithProfiles = await this.prisma.order.findMany({
+      where: {
+        receiptSent: false, // Only orders that haven't sent emails yet
+        profiles: {
+          some: {}, // Has at least one profile (not pending)
+        },
+      },
+      include: {
+        user: true,
+        profiles: {
+          orderBy: { id: 'asc' },
+          take: 1, // Just need first profile for email
+        },
+      },
+    });
+
+    if (ordersWithProfiles.length === 0) {
+      this.logger.log('[EMAIL] No orders found that need emails');
+      return;
+    }
+
+    this.logger.log(`[EMAIL] Found ${ordersWithProfiles.length} order(s) that need emails`);
+
+    for (const order of ordersWithProfiles) {
+      try {
+        const profile = order.profiles[0];
+        if (!profile) continue;
+
+        this.logger.log(`[EMAIL] Sending emails for order ${order.id} (profile created, emails not sent)`);
+
+        // Send eSIM ready email with receipt link (combined email) - ONLY ONCE
+        await this.sendEsimReadyEmail(order, order.user, order.planId, profile);
+
+        // Mark receipt as sent IMMEDIATELY to prevent duplicate emails on future retries/webhooks
+        await this.prisma.order.update({
+          where: { id: order.id },
+          data: { receiptSent: true },
+        });
+
+        this.logger.log(`[EMAIL] Successfully sent emails for order ${order.id} (marked receiptSent=true, won't send again)`);
+      } catch (err) {
+        this.logger.error(`[EMAIL] Failed to send emails for order ${order.id}: ${err.message}`);
+      }
+    }
   }
 
   // ============================================
@@ -708,7 +817,7 @@ export class OrdersService {
             id: order.id,
             amount,
             currency: order.currency?.toUpperCase() || 'USD',
-            status: order.status,
+            status: this.getHumanReadableOrderStatus(order.status),
           },
           plan: {
             name: planDetails?.name || planCode,
@@ -724,7 +833,7 @@ export class OrdersService {
     }
   }
 
-  private async sendEsimReadyEmail(order: any, user: any, planCode: string, profile: any) {
+  public async sendEsimReadyEmail(order: any, user: any, planCode: string, profile: any) {
     if (!this.emailService) {
       this.logger.warn('[EMAIL] EmailService not available, skipping eSIM ready email');
       return;
@@ -740,7 +849,11 @@ export class OrdersService {
       }
 
       const appUrl = this.config.get('WEB_URL') || 'http://localhost:3000';
+      const apiUrl = this.config.get('API_URL') || appUrl.replace(':3000', ':3001');
       const totalVolumeGB = profile.totalVolume ? (Number(profile.totalVolume) / (1024 * 1024 * 1024)).toFixed(2) + ' GB' : null;
+
+      // Include receipt download link in eSIM ready email
+      const receiptDownloadUrl = `${apiUrl}/api/orders/${order.id}/receipt?email=${encodeURIComponent(user.email)}`;
 
       await this.emailService.sendEsimReady(
         user.email,
@@ -752,7 +865,7 @@ export class OrdersService {
           profile: {
             id: profile.id,
             iccid: profile.iccid,
-            esimStatus: profile.esimStatus,
+            esimStatus: this.getHumanReadableEsimStatus(profile.esimStatus),
             totalVolume: totalVolumeGB,
             expiredTime: profile.expiredTime ? new Date(profile.expiredTime).toLocaleDateString() : null,
             qrCodeUrl: profile.qrCodeUrl,
@@ -761,12 +874,112 @@ export class OrdersService {
             name: planDetails?.name || planCode,
             packageCode: planCode,
           },
+          receiptDownloadUrl,
           appUrl,
         },
         `esim-${profile.id || order.id}`,
       );
     } catch (err) {
       this.logger.error(`[EMAIL] Error sending eSIM ready email: ${err.message}`);
+      throw err;
+    }
+  }
+
+  private getHumanReadableOrderStatus(status: string): string {
+    const statusLower = status.toLowerCase();
+    const statusMap: Record<string, string> = {
+      pending: 'Pending',
+      payment_pending: 'Payment Pending',
+      paid: 'Paid',
+      provisioning: 'Provisioning',
+      esim_created: 'eSIM Created',
+      active: 'Active',
+      completed: 'Completed',
+      failed: 'Failed',
+      cancelled: 'Cancelled',
+      canceled: 'Cancelled',
+    };
+    return statusMap[statusLower] || status;
+  }
+
+  private getHumanReadableEsimStatus(status: string): string {
+    if (!status) return 'Unknown';
+    const statusUpper = status.toUpperCase();
+    const statusMap: Record<string, string> = {
+      'GOT_RESOURCE': 'Ready',
+      'IN_USE': 'Active',
+      'USED_UP': 'Data Used Up',
+      'USED_EXPIRED': 'Expired (Used)',
+      'UNUSED_EXPIRED': 'Expired (Unused)',
+      'CANCEL': 'Cancelled',
+      'REVOKED': 'Revoked',
+      'DOWNLOAD': 'Ready to Download',
+      'INSTALLATION': 'Installing',
+      'ENABLED': 'Enabled',
+      'DISABLED': 'Disabled',
+      'DELETED': 'Deleted',
+    };
+    return statusMap[statusUpper] || status;
+  }
+
+  async sendReceiptEmail(order: any, user: any, planCode: string) {
+    if (!this.emailService) {
+      this.logger.warn('[EMAIL] EmailService not available, skipping receipt email');
+      return;
+    }
+
+    try {
+      // Fetch plan details
+      let planDetails: any = null;
+      try {
+        planDetails = await this.esimService.getPlan(planCode);
+      } catch (err) {
+        this.logger.warn(`[EMAIL] Could not fetch plan details for ${planCode}: ${err.message}`);
+      }
+
+      const appUrl = this.config.get('WEB_URL') || 'http://localhost:3000';
+      const apiUrl = this.config.get('API_URL') || appUrl.replace(':3000', ':3001');
+      const amount = (order.amountCents / 100).toFixed(2);
+      const currency = order.currency?.toUpperCase() || 'USD';
+
+      // Format price with currency symbol
+      let priceFormatted: string;
+      try {
+        priceFormatted = new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: currency,
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(parseFloat(amount));
+      } catch (err) {
+        priceFormatted = `${currency} ${amount}`;
+      }
+
+      const receiptDownloadUrl = `${apiUrl}/api/orders/${order.id}/receipt?email=${encodeURIComponent(user.email)}`;
+
+      const result = await this.emailService.sendReceiptEmail(
+        user.email,
+        {
+          userName: user.name || 'Customer',
+          orderId: order.id,
+          planName: planDetails?.name || planCode,
+          priceFormatted,
+          receiptDownloadUrl,
+          appUrl,
+        },
+        `receipt-${order.id}`,
+      );
+
+      // Mark receipt as sent if email was successfully sent (not skipped/mocked)
+      if (result.success || result.mock) {
+        await this.prisma.order.update({
+          where: { id: order.id },
+          data: { receiptSent: true },
+        });
+        this.logger.log(`[EMAIL] Marked receipt as sent for order ${order.id}`);
+      }
+    } catch (err) {
+      this.logger.error(`[EMAIL] Error sending receipt email: ${err.message}`);
       throw err;
     }
   }

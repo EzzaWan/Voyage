@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { PriceTag } from "@/components/PriceTag";
-import { Wifi, Globe, HardDrive, Calendar, Clock, RefreshCw, ArrowLeft } from "lucide-react";
+import { Wifi, Globe, HardDrive, Calendar, Clock, RefreshCw, ArrowLeft, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -48,6 +49,7 @@ function formatBytes(bytes: string | number | null | undefined): string {
 
 export default function EsimDetailPage() {
   const { iccid } = useParams();
+  const { user } = useUser();
   const [profile, setProfile] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -206,8 +208,47 @@ export default function EsimDetailPage() {
          </div>
       </div>
 
-      {/* Top Up Button */}
-      <div className="flex justify-end">
+      {/* Actions */}
+      <div className="flex justify-end gap-4">
+        {profile.order?.id && (
+          <Button 
+            variant="secondary"
+            className="h-14 px-8 text-lg font-bold border-[var(--voyage-border)] hover:bg-[var(--voyage-bg-light)] text-white"
+            onClick={() => {
+              const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+              const userEmail = user?.primaryEmailAddress?.emailAddress || '';
+              const receiptUrl = `${apiUrl}/orders/${profile.order.id}/receipt`;
+              
+              // Create a temporary link with headers via fetch (since we can't set headers on window.open)
+              fetch(receiptUrl, {
+                headers: {
+                  'x-user-email': userEmail,
+                },
+              })
+              .then(res => {
+                if (!res.ok) throw new Error('Failed to download receipt');
+                return res.blob();
+              })
+              .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `receipt-${profile.order.id}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+              })
+              .catch(err => {
+                console.error('Failed to download receipt:', err);
+                alert('Failed to download receipt. Please try again.');
+              });
+            }}
+          >
+            <FileText className="h-5 w-5 mr-2" />
+            Download Receipt
+          </Button>
+        )}
         <Link href={`/my-esims/${iccid}/topup`}>
           <Button 
              className="h-14 px-8 text-lg font-bold bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white shadow-[0_0_20px_rgba(30,144,255,0.3)] transition-all"

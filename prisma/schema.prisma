@@ -41,6 +41,7 @@ model Order {
   paymentMethod String
   paymentRef    String?
   esimOrderNo   String?       // eSIM Access orderNo
+  receiptSent   Boolean       @default(false)
   profiles      EsimProfile[]
   createdAt     DateTime      @default(now())
 }

@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, RefreshCw, RotateCcw, Mail } from "lucide-react";
+import { ArrowLeft, RefreshCw, RotateCcw, Mail, FileText } from "lucide-react";
 import { formatUsdDollars } from "@/lib/utils";
 import { getOrderStatusDisplay, getEsimStatusDisplay, getPlanName } from "@/lib/admin-helpers";
 
@@ -384,6 +384,51 @@ export default function AdminOrderDetailPage() {
             </div>
           </CardContent>
         )}
+      </Card>
+
+      {/* Receipt Section */}
+      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <CardHeader>
+          <h3 className="text-lg font-semibold text-white">Receipt</h3>
+        </CardHeader>
+        <CardContent>
+          <Button
+            variant="secondary"
+            className="border-[var(--voyage-border)] hover:bg-[var(--voyage-bg-light)]"
+            onClick={async () => {
+              const receiptUrl = `${apiUrl}/orders/${order.id}/receipt`;
+              const adminEmail = user?.primaryEmailAddress?.emailAddress || '';
+              
+              try {
+                const res = await fetch(receiptUrl, {
+                  headers: {
+                    'x-admin-email': adminEmail,
+                  },
+                });
+                
+                if (!res.ok) {
+                  throw new Error('Failed to download receipt');
+                }
+                
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `receipt-${order.id}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+              } catch (err) {
+                console.error('Failed to download receipt:', err);
+                alert('Failed to download receipt. Please try again.');
+              }
+            }}
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Download Receipt
+          </Button>
+        </CardContent>
       </Card>
     </div>
   );
