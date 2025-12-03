@@ -1,0 +1,400 @@
+{
+  "iPhone 12": {
+    "brand": "Apple",
+    "esim": true,
+    "regionalNotes": {
+      "CN": "No eSIM support on mainland China iPhone 12 models.",
+      "HK": "Hong Kong version uses dual physical SIM, no eSIM."
+    }
+  },
+  "iPhone 12 Pro": {
+    "brand": "Apple",
+    "esim": true,
+    "regionalNotes": {
+      "CN": "No eSIM support on mainland China iPhone 12 Pro models.",
+      "HK": "Hong Kong version uses dual physical SIM, no eSIM."
+    }
+  },
+  "iPhone 12 Pro Max": {
+    "brand": "Apple",
+    "esim": true,
+    "regionalNotes": {
+      "CN": "No eSIM support on mainland China iPhone 12 Pro Max models.",
+      "HK": "Hong Kong version uses dual physical SIM, no eSIM."
+    }
+  },
+  "iPhone 12 mini": {
+    "brand": "Apple",
+    "esim": true,
+    "regionalNotes": {
+      "CN": "No eSIM support on mainland China iPhone 12 mini models.",
+      "HK": "Hong Kong version uses dual physical SIM, no eSIM."
+    }
+  },
+  "iPhone 13": {
+    "brand": "Apple",
+    "esim": true,
+    "regionalNotes": {
+      "CN": "No eSIM support on mainland China iPhone 13 models.",
+      "HK": "Hong Kong version uses dual physical SIM, no eSIM."
+    }
+  },
+  "iPhone 13 Pro": {
+    "brand": "Apple",
+    "esim": true,
+    "regionalNotes": {
+      "CN": "No eSIM support on mainland China iPhone 13 Pro models.",
+      "HK": "Hong Kong version uses dual physical SIM, no eSIM."
+    }
+  },
+  "iPhone 13 Pro Max": {
+    "brand": "Apple",
+    "esim": true,
+    "regionalNotes": {
+      "CN": "No eSIM support on mainland China iPhone 13 Pro Max models.",
+      "HK": "Hong Kong version uses dual physical SIM, no eSIM."
+    }
+  },
+  "iPhone 13 mini": {
+    "brand": "Apple",
+    "esim": true,
+    "regionalNotes": {
+      "CN": "No eSIM support on mainland China iPhone 13 mini models.",
+      "HK": "Hong Kong version uses dual physical SIM, no eSIM."
+    }
+  },
+  "iPhone 14": {
+    "brand": "Apple",
+    "esim": true,
+    "notes": ["US models use eSIM only (no physical SIM)."],
+    "regionalNotes": {
+      "CN": "No eSIM support on mainland China iPhone 14 models.",
+      "HK": "Hong Kong version uses dual physical SIM, no eSIM.",
+      "US": "eSIM only - no physical SIM slot."
+    }
+  },
+  "iPhone 14 Pro": {
+    "brand": "Apple",
+    "esim": true,
+    "notes": ["US models use eSIM only (no physical SIM)."],
+    "regionalNotes": {
+      "CN": "No eSIM support on mainland China iPhone 14 Pro models.",
+      "HK": "Hong Kong version uses dual physical SIM, no eSIM.",
+      "US": "eSIM only - no physical SIM slot."
+    }
+  },
+  "iPhone 14 Pro Max": {
+    "brand": "Apple",
+    "esim": true,
+    "notes": ["US models use eSIM only (no physical SIM)."],
+    "regionalNotes": {
+      "CN": "No eSIM support on mainland China iPhone 14 Pro Max models.",
+      "HK": "Hong Kong version uses dual physical SIM, no eSIM.",
+      "US": "eSIM only - no physical SIM slot."
+    }
+  },
+  "iPhone 15": {
+    "brand": "Apple",
+    "esim": true,
+    "notes": ["All models use eSIM only (no physical SIM)."],
+    "regionalNotes": {
+      "CN": "No eSIM support on mainland China iPhone 15 models.",
+      "HK": "Hong Kong version uses dual physical SIM, no eSIM."
+    }
+  },
+  "iPhone 15 Pro": {
+    "brand": "Apple",
+    "esim": true,
+    "notes": ["All models use eSIM only (no physical SIM)."],
+    "regionalNotes": {
+      "CN": "No eSIM support on mainland China iPhone 15 Pro models.",
+      "HK": "Hong Kong version uses dual physical SIM, no eSIM."
+    }
+  },
+  "iPhone 15 Pro Max": {
+    "brand": "Apple",
+    "esim": true,
+    "notes": ["All models use eSIM only (no physical SIM)."],
+    "regionalNotes": {
+      "CN": "No eSIM support on mainland China iPhone 15 Pro Max models.",
+      "HK": "Hong Kong version uses dual physical SIM, no eSIM."
+    }
+  },
+  "iPhone SE (2022)": {
+    "brand": "Apple",
+    "esim": true,
+    "regionalNotes": {
+      "CN": "No eSIM support on mainland China iPhone SE models."
+    }
+  },
+  "Samsung Galaxy S21": {
+    "brand": "Samsung",
+    "esim": true,
+    "regionalNotes": {
+      "KR": "Korean carrier-locked devices block eSIM.",
+      "US": "Only unlocked models support eSIM activation."
+    }
+  },
+  "Samsung Galaxy S21 Ultra": {
+    "brand": "Samsung",
+    "esim": true,
+    "regionalNotes": {
+      "KR": "Korean carrier-locked devices block eSIM.",
+      "US": "Only unlocked models support eSIM activation."
+    }
+  },
+  "Samsung Galaxy S22": {
+    "brand": "Samsung",
+    "esim": true,
+    "regionalNotes": {
+      "KR": "Korean carrier-locked devices block eSIM.",
+      "US": "Only unlocked models support eSIM activation."
+    }
+  },
+  "Samsung Galaxy S22 Ultra": {
+    "brand": "Samsung",
+    "esim": true,
+    "regionalNotes": {
+      "KR": "Korean carrier-locked devices block eSIM.",
+      "US": "Only unlocked models support eSIM activation."
+    }
+  },
+  "Samsung Galaxy S23": {
+    "brand": "Samsung",
+    "esim": true,
+    "regionalNotes": {
+      "KR": "Korean carrier-locked devices block eSIM.",
+      "US": "Only unlocked models support eSIM activation."
+    }
+  },
+  "Samsung Galaxy S23 Ultra": {
+    "brand": "Samsung",
+    "esim": true,
+    "regionalNotes": {
+      "KR": "Korean carrier-locked devices block eSIM.",
+      "US": "Only unlocked models support eSIM activation."
+    }
+  },
+  "Samsung Galaxy S24": {
+    "brand": "Samsung",
+    "esim": true,
+    "regionalNotes": {
+      "KR": "Korean carrier-locked devices block eSIM.",
+      "US": "Only unlocked models support eSIM activation."
+    }
+  },
+  "Samsung Galaxy S24 Ultra": {
+    "brand": "Samsung",
+    "esim": true,
+    "regionalNotes": {
+      "KR": "Korean carrier-locked devices block eSIM.",
+      "US": "Only unlocked models support eSIM activation."
+    }
+  },
+  "Samsung Galaxy Z Fold 3": {
+    "brand": "Samsung",
+    "esim": true,
+    "regionalNotes": {
+      "KR": "Korean carrier-locked devices block eSIM.",
+      "US": "Only unlocked models support eSIM activation."
+    }
+  },
+  "Samsung Galaxy Z Fold 4": {
+    "brand": "Samsung",
+    "esim": true,
+    "regionalNotes": {
+      "KR": "Korean carrier-locked devices block eSIM.",
+      "US": "Only unlocked models support eSIM activation."
+    }
+  },
+  "Samsung Galaxy Z Fold 5": {
+    "brand": "Samsung",
+    "esim": true,
+    "regionalNotes": {
+      "KR": "Korean carrier-locked devices block eSIM.",
+      "US": "Only unlocked models support eSIM activation."
+    }
+  },
+  "Samsung Galaxy Z Flip 3": {
+    "brand": "Samsung",
+    "esim": true,
+    "regionalNotes": {
+      "KR": "Korean carrier-locked devices block eSIM.",
+      "US": "Only unlocked models support eSIM activation."
+    }
+  },
+  "Samsung Galaxy Z Flip 4": {
+    "brand": "Samsung",
+    "esim": true,
+    "regionalNotes": {
+      "KR": "Korean carrier-locked devices block eSIM.",
+      "US": "Only unlocked models support eSIM activation."
+    }
+  },
+  "Samsung Galaxy Z Flip 5": {
+    "brand": "Samsung",
+    "esim": true,
+    "regionalNotes": {
+      "KR": "Korean carrier-locked devices block eSIM.",
+      "US": "Only unlocked models support eSIM activation."
+    }
+  },
+  "Google Pixel 5": {
+    "brand": "Google",
+    "esim": true,
+    "notes": ["Full eSIM support on all models."]
+  },
+  "Google Pixel 6": {
+    "brand": "Google",
+    "esim": true,
+    "notes": ["Full eSIM support on all models."]
+  },
+  "Google Pixel 6 Pro": {
+    "brand": "Google",
+    "esim": true,
+    "notes": ["Full eSIM support on all models."]
+  },
+  "Google Pixel 7": {
+    "brand": "Google",
+    "esim": true,
+    "notes": ["Full eSIM support on all models."]
+  },
+  "Google Pixel 7 Pro": {
+    "brand": "Google",
+    "esim": true,
+    "notes": ["Full eSIM support on all models."]
+  },
+  "Google Pixel 8": {
+    "brand": "Google",
+    "esim": true,
+    "notes": ["Full eSIM support on all models."]
+  },
+  "Google Pixel 8 Pro": {
+    "brand": "Google",
+    "esim": true,
+    "notes": ["Full eSIM support on all models."]
+  },
+  "OnePlus 9": {
+    "brand": "OnePlus",
+    "esim": true,
+    "notes": ["eSIM support available on select models and regions."]
+  },
+  "OnePlus 9 Pro": {
+    "brand": "OnePlus",
+    "esim": true,
+    "notes": ["eSIM support available on select models and regions."]
+  },
+  "OnePlus 10 Pro": {
+    "brand": "OnePlus",
+    "esim": true,
+    "notes": ["eSIM support available on select models and regions."]
+  },
+  "OnePlus 11": {
+    "brand": "OnePlus",
+    "esim": true,
+    "notes": ["eSIM support available on select models and regions."]
+  },
+  "Xiaomi 12": {
+    "brand": "Xiaomi",
+    "esim": false,
+    "notes": ["No eSIM support on most Xiaomi models."]
+  },
+  "Xiaomi 13": {
+    "brand": "Xiaomi",
+    "esim": false,
+    "notes": ["No eSIM support on most Xiaomi models."]
+  },
+  "Huawei P50": {
+    "brand": "Huawei",
+    "esim": false,
+    "notes": ["No eSIM support on Huawei devices."]
+  },
+  "Huawei Mate 50": {
+    "brand": "Huawei",
+    "esim": false,
+    "notes": ["No eSIM support on Huawei devices."]
+  },
+  "Oppo Find X5": {
+    "brand": "Oppo",
+    "esim": false,
+    "notes": ["Limited eSIM support - check with carrier."]
+  },
+  "Vivo X80": {
+    "brand": "Vivo",
+    "esim": false,
+    "notes": ["Limited eSIM support - check with carrier."]
+  },
+  "Motorola Edge 30": {
+    "brand": "Motorola",
+    "esim": true,
+    "notes": ["eSIM support varies by region and carrier."]
+  },
+  "Motorola Edge 40": {
+    "brand": "Motorola",
+    "esim": true,
+    "notes": ["eSIM support varies by region and carrier."]
+  },
+  "Sony Xperia 1 IV": {
+    "brand": "Sony",
+    "esim": true,
+    "notes": ["eSIM support available on select models."]
+  },
+  "Sony Xperia 5 IV": {
+    "brand": "Sony",
+    "esim": true,
+    "notes": ["eSIM support available on select models."]
+  },
+  "Nothing Phone 1": {
+    "brand": "Nothing",
+    "esim": true,
+    "notes": ["Full eSIM support."]
+  },
+  "Nothing Phone 2": {
+    "brand": "Nothing",
+    "esim": true,
+    "notes": ["Full eSIM support."]
+  },
+  "Fairphone 4": {
+    "brand": "Fairphone",
+    "esim": true,
+    "notes": ["Full eSIM support."]
+  },
+  "iPhone XS": {
+    "brand": "Apple",
+    "esim": true,
+    "regionalNotes": {
+      "CN": "No eSIM support on mainland China iPhone XS models."
+    }
+  },
+  "iPhone XR": {
+    "brand": "Apple",
+    "esim": true,
+    "regionalNotes": {
+      "CN": "No eSIM support on mainland China iPhone XR models."
+    }
+  },
+  "iPhone 11": {
+    "brand": "Apple",
+    "esim": true,
+    "regionalNotes": {
+      "CN": "No eSIM support on mainland China iPhone 11 models.",
+      "HK": "Hong Kong version uses dual physical SIM, no eSIM."
+    }
+  },
+  "iPhone 11 Pro": {
+    "brand": "Apple",
+    "esim": true,
+    "regionalNotes": {
+      "CN": "No eSIM support on mainland China iPhone 11 Pro models.",
+      "HK": "Hong Kong version uses dual physical SIM, no eSIM."
+    }
+  },
+  "iPhone 11 Pro Max": {
+    "brand": "Apple",
+    "esim": true,
+    "regionalNotes": {
+      "CN": "No eSIM support on mainland China iPhone 11 Pro Max models.",
+      "HK": "Hong Kong version uses dual physical SIM, no eSIM."
+    }
+  }
+}

@@ -1,19 +1,16 @@
 import { NestFactory } from '@nestjs/core';
-
+import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
-
 import { json } from 'express';
 import { BigIntSerializerInterceptor } from './interceptors/bigint-serializer.interceptor';
 
 async function bootstrap() {
-
   const app = await NestFactory.create(AppModule, {
-
-    rawBody: true,     // THIS exposes req.rawBody
-
+    rawBody: true, // THIS exposes req.rawBody
   });
 
-
+  const configService = app.get(ConfigService);
+  const port = configService.get('PORT') || 3001;
 
   app.setGlobalPrefix('api');
 
@@ -30,13 +27,29 @@ async function bootstrap() {
     jsonParser(req, res, next);
   });
 
+  // CORS configuration - supports multiple origins for production
+  const allowedOrigins = [
+    'http://localhost:3000',
+    configService.get('WEB_URL'),
+    configService.get('APP_URL'),
+  ].filter(Boolean) as string[];
+
   app.enableCors({
-    origin: ['http://localhost:3000'],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   });
 
-  await app.listen(3001);
-
+  await app.listen(port);
+  console.log(`🚀 Backend API is running on port ${port}`);
 }
 
 bootstrap();

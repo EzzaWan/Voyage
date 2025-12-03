@@ -1,22 +1,56 @@
 "use client";
 
-import { Check, Smartphone, Shield, Wifi, Globe, Download } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Check, Smartphone, Shield, Wifi, Globe, Download, AlertTriangle, X, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PriceTag } from "./PriceTag";
 import { FlagIcon } from "./FlagIcon";
 import { useCurrency } from "./providers/CurrencyProvider";
 import { getStoredReferralCode } from "@/lib/referral";
+import Link from "next/link";
 
 export function PlanDetails({ plan }: { plan: any }) {
   console.log("PLAN DEBUG:", plan);
   const { selectedCurrency, convert, formatCurrency } = useCurrency();
   const sizeGB = (plan.volume / 1024 / 1024 / 1024).toFixed(1);
+  const [showDeviceWarning, setShowDeviceWarning] = useState(false);
+  const [deviceCompatibility, setDeviceCompatibility] = useState<any>(null);
+  const [proceedWithCheckout, setProceedWithCheckout] = useState(false);
   
   // Convert USD price to selected currency
   const priceUSD = plan.price || 0;
   const convertedPrice = convert(priceUSD);
-  
+
+  // Check device compatibility on mount and before checkout
+  useEffect(() => {
+    const checkDeviceCompatibility = async () => {
+      const savedDevice = localStorage.getItem('deviceModel');
+      if (!savedDevice) return;
+
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+        const res = await fetch(`${apiUrl}/device/check?model=${encodeURIComponent(savedDevice)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (!data.supported) {
+            setDeviceCompatibility(data);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to check device compatibility:", error);
+      }
+    };
+
+    checkDeviceCompatibility();
+  }, []);
+
   async function buyNow() {
+    // Check device compatibility before proceeding
+    const savedDevice = localStorage.getItem('deviceModel');
+    if (savedDevice && deviceCompatibility && !deviceCompatibility.supported && !proceedWithCheckout) {
+      setShowDeviceWarning(true);
+      return;
+    }
     console.log("FRONT price dollars:", plan.price);
     try {
       // Get referral code if available
@@ -76,6 +110,12 @@ export function PlanDetails({ plan }: { plan: any }) {
                       <Wifi className="h-5 w-5 text-[var(--voyage-accent)]" />
                       <span>{plan.speed} Speed</span>
                    </div>
+                </div>
+                <div className="mt-4">
+                  <Link href="/device-check" className="text-sm text-[var(--voyage-accent)] hover:underline transition-colors inline-flex items-center gap-1">
+                    Check if your phone supports eSIM
+                    <ExternalLink className="h-3 w-3" />
+                  </Link>
                 </div>
             </div>
         </div>
@@ -169,6 +209,60 @@ export function PlanDetails({ plan }: { plan: any }) {
              </div>
          </div>
       </div>
+
+      {/* Device Warning Modal */}
+      {showDeviceWarning && deviceCompatibility && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-2xl p-6 max-w-md mx-4 shadow-2xl">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="h-6 w-6 text-yellow-400" />
+                <h3 className="text-xl font-bold text-white">Device Compatibility Warning</h3>
+              </div>
+              <button
+                onClick={() => setShowDeviceWarning(false)}
+                className="text-[var(--voyage-muted)] hover:text-white transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <p className="text-[var(--voyage-muted)] mb-2">
+                Your device <span className="text-white font-semibold">{deviceCompatibility.brand} {deviceCompatibility.model}</span> may not support eSIM.
+              </p>
+              {deviceCompatibility.notes && deviceCompatibility.notes.length > 0 && (
+                <div className="bg-[var(--voyage-bg-light)] border border-[var(--voyage-border)] rounded-md p-3 mt-3">
+                  <ul className="list-disc list-inside text-sm text-[var(--voyage-muted)] space-y-1">
+                    {deviceCompatibility.notes.map((note: string, idx: number) => (
+                      <li key={idx}>{note}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                onClick={() => {
+                  setShowDeviceWarning(false);
+                  setProceedWithCheckout(true);
+                  buyNow();
+                }}
+                variant="destructive"
+                className="flex-1"
+              >
+                Continue Anyway
+              </Button>
+              <Link href="/device-check" className="flex-1">
+                <Button variant="outline" className="w-full border-[var(--voyage-border)] text-white hover:bg-[var(--voyage-bg-light)]">
+                  Check Compatibility
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

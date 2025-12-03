@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "nest build",
+    "build": "npx nest build",
+    "postbuild": "npx prisma generate",
     "start": "nest start",
     "dev": "nest start --watch --exec \"node -r ts-node/register/transpile-only src/main.ts\"",
     "start:dev": "nest start --watch --exec \"node -r ts-node/register/transpile-only src/main.ts\"",

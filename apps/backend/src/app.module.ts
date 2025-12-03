@@ -12,6 +12,7 @@ import { EmailModule } from './modules/email/email.module';
 import { ReceiptModule } from './modules/receipt/receipt.module';
 import { CurrencyModule } from './modules/currency/currency.module';
 import { AffiliateModule } from './modules/affiliate/affiliate.module';
+import { DeviceModule } from './modules/device/device.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { AffiliateModule } from './modules/affiliate/affiliate.module';
     ReceiptModule,
     CurrencyModule,
     AffiliateModule,
+    DeviceModule,
   ],
 })
 export class AppModule {}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { SearchBar } from "@/components/SearchBar";
 import { CountryCard } from "@/components/CountryCard";
 import { CountrySkeleton } from "@/components/skeletons";
@@ -66,6 +67,10 @@ export default function Home() {
           <div className="pt-4 flex justify-center w-full">
              <SearchBar value={search} onChange={setSearch} />
           </div>
+          
+          <Link href="/device-check" className="text-sm text-[var(--voyage-accent)] hover:underline transition-colors">
+            Check if your phone supports eSIM
+          </Link>
        </div>
 
        {loading ? (

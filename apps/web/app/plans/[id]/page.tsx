@@ -42,6 +42,10 @@ export default async function PlanPage({ params }: { params: { id: string } }) {
           </Button>
       </Link>
       
+      <div className="text-sm text-[var(--voyage-muted)]">
+        Not sure if your device supports eSIM? <Link href="/device-check" className="text-[var(--voyage-accent)] hover:underline">Check compatibility</Link>
+      </div>
+      
       <Suspense fallback={<PlanDetailsSkeleton />}>
          <PlanDetails plan={plan} />
       </Suspense>
