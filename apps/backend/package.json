@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "cd ../.. && npx prisma generate && cd apps/backend && tsc",
+    "build": "cd ../.. && npx prisma generate --schema=prisma/schema.prisma && cd apps/backend && tsc",
     "start": "nest start",
     "dev": "nest start --watch --exec \"node -r ts-node/register/transpile-only src/main.ts\"",
     "start:dev": "nest start --watch --exec \"node -r ts-node/register/transpile-only src/main.ts\"",
