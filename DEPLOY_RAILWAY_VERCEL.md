@@ -17,9 +17,9 @@ Quick deployment guide for Voyage eSIM marketplace.
 2. Connect your Voyage repository
 3. Railway will detect it - click "Add Service"
 4. In service settings, set:
-   - **Root Directory**: `.` (repo root)
-   - **Build Command**: `npm install && cd apps/backend && npm run build`
-   - **Start Command**: `cd apps/backend && npm run start:prod`
+   - **Root Directory**: `apps/backend`
+   - **Build Command**: `npm install && npm run build`
+   - **Start Command**: `npm run start:prod`
 5. Go to "Variables" tab and add these:
 
 ```env
