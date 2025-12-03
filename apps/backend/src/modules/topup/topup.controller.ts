@@ -26,21 +26,14 @@ export class TopUpController {
     planCode: string;
     amount: number;
     currency: string;
+    displayCurrency?: string;
   }) {
-    // Find profile by ICCID
-    // We can use prisma directly or a service helper.
-    // TopUpService has prisma access but no findByIccid helper exposed.
-    // Let's just add a helper or use createStripeTopUpCheckout with profileId lookup logic.
-    // Actually, createStripeTopUpCheckout takes profileId.
-    // We need to find profileId from iccid first.
-    
-    // For now, let's handle it in controller or add a service method.
-    // Adding service method is cleaner: createStripeTopUpCheckoutByIccid
     return this.topUpService.createStripeTopUpCheckoutByIccid(
       body.iccid,
       body.planCode,
       body.amount,
-      body.currency
+      body.currency,
+      body.displayCurrency
     );
   }
 

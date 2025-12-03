@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { PlanListWithFilters } from "@/components/PlanListWithFilters";
+import { useCurrency } from "@/components/providers/CurrencyProvider";
 
 interface TopUpOption {
   packageCode: string;
@@ -22,6 +23,7 @@ interface TopUpOption {
 
 export default function TopUpSelectionPage() {
   const { iccid } = useParams();
+  const { selectedCurrency, convert, formatCurrency } = useCurrency();
   const [options, setOptions] = useState<TopUpOption[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -55,14 +57,17 @@ export default function TopUpSelectionPage() {
 
   const handleCheckout = async (plan: TopUpOption) => {
     try {
+      const priceUSD = plan.price || 0;
+      
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/topup/checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           iccid,
           planCode: plan.packageCode,
-          amount: plan.price,
-          currency: 'usd', // Assuming USD for now
+          amount: priceUSD, // Send original USD price
+          currency: selectedCurrency,
+          displayCurrency: selectedCurrency,
         }),
       });
 
@@ -123,6 +128,9 @@ export default function TopUpSelectionPage() {
           plans={options}
           renderItem={(plan) => {
             const sizeGB = (plan.volume / 1024 / 1024 / 1024).toFixed(1);
+            const priceUSD = plan.price || 0;
+            const convertedPrice = convert(priceUSD);
+            
             return (
               <div key={plan.packageCode} className="group h-full flex flex-col bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl p-6 shadow-lg hover:shadow-[var(--voyage-accent)]/20 hover:border-[var(--voyage-accent)] transition-all duration-300 cursor-pointer relative overflow-hidden">
                 
@@ -157,7 +165,9 @@ export default function TopUpSelectionPage() {
                 <div className="mt-6 pt-4 border-t border-[var(--voyage-border)] flex items-center justify-between">
                    <div className="flex flex-col">
                       <span className="text-xs text-[var(--voyage-muted)] uppercase tracking-wider">Price</span>
-                      <PriceTag price={plan.price} currencyCode={plan.currencyCode} className="text-xl text-white" />
+                      <span className="text-xl text-white font-bold">
+                        {formatCurrency(convertedPrice)}
+                      </span>
                    </div>
                    <Button 
                       size="sm" 

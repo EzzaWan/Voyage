@@ -6,6 +6,7 @@ import { StripeModule } from '../stripe/stripe.module';
 import { EsimModule } from '../esim/esim.module';
 import { EmailModule } from '../email/email.module';
 import { ReceiptModule } from '../receipt/receipt.module';
+import { CurrencyModule } from '../currency/currency.module';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
@@ -15,6 +16,7 @@ import { ConfigModule } from '@nestjs/config';
     forwardRef(() => EsimModule),
     forwardRef(() => EmailModule),
     forwardRef(() => ReceiptModule),
+    CurrencyModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService, PrismaService],

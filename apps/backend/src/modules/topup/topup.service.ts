@@ -6,6 +6,7 @@ import Stripe from 'stripe';
 import { EsimService } from '../esim/esim.service';
 import { QueryProfilesResponse } from '../../../../../libs/esim-access/types';
 import { EmailService } from '../email/email.service';
+import { CurrencyService } from '../currency/currency.service';
 
 @Injectable()
 export class TopUpService {
@@ -16,12 +17,16 @@ export class TopUpService {
     private prisma: PrismaService,
     private config: ConfigService,
     private esimService: EsimService,
+    private currencyService: CurrencyService,
     @Inject(forwardRef(() => EmailService))
     private emailService?: EmailService,
   ) {}
 
-  async createStripeTopUpCheckout(profileId: string, planCode: string, amount: number, currency: string) {
-    this.logger.log(`[TOPUP] Creating checkout for profileId=${profileId}, planCode=${planCode}, amount=${amount}`);
+  async createStripeTopUpCheckout(profileId: string, planCode: string, amount: number, currency: string, displayCurrency?: string) {
+    // amount is in USD (base price)
+    // currency is the target currency for Stripe checkout
+    
+    this.logger.log(`[TOPUP] Creating checkout for profileId=${profileId}, planCode=${planCode}, amount=${amount} USD, targetCurrency=${currency || 'USD'}`);
 
     // Verify profile exists
     const profile = await this.prisma.esimProfile.findUnique({
@@ -33,12 +38,34 @@ export class TopUpService {
       throw new NotFoundException(`Profile ${profileId} not found`);
     }
 
-    // Convert USD dollars to cents (Stripe requires cents)
-    const unit_amount_cents = Math.round(amount * 100);
-
-    // Stripe minimum: $0.50 USD (50 cents)
-    if (unit_amount_cents < 50) {
-      throw new Error(`Amount too low. Stripe requires a minimum charge of $0.50 USD.`);
+    // Determine target currency: use provided currency, or fallback to admin default, or USD
+    let targetCurrency = currency?.toUpperCase() || await this.currencyService.getDefaultCurrency() || 'USD';
+    
+    this.logger.log(`[TOPUP] Target currency: ${targetCurrency}`);
+    
+    // Convert USD amount to target currency
+    let convertedAmount = amount; // Default to USD amount
+    if (targetCurrency !== 'USD') {
+      convertedAmount = await this.currencyService.convert(amount, targetCurrency);
+      this.logger.log(`[TOPUP] Converted ${amount} USD → ${convertedAmount.toFixed(2)} ${targetCurrency}`);
+    }
+    
+    // Convert to cents (Stripe requires cents)
+    const unit_amount_cents = Math.round(convertedAmount * 100);
+    this.logger.log(`[TOPUP] Final Stripe amount: ${unit_amount_cents} cents (${convertedAmount.toFixed(2)} ${targetCurrency})`);
+    
+    // Stripe minimum: $0.50 USD equivalent for most currencies
+    const STRIPE_MINIMUM_USD = 0.50;
+    const minimumInTargetCurrency = targetCurrency === 'USD' 
+      ? STRIPE_MINIMUM_USD 
+      : await this.currencyService.convert(STRIPE_MINIMUM_USD, targetCurrency);
+    const STRIPE_MINIMUM_CENTS = Math.round(minimumInTargetCurrency * 100);
+    
+    if (unit_amount_cents < STRIPE_MINIMUM_CENTS) {
+      throw new Error(
+        `Amount too low. Stripe requires a minimum charge equivalent to $${STRIPE_MINIMUM_USD.toFixed(2)} USD. ` +
+        `This top-up costs ${convertedAmount.toFixed(2)} ${targetCurrency} (${amount.toFixed(2)} USD).`
+      );
     }
 
     const webUrl = this.config.get('WEB_URL') || 'http://localhost:3000';
@@ -50,8 +77,8 @@ export class TopUpService {
       line_items: [
         {
           price_data: {
-            currency,
-            unit_amount: unit_amount_cents,
+            currency: targetCurrency.toLowerCase(), // Stripe expects lowercase
+            unit_amount: unit_amount_cents,  // Stripe requires cents
             product_data: {
               name: `Top-up for eSIM Profile`,
             },
@@ -65,17 +92,19 @@ export class TopUpService {
         type: 'topup',
         profileId,
         planCode,
+        amountUSD: amount.toString(), // Store original USD amount in metadata
+        displayCurrency: displayCurrency || targetCurrency,
       },
     });
 
-    // Create TopUp record in database
+    // Create TopUp record in database (store in USD)
     await this.prisma.topUp.create({
       data: {
         userId: profile.userId || profile.user?.id || '',
         profileId: profile.id,
         planCode,
-        amountCents: unit_amount_cents,
-        currency,
+        amountCents: Math.round(amount * 100), // Always store in USD cents
+        currency: 'usd', // Always store as USD
         status: 'pending',
         paymentRef: session.id,
       },
@@ -86,7 +115,7 @@ export class TopUpService {
     return { url: session.url };
   }
 
-  async createStripeTopUpCheckoutByIccid(iccid: string, planCode: string, amount: number, currency: string) {
+  async createStripeTopUpCheckoutByIccid(iccid: string, planCode: string, amount: number, currency: string, displayCurrency?: string) {
     const profile = await this.prisma.esimProfile.findFirst({
       where: { iccid },
     });
@@ -95,7 +124,7 @@ export class TopUpService {
       throw new NotFoundException(`Profile with ICCID ${iccid} not found`);
     }
 
-    return this.createStripeTopUpCheckout(profile.id, planCode, amount, currency);
+    return this.createStripeTopUpCheckout(profile.id, planCode, amount, currency, displayCurrency);
   }
 
   async handleStripeTopUp(session: Stripe.Checkout.Session) {

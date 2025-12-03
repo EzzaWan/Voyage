@@ -10,6 +10,7 @@ import { CronModule } from './cron/cron.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { EmailModule } from './modules/email/email.module';
 import { ReceiptModule } from './modules/receipt/receipt.module';
+import { CurrencyModule } from './modules/currency/currency.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ReceiptModule } from './modules/receipt/receipt.module';
     AdminModule,
     EmailModule,
     ReceiptModule,
+    CurrencyModule,
   ],
 })
 export class AppModule {}

@@ -6,6 +6,7 @@ import Stripe from 'stripe';
 import { EsimService } from '../esim/esim.service';
 import { QueryProfilesResponse, UsageItem } from '../../../../../libs/esim-access/types';
 import { EmailService } from '../email/email.service';
+import { CurrencyService } from '../currency/currency.service';
 
 @Injectable()
 export class OrdersService {
@@ -14,21 +15,54 @@ export class OrdersService {
     private prisma: PrismaService,
     private config: ConfigService,
     private esimService: EsimService,
+    private currencyService: CurrencyService,
     @Inject(forwardRef(() => EmailService))
     private emailService?: EmailService,
   ) {}
   private readonly logger = new Logger(OrdersService.name);
 
-  async createStripeCheckout({ planCode, amount, currency, planName }) {
-    // Convert USD dollars to cents (Stripe requires cents)
-    this.logger.log(`[CHECKOUT] Received from frontend: amount=${amount} (dollars)`);
-    const unit_amount_cents = Math.round(amount * 100);
-    this.logger.log(`[CHECKOUT] Converted to Stripe: ${amount} dollars → ${unit_amount_cents} cents`);
+  async createStripeCheckout({ planCode, amount, currency, planName, displayCurrency }: {
+    planCode: string;
+    amount: number;
+    currency: string;
+    planName: string;
+    displayCurrency?: string;
+  }) {
+    // amount is in USD (base price)
+    // currency is the target currency for Stripe checkout
+    // displayCurrency is optional, same as currency for UI consistency
     
-    // Stripe minimum: $0.50 USD (50 cents) for most currencies
-    const STRIPE_MINIMUM_CENTS = currency?.toLowerCase() === 'usd' ? 50 : 50;
+    this.logger.log(`[CHECKOUT] Received from frontend: amount=${amount} USD, targetCurrency=${currency || 'USD'}`);
+    
+    // Determine target currency: use provided currency, or fallback to admin default, or USD
+    let targetCurrency = currency?.toUpperCase() || await this.currencyService.getDefaultCurrency() || 'USD';
+    
+    this.logger.log(`[CHECKOUT] Target currency: ${targetCurrency}`);
+    
+    // Convert USD amount to target currency
+    let convertedAmount = amount; // Default to USD amount
+    if (targetCurrency !== 'USD') {
+      convertedAmount = await this.currencyService.convert(amount, targetCurrency);
+      this.logger.log(`[CHECKOUT] Converted ${amount} USD → ${convertedAmount.toFixed(2)} ${targetCurrency}`);
+    }
+    
+    // Convert to cents (Stripe requires cents)
+    const unit_amount_cents = Math.round(convertedAmount * 100);
+    this.logger.log(`[CHECKOUT] Final Stripe amount: ${unit_amount_cents} cents (${convertedAmount.toFixed(2)} ${targetCurrency})`);
+    
+    // Stripe minimum: $0.50 USD equivalent for most currencies
+    // For non-USD, we'll use a conservative minimum
+    const STRIPE_MINIMUM_USD = 0.50;
+    const minimumInTargetCurrency = targetCurrency === 'USD' 
+      ? STRIPE_MINIMUM_USD 
+      : await this.currencyService.convert(STRIPE_MINIMUM_USD, targetCurrency);
+    const STRIPE_MINIMUM_CENTS = Math.round(minimumInTargetCurrency * 100);
+    
     if (unit_amount_cents < STRIPE_MINIMUM_CENTS) {
-      throw new Error(`Amount too low. Stripe requires a minimum charge of $${(STRIPE_MINIMUM_CENTS / 100).toFixed(2)} USD. This plan costs $${amount.toFixed(2)}.`);
+      throw new Error(
+        `Amount too low. Stripe requires a minimum charge equivalent to $${STRIPE_MINIMUM_USD.toFixed(2)} USD. ` +
+        `This plan costs ${convertedAmount.toFixed(2)} ${targetCurrency} (${amount.toFixed(2)} USD).`
+      );
     }
     
     const webUrl = this.config.get('WEB_URL') || 'http://localhost:3000';
@@ -40,7 +74,7 @@ export class OrdersService {
       line_items: [
         {
           price_data: {
-            currency,
+            currency: targetCurrency.toLowerCase(), // Stripe expects lowercase
             unit_amount: unit_amount_cents,  // Stripe requires cents
             product_data: {
               name: planName,
@@ -54,6 +88,8 @@ export class OrdersService {
       cancel_url: `${webUrl}/checkout/cancel`,
       metadata: {
         planCode,
+        amountUSD: amount.toString(), // Store original USD amount in metadata
+        displayCurrency: displayCurrency || targetCurrency,
       },
     });
 
@@ -76,12 +112,35 @@ export class OrdersService {
       update: {},
     });
 
+    // Get original USD amount from metadata, or convert from Stripe amount
+    let amountUSD = parseFloat(session.metadata?.amountUSD || '0');
+    let currencyUSD = 'usd';
+    
+    // If metadata doesn't have USD amount, we need to convert from Stripe currency
+    if (amountUSD === 0 && session.amount_total) {
+      const stripeCurrency = session.currency?.toUpperCase() || 'USD';
+      if (stripeCurrency !== 'USD') {
+        // Convert from Stripe currency back to USD
+        const stripeAmountDollars = (session.amount_total ?? 0) / 100;
+        const rate = await this.currencyService.getRate(stripeCurrency);
+        amountUSD = stripeAmountDollars / rate;
+        this.logger.log(`[CHECKOUT] Converted ${stripeAmountDollars} ${stripeCurrency} back to ${amountUSD.toFixed(2)} USD`);
+      } else {
+        amountUSD = (session.amount_total ?? 0) / 100;
+      }
+    }
+    
+    // Store amount in USD cents (always store in USD internally)
+    const amountUSDCents = Math.round(amountUSD * 100);
+    
+    this.logger.log(`[CHECKOUT] Storing order: ${amountUSDCents} cents (${amountUSD.toFixed(2)} USD) in database`);
+
     const order = await this.prisma.order.create({
       data: {
         userId: user.id,
         planId: planCode || 'unknown',
-        amountCents: session.amount_total ?? 0,
-        currency: session.currency ?? 'usd',
+        amountCents: amountUSDCents, // Always store in USD cents
+        currency: currencyUSD, // Always store as USD
         status: 'paid',
         paymentMethod: 'stripe',
         paymentRef: (session.payment_intent as string) || session.id,

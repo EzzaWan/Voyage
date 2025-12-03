@@ -4,6 +4,7 @@ import { TopUpService } from './topup.service';
 import { StripeModule } from '../stripe/stripe.module';
 import { EsimModule } from '../esim/esim.module';
 import { EmailModule } from '../email/email.module';
+import { CurrencyModule } from '../currency/currency.module';
 import { PrismaService } from '../../prisma.service';
 
 @Module({
@@ -11,6 +12,7 @@ import { PrismaService } from '../../prisma.service';
     StripeModule,
     forwardRef(() => EsimModule),
     forwardRef(() => EmailModule),
+    CurrencyModule,
   ],
   controllers: [TopUpController],
   providers: [TopUpService, PrismaService],

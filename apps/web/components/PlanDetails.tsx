@@ -4,10 +4,16 @@ import { Check, Smartphone, Shield, Wifi, Globe, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PriceTag } from "./PriceTag";
 import { FlagIcon } from "./FlagIcon";
+import { useCurrency } from "./providers/CurrencyProvider";
 
 export function PlanDetails({ plan }: { plan: any }) {
   console.log("PLAN DEBUG:", plan);
+  const { selectedCurrency, convert, formatCurrency } = useCurrency();
   const sizeGB = (plan.volume / 1024 / 1024 / 1024).toFixed(1);
+  
+  // Convert USD price to selected currency
+  const priceUSD = plan.price || 0;
+  const convertedPrice = convert(priceUSD);
   
   async function buyNow() {
     console.log("FRONT price dollars:", plan.price);
@@ -17,8 +23,9 @@ export function PlanDetails({ plan }: { plan: any }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           planCode: plan.packageCode,
-          currency: plan.currencyCode?.toLowerCase() || 'usd',
-          amount: plan.price,  // Send price in USD dollars (e.g. 0.25)
+          currency: selectedCurrency,
+          displayCurrency: selectedCurrency,
+          amount: priceUSD,  // Send original USD price
           planName: plan.name,
         }),
       });
@@ -120,7 +127,9 @@ export function PlanDetails({ plan }: { plan: any }) {
              <div className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-2xl p-6 shadow-2xl shadow-black/40">
                  <div className="flex justify-between items-center mb-6 pb-6 border-b border-[var(--voyage-border)]">
                      <span className="text-[var(--voyage-muted)]">Total Price</span>
-                     <PriceTag price={plan.price} currencyCode={plan.currencyCode} className="text-4xl text-white" />
+                     <span className="text-4xl text-white font-bold">
+                       {formatCurrency(convertedPrice)}
+                     </span>
                  </div>
                  
                  <div className="space-y-4 mb-8">

@@ -20,6 +20,7 @@ export class OrdersController {
     amount: number;
     currency: string;
     planName: string;
+    displayCurrency?: string;
   }) {
     return this.ordersService.createStripeCheckout(body);
   }
