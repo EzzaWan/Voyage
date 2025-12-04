@@ -4,8 +4,6 @@ import "./globals.css";
 import Link from "next/link";
 import {
   ClerkProvider,
-  SignInButton,
-  SignUpButton,
   SignedIn,
   SignedOut,
   UserButton,
@@ -49,14 +47,15 @@ export default function RootLayout({
                     
                     <SignedOut>
                       <div className="flex items-center gap-3">
-                        <SignInButton mode="modal">
-                          <button className="hover:text-[var(--voyage-accent)] transition-colors">Sign In</button>
-                        </SignInButton>
-                        <SignUpButton mode="modal">
-                          <button className="px-4 py-2 rounded-lg bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white transition-colors">
-                            Sign Up
-                          </button>
-                        </SignUpButton>
+                        <Link href="/sign-in" className="hover:text-[var(--voyage-accent)] transition-colors">
+                          Sign In
+                        </Link>
+                        <Link 
+                          href="/sign-up" 
+                          className="px-4 py-2 rounded-lg bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white transition-colors"
+                        >
+                          Sign Up
+                        </Link>
                       </div>
                     </SignedOut>
                     
