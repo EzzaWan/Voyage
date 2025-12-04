@@ -5,6 +5,7 @@ import { StripeModule } from '../stripe/stripe.module';
 import { EsimModule } from '../esim/esim.module';
 import { OrdersModule } from '../orders/orders.module';
 import { TopUpModule } from '../topup/topup.module';
+import { AffiliateModule } from '../affiliate/affiliate.module';
 import { PrismaService } from '../../prisma.service';
 
 @Module({
@@ -12,6 +13,7 @@ import { PrismaService } from '../../prisma.service';
     StripeModule,
     EsimModule,
     OrdersModule,
+    AffiliateModule,
     forwardRef(() => TopUpModule),
   ],
   controllers: [WebhooksController],

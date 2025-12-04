@@ -20,8 +20,8 @@ async function bootstrap() {
   // JSON parser for non-webhook routes only
   const jsonParser = json({ limit: '10mb' });
   app.use((req, res, next) => {
-    if (req.path === '/api/webhooks/stripe') {
-      // Skip JSON parsing for Stripe webhook - use rawBody instead
+    if (req.path === '/api/webhooks/stripe' || req.path === '/api/webhooks/clerk') {
+      // Skip JSON parsing for webhook routes - use rawBody instead
       return next();
     }
     jsonParser(req, res, next);
