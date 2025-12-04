@@ -8,10 +8,6 @@ export default function SignInPage() {
           elements: {
             rootBox: "mx-auto",
             card: "bg-[var(--voyage-card)] border-[var(--voyage-border)]",
-            socialButtonsBlockButton: "hidden", // Hide OAuth buttons
-            socialButtonsBlockButtonText: "hidden",
-            dividerLine: "hidden",
-            dividerText: "hidden",
           },
         }}
       />
