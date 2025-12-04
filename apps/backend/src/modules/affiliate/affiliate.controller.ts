@@ -1,4 +1,5 @@
 import { Controller, Get, Query, Req, UseGuards, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AffiliateService } from './affiliate.service';
 import { PrismaService } from '../../prisma.service';
 
@@ -7,6 +8,7 @@ export class AffiliateController {
   constructor(
     private affiliateService: AffiliateService,
     private prisma: PrismaService,
+    private config: ConfigService,
   ) {}
 
   /**
@@ -84,9 +86,10 @@ export class AffiliateController {
       throw new NotFoundException('Failed to create affiliate');
     }
 
+    const webUrl = this.config.get<string>('WEB_URL') || 'http://localhost:3000';
     return {
       referralCode: affiliate.referralCode,
-      referralLink: `${process.env.WEB_URL || 'http://localhost:3000'}?ref=${affiliate.referralCode}`,
+      referralLink: `${webUrl}?ref=${affiliate.referralCode}`,
     };
   }
 
@@ -105,6 +108,8 @@ export class AffiliateController {
       referralCode: affiliate?.referralCode || null,
     };
   }
+
+
 
   /**
    * Helper to get full dashboard data
@@ -229,7 +234,7 @@ export class AffiliateController {
       },
     });
 
-    const webUrl = process.env.WEB_URL || 'http://localhost:3000';
+    const webUrl = this.config.get<string>('WEB_URL') || 'http://localhost:3000';
 
     return {
       affiliate: {
