@@ -19,27 +19,31 @@ export class AffiliateController {
       throw new NotFoundException('User email not found');
     }
 
-    // Find user
-    const user = await this.prisma.user.findUnique({
+    // Auto-create user if they don't exist (user signed up in Clerk but hasn't made purchase yet)
+    const user = await this.prisma.user.upsert({
       where: { email },
+      create: {
+        email,
+        name: null, // Name will be updated when they make first purchase
+      },
+      update: {},
     });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
     // Get affiliate
-    const affiliate = await this.prisma.affiliate.findUnique({
+    let affiliate = await this.prisma.affiliate.findUnique({
       where: { userId: user.id },
     });
 
     if (!affiliate) {
       // Create affiliate if it doesn't exist
       await this.affiliateService.createAffiliateForUser(user.id);
-      const newAffiliate = await this.prisma.affiliate.findUnique({
+      affiliate = await this.prisma.affiliate.findUnique({
         where: { userId: user.id },
       });
-      return this.getAffiliateDashboardData(newAffiliate!.id);
+    }
+
+    if (!affiliate) {
+      throw new NotFoundException('Failed to create affiliate');
     }
 
     return this.getAffiliateDashboardData(affiliate.id);
@@ -55,13 +59,15 @@ export class AffiliateController {
       throw new NotFoundException('User email not found');
     }
 
-    const user = await this.prisma.user.findUnique({
+    // Auto-create user if they don't exist
+    const user = await this.prisma.user.upsert({
       where: { email },
+      create: {
+        email,
+        name: null, // Name will be updated when they make first purchase
+      },
+      update: {},
     });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
 
     let affiliate = await this.prisma.affiliate.findUnique({
       where: { userId: user.id },
