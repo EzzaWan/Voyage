@@ -5,7 +5,6 @@ export default function SignInPage() {
     <div className="flex items-center justify-center min-h-[80vh]">
       <SignIn
         appearance={{
-          baseTheme: "dark",
           variables: {
             colorPrimary: "#1E90FF",
             colorBackground: "#0A1A2F",
