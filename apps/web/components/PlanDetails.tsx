@@ -55,6 +55,7 @@ export function PlanDetails({ plan }: { plan: any }) {
     try {
       // Get referral code if available
       const referralCode = getStoredReferralCode();
+      console.log('[CHECKOUT] Referral code from cookie:', referralCode || 'none');
       
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders`, {
         method: "POST",

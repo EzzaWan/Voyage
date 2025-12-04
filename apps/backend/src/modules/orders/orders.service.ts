@@ -107,6 +107,8 @@ export class OrdersService {
     const email = session.customer_details?.email || 'guest@voyage.app';
     const planCode = session.metadata?.planCode || null;
     const referralCode = session.metadata?.referralCode || null;
+    
+    this.logger.log(`[CHECKOUT] Processing payment: email=${email}, planCode=${planCode}, referralCode=${referralCode || 'none'}`);
 
     // Check if user exists before upsert
     const existingUser = await this.prisma.user.findUnique({
@@ -128,13 +130,17 @@ export class OrdersService {
       this.affiliateService.createAffiliateForUser(user.id).catch((err) => {
         this.logger.error(`[AFFILIATE] Failed to create affiliate for user ${user.id}:`, err);
       });
+    }
 
-      // Handle referral if referral code provided
-      if (referralCode) {
-        this.handleReferral(referralCode, user.id).catch((err) => {
-          this.logger.error(`[AFFILIATE] Failed to handle referral:`, err);
-        });
-      }
+    // Handle referral if referral code provided (for both new and existing users)
+    // This ensures referrals are linked even if user was created via Clerk webhook
+    if (referralCode) {
+      this.logger.log(`[AFFILIATE] Processing referral code: ${referralCode} for user ${user.id} (email: ${email})`);
+      this.handleReferral(referralCode, user.id).catch((err) => {
+        this.logger.error(`[AFFILIATE] Failed to handle referral:`, err);
+      });
+    } else {
+      this.logger.log(`[AFFILIATE] No referral code provided for user ${user.id} (email: ${email})`);
     }
 
     // Get original USD amount from metadata, or convert from Stripe amount
@@ -1109,22 +1115,26 @@ export class OrdersService {
    */
   private async handleReferral(referralCode: string, referredUserId: string): Promise<void> {
       try {
+        this.logger.log(`[AFFILIATE] Looking up referral code: ${referralCode}`);
         const affiliate = await this.affiliateService.findAffiliateByCode(referralCode);
         if (!affiliate) {
-          this.logger.warn(`[AFFILIATE] Invalid referral code: ${referralCode}`);
+          this.logger.warn(`[AFFILIATE] Invalid referral code: ${referralCode} - affiliate not found`);
           return;
         }
+
+        this.logger.log(`[AFFILIATE] Found affiliate: ${affiliate.id} (userId: ${affiliate.userId}) for referral code: ${referralCode}`);
 
         // Prevent self-referral
         if (affiliate.userId === referredUserId) {
-          this.logger.warn(`[AFFILIATE] User tried to refer themselves: ${referredUserId}`);
+          this.logger.warn(`[AFFILIATE] User tried to refer themselves: ${referredUserId} (affiliate userId: ${affiliate.userId})`);
           return;
         }
 
+        this.logger.log(`[AFFILIATE] Creating referral link: affiliate ${affiliate.id} -> user ${referredUserId}`);
         await this.affiliateService.createReferral(affiliate.id, referredUserId);
-        this.logger.log(`[AFFILIATE] Created referral for user ${referredUserId} from affiliate ${affiliate.id}`);
+        this.logger.log(`[AFFILIATE] Successfully created referral for user ${referredUserId} from affiliate ${affiliate.id}`);
       } catch (error) {
-        this.logger.error(`[AFFILIATE] Failed to handle referral:`, error);
+        this.logger.error(`[AFFILIATE] Failed to handle referral for code ${referralCode} and user ${referredUserId}:`, error);
       }
     }
 
@@ -1133,9 +1143,26 @@ export class OrdersService {
    */
   private async addCommissionForOrder(order: any): Promise<void> {
       try {
+        // Fetch fresh order to ensure we have all fields including displayAmountCents
+        const freshOrder = await this.prisma.order.findUnique({
+          where: { id: order.id },
+          select: {
+            id: true,
+            userId: true,
+            amountCents: true,
+            displayAmountCents: true,
+            displayCurrency: true,
+          },
+        });
+
+        if (!freshOrder) {
+          this.logger.warn(`[AFFILIATE] Order not found: ${order.id}`);
+          return;
+        }
+
         // Find if the user was referred
         const referral = await this.prisma.referral.findUnique({
-          where: { referredUserId: order.userId },
+          where: { referredUserId: freshOrder.userId },
           include: {
             affiliate: true,
           },
@@ -1146,12 +1173,21 @@ export class OrdersService {
           return;
         }
 
-        // Add 10% commission
+        // Add 10% commission based on the amount user actually paid
+        // Use displayAmountCents if available (what user actually paid), else fallback to amountCents (USD)
+        const commissionAmountCents = freshOrder.displayAmountCents || freshOrder.amountCents;
+        
+        this.logger.log(
+          `[AFFILIATE] Adding commission for order ${freshOrder.id}: ` +
+          `amount=${commissionAmountCents} cents ` +
+          `(display: ${freshOrder.displayAmountCents || 'N/A'}, USD: ${freshOrder.amountCents})`
+        );
+        
         await this.affiliateService.addCommission(
           referral.affiliateId,
-          order.id,
+          freshOrder.id,
           'order',
-          order.amountCents,
+          commissionAmountCents,
         );
 
         this.logger.log(`[AFFILIATE] Added commission for order ${order.id} to affiliate ${referral.affiliateId}`);
