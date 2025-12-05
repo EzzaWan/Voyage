@@ -44,6 +44,7 @@ export default function RootLayout({
                      </Link>
                      <div className="flex items-center gap-6 text-sm font-medium">
                         <Link href="/countries" className="hover:text-[var(--voyage-accent)] transition-colors">Store</Link>
+                        <Link href="/support" className="hover:text-[var(--voyage-accent)] transition-colors">Support</Link>
                         <SignedIn>
                           <Link href="/my-esims" className="hover:text-[var(--voyage-accent)] transition-colors">My eSIMs</Link>
                           <Link href="/account" className="hover:text-[var(--voyage-accent)] transition-colors">Account</Link>

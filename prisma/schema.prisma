@@ -206,3 +206,17 @@ model RateLimitLog {
   @@index([createdAt])
   @@index([route])
 }
+
+model SupportTicket {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  orderId   String?
+  device    String?
+  message   String
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([createdAt])
+  @@index([orderId])
+}

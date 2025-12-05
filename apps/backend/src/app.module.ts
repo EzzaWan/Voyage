@@ -15,6 +15,7 @@ import { AffiliateModule } from './modules/affiliate/affiliate.module';
 import { DeviceModule } from './modules/device/device.module';
 import { CommonModule } from './common/modules/common.module';
 import { LogModule } from './modules/log/log.module';
+import { SupportModule } from './modules/support/support.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { LogModule } from './modules/log/log.module';
     AffiliateModule,
     DeviceModule,
     LogModule,
+    SupportModule,
   ],
 })
 export class AppModule {}
