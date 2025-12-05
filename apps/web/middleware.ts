@@ -49,6 +49,7 @@ export default clerkMiddleware(async (auth, req) => {
     const csp = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.clerk.com https://clerk.voyage-data.com https://js.stripe.com",
+      "worker-src 'self' blob:",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https: blob:",
       "font-src 'self' data:",

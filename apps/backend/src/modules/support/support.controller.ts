@@ -3,6 +3,7 @@ import { SupportService } from './support.service';
 import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
 import { CsrfGuard } from '../../common/guards/csrf.guard';
 import { RateLimit } from '../../common/decorators/rate-limit.decorator';
+import { SkipCsrf } from '../../common/decorators/skip-csrf.decorator';
 import { AdminGuard } from '../admin/guards/admin.guard';
 import { CreateSupportTicketDto } from '../../common/dto/support-ticket.dto';
 
@@ -12,6 +13,7 @@ export class SupportController {
   constructor(private readonly supportService: SupportService) {}
 
   @Post('contact')
+  @SkipCsrf() // Skip CSRF for public contact form
   @RateLimit({ limit: 3, window: 3600 }) // 3 requests per hour (spam protection)
   async submitContact(@Body() body: CreateSupportTicketDto) {
     return this.supportService.createSupportTicket(body);
