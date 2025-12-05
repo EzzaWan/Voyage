@@ -11,6 +11,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { safeFetch } from "@/lib/safe-fetch";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ExpiryCountdown } from "@/components/esim/expiry-countdown";
+import { getTimeRemaining, getUrgencyLevel } from "@/lib/format-expiry";
+import { AlertCircle } from "lucide-react";
 
 interface PlanDetails {
   name?: string;
@@ -195,6 +198,10 @@ export default function MyEsimsPage() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
            {esims.map((esim) => {
              const status = getStatusDisplay(esim.esimStatus);
+             const timeRemaining = getTimeRemaining(esim.expiredTime);
+             const urgency = getUrgencyLevel(timeRemaining);
+             const isExpired = timeRemaining === null || timeRemaining.totalMs <= 0;
+             
              return (
                <Link key={esim.id} href={`/my-esims/${esim.iccid}`} className="block">
                  <Card className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] overflow-hidden hover:border-[var(--voyage-accent)] transition-colors cursor-pointer">
@@ -208,6 +215,25 @@ export default function MyEsimsPage() {
                             <p className="text-sm text-[var(--voyage-muted)]">
                               {esim.planDetails.locationCode}
                             </p>
+                          )}
+                          {esim.expiredTime && (
+                            <div className="flex items-center gap-2 mt-2">
+                              {isExpired ? (
+                                <span className="text-sm text-red-400 flex items-center gap-1">
+                                  <AlertCircle className="h-3 w-3" />
+                                  Expired
+                                </span>
+                              ) : urgency === "danger" ? (
+                                <Badge variant="destructive" className="text-xs">
+                                  Expiring Soon
+                                </Badge>
+                              ) : (
+                                <span className="text-xs text-[var(--voyage-muted)] flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  <ExpiryCountdown expiry={esim.expiredTime} iccid={esim.iccid} className="text-xs" />
+                                </span>
+                              )}
+                            </div>
                           )}
                        </div>
                        <Badge className={status.color}>
@@ -265,21 +291,7 @@ export default function MyEsimsPage() {
                                 <Calendar className="h-4 w-4 text-[var(--voyage-muted)]" />
                                 <span className="text-sm text-[var(--voyage-muted)]">Expires</span>
                              </div>
-                             <span className="text-sm text-white">
-                                {(() => {
-                                  try {
-                                    const date = new Date(esim.expiredTime);
-                                    if (isNaN(date.getTime())) return "N/A";
-                                    return date.toLocaleDateString('en-US', { 
-                                      year: 'numeric', 
-                                      month: 'short', 
-                                      day: 'numeric' 
-                                    });
-                                  } catch (e) {
-                                    return "N/A";
-                                  }
-                                })()}
-                             </span>
+                             <ExpiryCountdown expiry={esim.expiredTime} iccid={esim.iccid} className="text-sm font-medium" />
                           </div>
                         )}
                      </div>

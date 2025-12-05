@@ -13,6 +13,7 @@ import { safeFetch } from '@/lib/safe-fetch';
 import { safeFetchBlob } from '@/lib/safe-fetch-blob';
 import { QRDisplay } from "@/components/esim/qr-display";
 import { InstallStepsDialog } from "@/components/esim/install-steps-dialog";
+import { ExpiryCountdown } from "@/components/esim/expiry-countdown";
 import { toast } from "@/components/ui/use-toast";
 
 // Helper function to format user-friendly status
@@ -252,7 +253,12 @@ export default function EsimDetailPage() {
          <div className="bg-[var(--voyage-card)] rounded-xl p-5 border border-[var(--voyage-border)] flex flex-col items-center justify-center text-center">
             <Calendar className="h-5 w-5 text-[var(--voyage-accent)] mb-2" />
             <span className="text-[var(--voyage-muted)] text-sm mb-1">Expires</span>
-            <span className="text-2xl font-bold text-white">{expiryDate}</span>
+            <ExpiryCountdown 
+              expiry={profile.expiredTime} 
+              iccid={profile.iccid}
+              onExpired={fetchData}
+              className="text-2xl font-bold"
+            />
          </div>
          <div className="bg-[var(--voyage-card)] rounded-xl p-5 border border-[var(--voyage-border)] flex flex-col items-center justify-center text-center">
             <span className="text-[var(--voyage-muted)] text-sm mb-1">Status</span>

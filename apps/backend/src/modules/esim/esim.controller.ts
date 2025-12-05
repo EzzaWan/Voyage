@@ -124,6 +124,83 @@ export class EsimController {
   }
 
   // ============================================
+  // FEATURE: SYNC SINGLE ESIM BY ICCID
+  // ============================================
+  @Post('esim/:iccid/sync')
+  @RateLimit({ limit: 10, window: 60 })
+  async syncEsimByIccid(@Param('iccid') iccid: string) {
+    const profile = await this.ordersService.findByIccid(iccid);
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
+    }
+
+    const orderNo = profile.order?.esimOrderNo;
+    if (!orderNo) {
+      throw new NotFoundException('Order not found for this profile');
+    }
+
+    // Query provider for latest profile data
+    const res = await this.esimService.sdk.client.request<any>(
+      'POST',
+      '/esim/query',
+      { orderNo, pager: { pageNum: 1, pageSize: 50 } }
+    );
+
+    if (!res?.obj?.esimList || res.obj.esimList.length === 0) {
+      throw new NotFoundException('Profile data not found from provider');
+    }
+
+    // Find matching profile by iccid or esimTranNo
+    const providerProfile = res.obj.esimList.find(
+      (p: any) => p.iccid === iccid || p.esimTranNo === profile.esimTranNo
+    ) || res.obj.esimList[0];
+
+    // Update profile with latest data
+    const updateData: any = {};
+
+    if (providerProfile.esimStatus !== undefined) {
+      updateData.esimStatus = providerProfile.esimStatus;
+    }
+    if (providerProfile.totalVolume !== undefined) {
+      updateData.totalVolume = providerProfile.totalVolume;
+    }
+    if (providerProfile.expiredTime) {
+      updateData.expiredTime = new Date(providerProfile.expiredTime);
+    }
+    if (providerProfile.smdpStatus !== undefined) {
+      updateData.smdpStatus = providerProfile.smdpStatus;
+    }
+    if (providerProfile.qrCodeUrl !== undefined) {
+      updateData.qrCodeUrl = providerProfile.qrCodeUrl;
+    }
+    if (providerProfile.ac !== undefined) {
+      updateData.ac = providerProfile.ac;
+    }
+
+    if (Object.keys(updateData).length > 0) {
+      await this.prisma.esimProfile.update({
+        where: { id: profile.id },
+        data: updateData,
+      });
+    }
+
+    // Check and mark as expired if status indicates
+    if (providerProfile.esimStatus === 'EXPIRED' || providerProfile.esimStatus === 'UNUSED_EXPIRED' || providerProfile.esimStatus === 'USED_EXPIRED') {
+      await this.prisma.esimProfile.update({
+        where: { id: profile.id },
+        data: { esimStatus: 'EXPIRED' },
+      });
+    }
+
+    return {
+      success: true,
+      message: 'Profile synced successfully',
+      updated: Object.keys(updateData),
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  // ============================================
   // FEATURE: USAGE HISTORY
   // ============================================
   @Get('esim/usage/history/:profileId')
