@@ -1,11 +1,14 @@
-import { Controller, Get, Param, Post, Body, Query, Inject, forwardRef, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, Query, Inject, forwardRef, NotFoundException, UseGuards } from '@nestjs/common';
 import { EsimService } from './esim.service';
 import { UsageService } from './usage.service';
 import { OrdersService } from '../orders/orders.service';
 import { TopUpService } from '../topup/topup.service';
 import { PrismaService } from '../../prisma.service';
+import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
+import { RateLimit } from '../../common/decorators/rate-limit.decorator';
 
 @Controller() // Do NOT prefix with /api. Global prefix handles it.
+@UseGuards(RateLimitGuard)
 export class EsimController {
   constructor(
     private readonly esimService: EsimService,
@@ -34,6 +37,7 @@ export class EsimController {
   }
 
   @Post('esims/:id/topup')
+  @RateLimit({ limit: 10, window: 60 })
   async topUp(
     @Param('id') id: string,
     @Body() body: { packageCode: string }
@@ -77,6 +81,7 @@ export class EsimController {
   }
 
   @Get('esim/:iccid')
+  @RateLimit({ limit: 10, window: 60 })
   async getEsimProfile(@Param('iccid') iccid: string) {
     const profile = await this.ordersService.findByIccid(iccid);
     if (!profile) throw new NotFoundException('Profile not found');
@@ -112,6 +117,7 @@ export class EsimController {
   // FEATURE 5: MANUAL SYNC TRIGGER ENDPOINT
   // ============================================
   @Get('sync-now')
+  @RateLimit({ limit: 10, window: 60 })
   async syncNow() {
     await this.ordersService.syncEsimProfiles();
     return { message: 'Sync cycle completed', timestamp: new Date().toISOString() };

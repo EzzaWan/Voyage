@@ -1,11 +1,15 @@
-import { Controller, Post, Body, Get, Query } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, UseGuards } from '@nestjs/common';
 import { TopUpService } from './topup.service';
+import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
+import { RateLimit } from '../../common/decorators/rate-limit.decorator';
 
 @Controller('topup')
+@UseGuards(RateLimitGuard)
 export class TopUpController {
   constructor(private readonly topUpService: TopUpService) {}
 
   @Post('create')
+  @RateLimit({ limit: 3, window: 60 })
   async createTopUp(@Body() body: {
     profileId: string;
     planCode: string;
@@ -21,6 +25,7 @@ export class TopUpController {
   }
 
   @Post('checkout')
+  @RateLimit({ limit: 3, window: 60 })
   async checkout(@Body() body: {
     iccid: string;
     planCode: string;

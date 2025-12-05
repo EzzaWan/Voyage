@@ -193,3 +193,16 @@ model ErrorLog {
   @@index([createdAt])
   @@index([route])
 }
+
+model RateLimitLog {
+  id        String   @id @default(uuid())
+  ip        String
+  userId    String?
+  route     String
+  createdAt DateTime @default(now())
+
+  @@index([ip])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([route])
+}
