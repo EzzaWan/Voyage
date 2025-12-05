@@ -13,10 +13,13 @@ import { ReceiptModule } from './modules/receipt/receipt.module';
 import { CurrencyModule } from './modules/currency/currency.module';
 import { AffiliateModule } from './modules/affiliate/affiliate.module';
 import { DeviceModule } from './modules/device/device.module';
+import { CommonModule } from './common/modules/common.module';
+import { LogModule } from './modules/log/log.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    CommonModule,
     EsimModule,
     UsersModule,
     OrdersModule,
@@ -30,6 +33,7 @@ import { DeviceModule } from './modules/device/device.module';
     CurrencyModule,
     AffiliateModule,
     DeviceModule,
+    LogModule,
   ],
 })
 export class AppModule {}

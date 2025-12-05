@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { safeFetch } from '@/lib/safe-fetch';
+import { safeFetchBlob } from '@/lib/safe-fetch-blob';
 
 // Helper function to format user-friendly status
 function getStatusDisplay(esimStatus: string | undefined): { label: string; color: string } {
@@ -62,53 +64,42 @@ export default function EsimDetailPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+      
       // Fetch Profile
-      const resProfile = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/esim/${iccid}`);
-      if (resProfile.ok) {
-        const data = await resProfile.json();
-        setProfile(data);
-        
-        // Fetch usage history if profile has an ID
-        if (data.id) {
-          try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-            const resUsageHistory = await fetch(`${apiUrl}/esim/usage/history/${data.id}?limit=100`);
-            if (resUsageHistory.ok) {
-              const usageData = await resUsageHistory.json();
-              setUsageHistory(usageData);
-            }
-          } catch (e) {
-            console.error('Failed to fetch usage history:', e);
-          }
+      const data = await safeFetch<any>(`${apiUrl}/esim/${iccid}`, { showToast: false });
+      setProfile(data);
+      
+      // Fetch usage history if profile has an ID
+      if (data.id) {
+        try {
+          const usageData = await safeFetch<any[]>(`${apiUrl}/esim/usage/history/${data.id}?limit=100`, { showToast: false });
+          setUsageHistory(usageData || []);
+        } catch (e) {
+          console.error('Failed to fetch usage history:', e);
         }
       }
 
       // Fetch History (top-ups)
-      const resHistory = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/esim/topups?iccid=${iccid}`);
-      if (resHistory.ok) {
-        const data = await resHistory.json();
-        setHistory(data);
-        
-        // Fetch plan details for each top-up
-        const planCodes = Array.from(new Set(data.map((item: any) => item.planCode).filter(Boolean))) as string[];
-        const planDetails: Record<string, any> = {};
-        
-        await Promise.all(
-          planCodes.map(async (planCode: string) => {
-            try {
-              const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/plans/${planCode}`);
-              if (res.ok) {
-                const plan = await res.json();
-                planDetails[planCode] = plan;
-              }
-            } catch (e) {
-              console.error(`Failed to fetch plan ${planCode}:`, e);
-            }
-          })
-        );
-        
-        setPlanDetailsMap(planDetails);
-      }
+      const topupData = await safeFetch<any[]>(`${apiUrl}/esim/topups?iccid=${iccid}`, { showToast: false });
+      setHistory(topupData || []);
+      
+      // Fetch plan details for each top-up
+      const planCodes = Array.from(new Set((topupData || []).map((item: any) => item.planCode).filter(Boolean))) as string[];
+      const planDetails: Record<string, any> = {};
+      
+      await Promise.all(
+        planCodes.map(async (planCode: string) => {
+          try {
+            const plan = await safeFetch<any>(`${apiUrl}/plans/${planCode}`, { showToast: false });
+            planDetails[planCode] = plan;
+          } catch (e) {
+            console.error(`Failed to fetch plan ${planCode}:`, e);
+          }
+        })
+      );
+      
+      setPlanDetailsMap(planDetails);
     } catch (e) {
       console.error(e);
     } finally {
@@ -230,22 +221,18 @@ export default function EsimDetailPage() {
           <Button 
             variant="secondary"
             className="h-14 px-8 text-lg font-bold border-[var(--voyage-border)] hover:bg-[var(--voyage-bg-light)] text-white"
-            onClick={() => {
+            onClick={async () => {
               const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
               const userEmail = user?.primaryEmailAddress?.emailAddress || '';
               const receiptUrl = `${apiUrl}/orders/${profile.order.id}/receipt`;
               
-              // Create a temporary link with headers via fetch (since we can't set headers on window.open)
-              fetch(receiptUrl, {
-                headers: {
-                  'x-user-email': userEmail,
-                },
-              })
-              .then(res => {
-                if (!res.ok) throw new Error('Failed to download receipt');
-                return res.blob();
-              })
-              .then(blob => {
+              try {
+                const blob = await safeFetchBlob(receiptUrl, {
+                  headers: {
+                    'x-user-email': userEmail,
+                  },
+                });
+                
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -254,11 +241,9 @@ export default function EsimDetailPage() {
                 a.click();
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
-              })
-              .catch(err => {
+              } catch (err) {
                 console.error('Failed to download receipt:', err);
-                alert('Failed to download receipt. Please try again.');
-              });
+              }
             }}
           >
             <FileText className="h-5 w-5 mr-2" />

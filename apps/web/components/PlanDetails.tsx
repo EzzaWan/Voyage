@@ -8,6 +8,7 @@ import { FlagIcon } from "./FlagIcon";
 import { useCurrency } from "./providers/CurrencyProvider";
 import { getStoredReferralCode } from "@/lib/referral";
 import Link from "next/link";
+import { safeFetch } from "@/lib/safe-fetch";
 
 export function PlanDetails({ plan }: { plan: any }) {
   console.log("PLAN DEBUG:", plan);
@@ -29,12 +30,9 @@ export function PlanDetails({ plan }: { plan: any }) {
 
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
-        const res = await fetch(`${apiUrl}/device/check?model=${encodeURIComponent(savedDevice)}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (!data.supported) {
-            setDeviceCompatibility(data);
-          }
+        const data = await safeFetch<any>(`${apiUrl}/device/check?model=${encodeURIComponent(savedDevice)}`, { showToast: false });
+        if (!data.supported) {
+          setDeviceCompatibility(data);
         }
       } catch (error) {
         console.error("Failed to check device compatibility:", error);
@@ -57,7 +55,7 @@ export function PlanDetails({ plan }: { plan: any }) {
       const referralCode = getStoredReferralCode();
       console.log('[CHECKOUT] Referral code from cookie:', referralCode || 'none');
       
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders`, {
+      const data = await safeFetch<{ url?: string }>(`${process.env.NEXT_PUBLIC_API_URL}/orders`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -68,17 +66,14 @@ export function PlanDetails({ plan }: { plan: any }) {
           planName: plan.name,
           referralCode: referralCode || undefined, // Only include if exists
         }),
+        errorMessage: "Failed to start checkout. Please try again.",
       });
 
-      if (!res.ok) throw new Error('Order creation failed');
-
-      const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
       }
     } catch (error) {
       console.error("Checkout error:", error);
-      alert("Failed to start checkout. Please try again.");
     }
   }
 

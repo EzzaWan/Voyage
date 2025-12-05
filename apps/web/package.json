@@ -12,6 +12,7 @@
     "@clerk/nextjs": "^6.35.5",
     "@nestjs/schedule": "^6.0.1",
     "@radix-ui/react-slot": "^1.2.4",
+    "@radix-ui/react-toast": "^1.1.5",
     "@stripe/react-stripe-js": "^2.0.0",
     "@stripe/stripe-js": "^3.0.0",
     "axios": "^1.6.0",

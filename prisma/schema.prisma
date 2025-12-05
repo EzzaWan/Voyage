@@ -178,3 +178,18 @@ model Commission {
   @@index([affiliateId])
   @@index([orderId])
 }
+
+model ErrorLog {
+  id        String   @id @default(uuid())
+  message   String
+  stack     String?
+  route     String
+  userId    String?
+  status    Int?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([route])
+}

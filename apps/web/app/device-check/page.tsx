@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle, AlertTriangle, Search, Globe, ExternalLink, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { safeFetch } from "@/lib/safe-fetch";
 
 interface Country {
   code: string;
@@ -36,11 +37,9 @@ export default function DeviceCheckPage() {
   useEffect(() => {
     const fetchCountries = async () => {
       try {
-        const res = await fetch(`${apiUrl}/countries`);
-        if (res.ok) {
-          const data = await res.json();
-          setCountries(data.map((c: any) => ({ code: c.code, name: c.name || c.code })));
-        }
+        const data = await safeFetch<any[]>(`${apiUrl}/countries`, { showToast: false });
+        const countriesArray = Array.isArray(data) ? data : (data.locationList || []);
+        setCountries(countriesArray.map((c: any) => ({ code: c.code, name: c.name || c.code })));
       } catch (error) {
         console.error("Failed to fetch countries:", error);
       }
@@ -57,14 +56,12 @@ export default function DeviceCheckPage() {
       }
 
       try {
-        const res = await fetch(`${apiUrl}/device/models?q=${encodeURIComponent(deviceQuery)}`);
-        if (res.ok) {
-          const data = await res.json();
-          setSuggestions(data.models || []);
-          setShowSuggestions(true);
-        }
+        const data = await safeFetch<{ models: string[] }>(`${apiUrl}/device/models?q=${encodeURIComponent(deviceQuery)}`, { showToast: false });
+        setSuggestions(data.models || []);
+        setShowSuggestions(true);
       } catch (error) {
         console.error("Failed to fetch suggestions:", error);
+        setSuggestions([]);
       }
     };
 
@@ -96,19 +93,15 @@ export default function DeviceCheckPage() {
         params.append("country", selectedCountry);
       }
 
-      const res = await fetch(`${apiUrl}/device/check?${params.toString()}`);
-      if (res.ok) {
-        const data = await res.json();
-        setResult(data);
-        if (selectedDevice) {
-          localStorage.setItem('deviceModel', selectedDevice);
-        }
-      } else {
-        alert("Failed to check compatibility");
+      const data = await safeFetch<DeviceCompatibility>(`${apiUrl}/device/check?${params.toString()}`, {
+        errorMessage: "Failed to check device compatibility. Please try again.",
+      });
+      setResult(data);
+      if (selectedDevice) {
+        localStorage.setItem('deviceModel', selectedDevice);
       }
     } catch (error) {
       console.error("Failed to check compatibility:", error);
-      alert("Failed to check compatibility");
     } finally {
       setLoading(false);
     }
