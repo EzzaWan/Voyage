@@ -37,7 +37,8 @@ export default function DeviceCheckPage() {
   useEffect(() => {
     const fetchCountries = async () => {
       try {
-        const data = await safeFetch<any[]>(`${apiUrl}/countries`, { showToast: false });
+        const data = await safeFetch<any>(`${apiUrl}/countries`, { showToast: false });
+        // Handle both array and { locationList: [...] } formats
         const countriesArray = Array.isArray(data) ? data : (data.locationList || []);
         setCountries(countriesArray.map((c: any) => ({ code: c.code, name: c.name || c.code })));
       } catch (error) {
