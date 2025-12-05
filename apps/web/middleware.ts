@@ -48,12 +48,12 @@ export default clerkMiddleware(async (auth, req) => {
     
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.clerk.com https://js.stripe.com",
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.clerk.com https://clerk.voyage-data.com https://js.stripe.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https: blob:",
       "font-src 'self' data:",
-      "connect-src 'self' https://*.clerk.com https://api.stripe.com https://*.upstash.io",
-      "frame-src 'self' https://*.clerk.com https://js.stripe.com",
+      "connect-src 'self' https://*.clerk.com https://clerk.voyage-data.com https://api.stripe.com https://*.upstash.io https://voyage-production-881a.up.railway.app https://*.up.railway.app https://ipapi.co",
+      "frame-src 'self' https://*.clerk.com https://clerk.voyage-data.com https://js.stripe.com",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
