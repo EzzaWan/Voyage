@@ -14,6 +14,7 @@ import {
   FileText,
   ShieldX,
   Mail,
+  MessageSquare,
 } from "lucide-react";
 
 export default function AdminLayout({
@@ -99,6 +100,7 @@ export default function AdminLayout({
     { href: "/admin/esims", label: "eSIM Profiles", icon: Smartphone },
     { href: "/admin/topups", label: "Top-ups", icon: CreditCard },
     { href: "/admin/users", label: "Users", icon: Users },
+    { href: "/admin/support", label: "Support Tickets", icon: MessageSquare },
     { href: "/admin/settings", label: "Settings", icon: Settings },
     { href: "/admin/emails", label: "Email Logs", icon: Mail },
     { href: "/admin/logs", label: "Logs", icon: FileText },

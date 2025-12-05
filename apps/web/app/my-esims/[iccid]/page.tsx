@@ -4,11 +4,17 @@ import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { PriceTag } from "@/components/PriceTag";
-import { Wifi, Globe, HardDrive, Calendar, Clock, RefreshCw, ArrowLeft, FileText } from "lucide-react";
+import { Wifi, Globe, HardDrive, Calendar, Clock, RefreshCw, ArrowLeft, FileText, QrCode } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { safeFetch } from '@/lib/safe-fetch';
+import { safeFetchBlob } from '@/lib/safe-fetch-blob';
+import { QRDisplay } from "@/components/esim/qr-display";
+import { InstallStepsDialog } from "@/components/esim/install-steps-dialog";
+import { ExpiryCountdown } from "@/components/esim/expiry-countdown";
+import { toast } from "@/components/ui/use-toast";
 
 // Helper function to format user-friendly status
 function getStatusDisplay(esimStatus: string | undefined): { label: string; color: string } {
@@ -55,6 +61,7 @@ export default function EsimDetailPage() {
   const [history, setHistory] = useState<any[]>([]);
   const [usageHistory, setUsageHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [polling, setPolling] = useState(false);
   
   // State to store plan details for top-ups
   const [planDetailsMap, setPlanDetailsMap] = useState<Record<string, any>>({});
@@ -62,53 +69,42 @@ export default function EsimDetailPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+      
       // Fetch Profile
-      const resProfile = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/esim/${iccid}`);
-      if (resProfile.ok) {
-        const data = await resProfile.json();
-        setProfile(data);
-        
-        // Fetch usage history if profile has an ID
-        if (data.id) {
-          try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-            const resUsageHistory = await fetch(`${apiUrl}/esim/usage/history/${data.id}?limit=100`);
-            if (resUsageHistory.ok) {
-              const usageData = await resUsageHistory.json();
-              setUsageHistory(usageData);
-            }
-          } catch (e) {
-            console.error('Failed to fetch usage history:', e);
-          }
+      const data = await safeFetch<any>(`${apiUrl}/esim/${iccid}`, { showToast: false });
+      setProfile(data);
+      
+      // Fetch usage history if profile has an ID
+      if (data.id) {
+        try {
+          const usageData = await safeFetch<any[]>(`${apiUrl}/esim/usage/history/${data.id}?limit=100`, { showToast: false });
+          setUsageHistory(usageData || []);
+        } catch (e) {
+          console.error('Failed to fetch usage history:', e);
         }
       }
 
       // Fetch History (top-ups)
-      const resHistory = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/esim/topups?iccid=${iccid}`);
-      if (resHistory.ok) {
-        const data = await resHistory.json();
-        setHistory(data);
-        
-        // Fetch plan details for each top-up
-        const planCodes = Array.from(new Set(data.map((item: any) => item.planCode).filter(Boolean))) as string[];
-        const planDetails: Record<string, any> = {};
-        
-        await Promise.all(
-          planCodes.map(async (planCode: string) => {
-            try {
-              const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/plans/${planCode}`);
-              if (res.ok) {
-                const plan = await res.json();
-                planDetails[planCode] = plan;
-              }
-            } catch (e) {
-              console.error(`Failed to fetch plan ${planCode}:`, e);
-            }
-          })
-        );
-        
-        setPlanDetailsMap(planDetails);
-      }
+      const topupData = await safeFetch<any[]>(`${apiUrl}/esim/topups?iccid=${iccid}`, { showToast: false });
+      setHistory(topupData || []);
+      
+      // Fetch plan details for each top-up
+      const planCodes = Array.from(new Set((topupData || []).map((item: any) => item.planCode).filter(Boolean))) as string[];
+      const planDetails: Record<string, any> = {};
+      
+      await Promise.all(
+        planCodes.map(async (planCode: string) => {
+          try {
+            const plan = await safeFetch<any>(`${apiUrl}/plans/${planCode}`, { showToast: false });
+            planDetails[planCode] = plan;
+          } catch (e) {
+            console.error(`Failed to fetch plan ${planCode}:`, e);
+          }
+        })
+      );
+      
+      setPlanDetailsMap(planDetails);
     } catch (e) {
       console.error(e);
     } finally {
@@ -119,6 +115,51 @@ export default function EsimDetailPage() {
   useEffect(() => {
     if (iccid) fetchData();
   }, [iccid]);
+
+  useEffect(() => {
+    if (!profile || !polling) return;
+
+    const orderStatus = profile.order?.status;
+    const hasQR = profile.qrCodeUrl || profile.ac;
+
+    if (orderStatus === "provisioning" || orderStatus === "PROVISIONING" || (!hasQR && (orderStatus === "paid" || orderStatus === "PAID"))) {
+      const interval = setInterval(async () => {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+        try {
+          const data = await safeFetch<any>(`${apiUrl}/esim/${iccid}`, { showToast: false });
+          const newHasQR = data.qrCodeUrl || data.ac;
+          
+          if (newHasQR && !hasQR) {
+            toast({
+              title: "QR Code Ready!",
+              description: "Your eSIM QR code is now available for installation.",
+            });
+            setProfile(data);
+            setPolling(false);
+          } else {
+            setProfile(data);
+          }
+        } catch (e) {
+          console.error("Polling error:", e);
+        }
+      }, 3000);
+
+      return () => clearInterval(interval);
+    } else {
+      setPolling(false);
+    }
+  }, [profile, polling, iccid]);
+
+  useEffect(() => {
+    if (profile) {
+      const orderStatus = profile.order?.status;
+      const hasQR = profile.qrCodeUrl || profile.ac;
+      
+      if ((orderStatus === "provisioning" || orderStatus === "PROVISIONING" || (!hasQR && (orderStatus === "paid" || orderStatus === "PAID"))) && !polling) {
+        setPolling(true);
+      }
+    }
+  }, [profile]);
 
   if (loading) {
     return (
@@ -212,7 +253,12 @@ export default function EsimDetailPage() {
          <div className="bg-[var(--voyage-card)] rounded-xl p-5 border border-[var(--voyage-border)] flex flex-col items-center justify-center text-center">
             <Calendar className="h-5 w-5 text-[var(--voyage-accent)] mb-2" />
             <span className="text-[var(--voyage-muted)] text-sm mb-1">Expires</span>
-            <span className="text-2xl font-bold text-white">{expiryDate}</span>
+            <ExpiryCountdown 
+              expiry={profile.expiredTime} 
+              iccid={profile.iccid}
+              onExpired={fetchData}
+              className="text-2xl font-bold"
+            />
          </div>
          <div className="bg-[var(--voyage-card)] rounded-xl p-5 border border-[var(--voyage-border)] flex flex-col items-center justify-center text-center">
             <span className="text-[var(--voyage-muted)] text-sm mb-1">Status</span>
@@ -224,28 +270,75 @@ export default function EsimDetailPage() {
          </div>
       </div>
 
+      {/* QR Code Display Section */}
+      {(profile.qrCodeUrl || profile.ac || polling) && (
+        <div className="bg-[var(--voyage-card)] rounded-2xl p-8 border border-[var(--voyage-border)]">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+                <QrCode className="h-6 w-6" />
+                Install eSIM
+              </h3>
+              <p className="text-[var(--voyage-muted)]">
+                {polling && !profile.qrCodeUrl && !profile.ac
+                  ? "Your eSIM is being prepared. This may take a few moments..."
+                  : "Scan the QR code with your device to install the eSIM profile"}
+              </p>
+            </div>
+            {(profile.qrCodeUrl || profile.ac) && (
+              <InstallStepsDialog
+                activationCode={profile.ac}
+                smdpAddress={profile.ac?.split("$")[1] || null}
+              />
+            )}
+          </div>
+          
+          {polling && !profile.qrCodeUrl && !profile.ac ? (
+            <div className="bg-[var(--voyage-card)] rounded-xl border border-[var(--voyage-border)] p-12">
+              <div className="flex flex-col items-center justify-center text-center space-y-4">
+                <RefreshCw className="h-12 w-12 animate-spin text-[var(--voyage-accent)]" />
+                <div>
+                  <h4 className="text-lg font-semibold text-white mb-2">Preparing Your eSIM</h4>
+                  <p className="text-[var(--voyage-muted)]">
+                    We're preparing your eSIM QR code. This usually takes less than a minute.
+                    <br />
+                    The page will update automatically when ready.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <QRDisplay
+              qrCodeUrl={profile.qrCodeUrl}
+              activationCode={profile.ac}
+              iccid={profile.iccid}
+              esimStatus={profile.esimStatus}
+              smdpStatus={profile.smdpStatus}
+              planName={profile.planDetails?.name}
+              showDeviceCheck={true}
+            />
+          )}
+        </div>
+      )}
+
       {/* Actions */}
       <div className="flex justify-end gap-4">
         {profile.order?.id && (
           <Button 
             variant="secondary"
             className="h-14 px-8 text-lg font-bold border-[var(--voyage-border)] hover:bg-[var(--voyage-bg-light)] text-white"
-            onClick={() => {
+            onClick={async () => {
               const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
               const userEmail = user?.primaryEmailAddress?.emailAddress || '';
               const receiptUrl = `${apiUrl}/orders/${profile.order.id}/receipt`;
               
-              // Create a temporary link with headers via fetch (since we can't set headers on window.open)
-              fetch(receiptUrl, {
-                headers: {
-                  'x-user-email': userEmail,
-                },
-              })
-              .then(res => {
-                if (!res.ok) throw new Error('Failed to download receipt');
-                return res.blob();
-              })
-              .then(blob => {
+              try {
+                const blob = await safeFetchBlob(receiptUrl, {
+                  headers: {
+                    'x-user-email': userEmail,
+                  },
+                });
+                
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -254,11 +347,9 @@ export default function EsimDetailPage() {
                 a.click();
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
-              })
-              .catch(err => {
+              } catch (err) {
                 console.error('Failed to download receipt:', err);
-                alert('Failed to download receipt. Please try again.');
-              });
+              }
             }}
           >
             <FileText className="h-5 w-5 mr-2" />

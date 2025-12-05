@@ -3,6 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { json } from 'express';
 import { BigIntSerializerInterceptor } from './interceptors/bigint-serializer.interceptor';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { ErrorLoggerService } from './common/services/error-logger.service';
+import { SecurityHeadersInterceptor } from './common/interceptors/security-headers.interceptor';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -14,8 +18,28 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
 
-  // Add global interceptor to serialize BigInt values
-  app.useGlobalInterceptors(new BigIntSerializerInterceptor());
+  // Add global validation pipe
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+    })
+  );
+
+  // Add global interceptors
+  app.useGlobalInterceptors(
+    new BigIntSerializerInterceptor(),
+    new SecurityHeadersInterceptor()
+  );
+
+  // Add global exception filter for unified error handling
+  // Get ErrorLoggerService from app context after module initialization
+  const errorLoggerService = app.get(ErrorLoggerService, { strict: false });
+  app.useGlobalFilters(new AllExceptionsFilter(errorLoggerService));
 
   // JSON parser for non-webhook routes only
   const jsonParser = json({ limit: '10mb' });

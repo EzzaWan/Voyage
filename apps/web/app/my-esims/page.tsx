@@ -8,8 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { QrCode, Signal, RefreshCw, Calendar, HardDrive, Download, Copy, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
-
 import Link from "next/link";
+import { safeFetch } from "@/lib/safe-fetch";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ExpiryCountdown } from "@/components/esim/expiry-countdown";
+import { getTimeRemaining, getUrgencyLevel } from "@/lib/format-expiry";
+import { AlertCircle } from "lucide-react";
 
 interface PlanDetails {
   name?: string;
@@ -123,23 +127,20 @@ export default function MyEsimsPage() {
           return;
         }
 
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/esims?email=${encodeURIComponent(userEmail)}`);
-        if (res.ok) {
-          const data = await res.json();
-          console.log('[MY-ESIMS] Received profiles:', data);
-          // Debug: Log specific fields
-          if (data && data.length > 0) {
-            console.log('[MY-ESIMS] First profile details:', {
-              totalVolume: data[0].totalVolume,
-              expiredTime: data[0].expiredTime,
-              esimStatus: data[0].esimStatus,
-            });
-          }
-          setEsims(data);
-        } else {
-          const errorText = await res.text();
-          console.error('[MY-ESIMS] API error:', res.status, errorText);
+        const data = await safeFetch<EsimProfile[]>(
+          `${process.env.NEXT_PUBLIC_API_URL}/user/esims?email=${encodeURIComponent(userEmail)}`,
+          { showToast: false }
+        );
+        console.log('[MY-ESIMS] Received profiles:', data);
+        // Debug: Log specific fields
+        if (data && data.length > 0) {
+          console.log('[MY-ESIMS] First profile details:', {
+            totalVolume: data[0].totalVolume,
+            expiredTime: data[0].expiredTime,
+            esimStatus: data[0].esimStatus,
+          });
         }
+        setEsims(data || []);
       } catch (e) {
         console.error('[MY-ESIMS] Fetch error:', e);
       } finally {
@@ -161,11 +162,11 @@ export default function MyEsimsPage() {
             const userEmail = user?.primaryEmailAddress?.emailAddress;
             if (userEmail) {
               try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/esims?email=${encodeURIComponent(userEmail)}`);
-                if (res.ok) {
-                  const data = await res.json();
-                  setEsims(data);
-                }
+                const data = await safeFetch<EsimProfile[]>(
+                  `${process.env.NEXT_PUBLIC_API_URL}/user/esims?email=${encodeURIComponent(userEmail)}`,
+                  { showToast: false }
+                );
+                setEsims(data || []);
               } catch (e) {
                 console.error('[MY-ESIMS] Refresh error:', e);
               }
@@ -184,16 +185,23 @@ export default function MyEsimsPage() {
            ))}
         </div>
       ) : esims.length === 0 ? (
-        <div className="text-center py-20 bg-[var(--voyage-card)] rounded-xl border border-[var(--voyage-border)]">
-           <Signal className="h-12 w-12 mx-auto text-[var(--voyage-muted)] mb-4 opacity-50" />
-           <h3 className="text-xl font-bold text-white mb-2">No eSIMs yet</h3>
-           <p className="text-[var(--voyage-muted)] mb-6">Get your first travel data plan today.</p>
-           <Button className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)]">Browse Plans</Button>
-        </div>
+        <EmptyState
+          title="No eSIMs yet"
+          description="Get your first travel data plan today and stay connected anywhere in the world."
+          icon={Signal}
+          action={{
+            label: "Browse Plans",
+            onClick: () => window.location.href = "/countries"
+          }}
+        />
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
            {esims.map((esim) => {
              const status = getStatusDisplay(esim.esimStatus);
+             const timeRemaining = getTimeRemaining(esim.expiredTime);
+             const urgency = getUrgencyLevel(timeRemaining);
+             const isExpired = timeRemaining === null || timeRemaining.totalMs <= 0;
+             
              return (
                <Link key={esim.id} href={`/my-esims/${esim.iccid}`} className="block">
                  <Card className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] overflow-hidden hover:border-[var(--voyage-accent)] transition-colors cursor-pointer">
@@ -207,6 +215,25 @@ export default function MyEsimsPage() {
                             <p className="text-sm text-[var(--voyage-muted)]">
                               {esim.planDetails.locationCode}
                             </p>
+                          )}
+                          {esim.expiredTime && (
+                            <div className="flex items-center gap-2 mt-2">
+                              {isExpired ? (
+                                <span className="text-sm text-red-400 flex items-center gap-1">
+                                  <AlertCircle className="h-3 w-3" />
+                                  Expired
+                                </span>
+                              ) : urgency === "danger" ? (
+                                <Badge variant="destructive" className="text-xs">
+                                  Expiring Soon
+                                </Badge>
+                              ) : (
+                                <span className="text-xs text-[var(--voyage-muted)] flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  <ExpiryCountdown expiry={esim.expiredTime} iccid={esim.iccid} className="text-xs" />
+                                </span>
+                              )}
+                            </div>
                           )}
                        </div>
                        <Badge className={status.color}>
@@ -264,21 +291,7 @@ export default function MyEsimsPage() {
                                 <Calendar className="h-4 w-4 text-[var(--voyage-muted)]" />
                                 <span className="text-sm text-[var(--voyage-muted)]">Expires</span>
                              </div>
-                             <span className="text-sm text-white">
-                                {(() => {
-                                  try {
-                                    const date = new Date(esim.expiredTime);
-                                    if (isNaN(date.getTime())) return "N/A";
-                                    return date.toLocaleDateString('en-US', { 
-                                      year: 'numeric', 
-                                      month: 'short', 
-                                      day: 'numeric' 
-                                    });
-                                  } catch (e) {
-                                    return "N/A";
-                                  }
-                                })()}
-                             </span>
+                             <ExpiryCountdown expiry={esim.expiredTime} iccid={esim.iccid} className="text-sm font-medium" />
                           </div>
                         )}
                      </div>

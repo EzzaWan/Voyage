@@ -15,9 +15,10 @@ import { OrdersModule } from '../orders/orders.module';
 import { EsimModule } from '../esim/esim.module';
 import { AffiliateModule } from '../affiliate/affiliate.module';
 import { ConfigModule } from '@nestjs/config';
+import { CommonModule } from '../../common/modules/common.module';
 
 @Module({
-  imports: [forwardRef(() => OrdersModule), forwardRef(() => EsimModule), AffiliateModule, ConfigModule],
+  imports: [forwardRef(() => OrdersModule), forwardRef(() => EsimModule), AffiliateModule, ConfigModule, CommonModule],
   controllers: [
     AdminOrdersController,
     AdminEsimsController,

@@ -10,6 +10,7 @@ import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getOrderStatusDisplay, getTopUpStatusDisplay } from "@/lib/admin-helpers";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
+import { safeFetch } from "@/lib/safe-fetch";
 
 interface AffiliateDashboard {
   affiliate: {
@@ -84,15 +85,12 @@ export default function AffiliateDashboardPage() {
     const fetchDashboard = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
-        const res = await fetch(`${apiUrl}/affiliate/dashboard`, {
+        const data = await safeFetch<any>(`${apiUrl}/affiliate/dashboard`, {
           headers: {
             "x-user-email": user.primaryEmailAddress?.emailAddress || "",
           },
+          showToast: false,
         });
-
-        if (!res.ok) throw new Error("Failed to fetch dashboard");
-
-        const data = await res.json();
         setDashboard(data);
       } catch (error) {
         console.error("Failed to fetch affiliate dashboard:", error);

@@ -1,11 +1,15 @@
-import { Controller, Post, Body, Get, Param, NotFoundException, Res, Req, ForbiddenException, Headers, Query } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, NotFoundException, Res, Req, ForbiddenException, Headers, Query, UseGuards } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { PrismaService } from '../../prisma.service';
 import { ReceiptService } from '../receipt/receipt.service';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
+import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
+import { CsrfGuard } from '../../common/guards/csrf.guard';
+import { RateLimit } from '../../common/decorators/rate-limit.decorator';
 
 @Controller('orders')
+@UseGuards(RateLimitGuard, CsrfGuard)
 export class OrdersController {
   constructor(
     private readonly ordersService: OrdersService,
@@ -15,6 +19,7 @@ export class OrdersController {
   ) {}
 
   @Post()
+  @RateLimit({ limit: 5, window: 30 })
   async createOrder(@Body() body: {
     planCode: string;
     amount: number;

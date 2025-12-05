@@ -1,32 +1,51 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PlanDetails } from "@/components/PlanDetails";
 import { PlanDetailsSkeleton } from "@/components/skeletons";
-import { Suspense } from "react";
+import { safeFetch } from "@/lib/safe-fetch";
+import { useParams } from "next/navigation";
 
-// Server Component
-export default async function PlanPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function PlanPage() {
+  const params = useParams();
+  const id = params?.id as string;
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-  
-  console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
+  const [plan, setPlan] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  let plan = null;
+  useEffect(() => {
+    if (!id) return;
 
-  try {
-    const res = await fetch(`${apiUrl}/plans/${id}`, { cache: 'no-store' });
-    if (res.ok) {
-      plan = await res.json();
-    }
-  } catch (e) {
-    console.error(e);
+    const fetchPlan = async () => {
+      try {
+        const data = await safeFetch<any>(`${apiUrl}/plans/${id}`, { showToast: false });
+        setPlan(data);
+      } catch (error) {
+        console.error("Failed to fetch plan:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlan();
+  }, [id, apiUrl]);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <PlanDetailsSkeleton />
+      </div>
+    );
   }
 
   if (!plan) {
     return (
       <div className="container mx-auto px-4 py-20 text-center">
         <h1 className="text-3xl font-bold text-white mb-4">Plan Not Found</h1>
+        <p className="text-[var(--voyage-muted)] mb-6">The plan you're looking for doesn't exist or has been removed.</p>
         <Link href="/countries">
           <Button variant="secondary">Browse Plans</Button>
         </Link>
@@ -46,9 +65,7 @@ export default async function PlanPage({ params }: { params: { id: string } }) {
         Not sure if your device supports eSIM? <Link href="/device-check" className="text-[var(--voyage-accent)] hover:underline">Check compatibility</Link>
       </div>
       
-      <Suspense fallback={<PlanDetailsSkeleton />}>
-         <PlanDetails plan={plan} />
-      </Suspense>
+      <PlanDetails plan={plan} />
     </div>
   );
 }

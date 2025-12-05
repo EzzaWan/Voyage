@@ -9,6 +9,9 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { PlanListWithFilters } from "@/components/PlanListWithFilters";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
+import { safeFetch } from "@/lib/safe-fetch";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Package } from "lucide-react";
 
 interface TopUpOption {
   packageCode: string;
@@ -31,19 +34,19 @@ export default function TopUpSelectionPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+      
       // Fetch profile details for better title
-      const resProfile = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/esim/${iccid}`);
-      if (resProfile.ok) {
-        const profileData = await resProfile.json();
+      try {
+        const profileData = await safeFetch<any>(`${apiUrl}/esim/${iccid}`, { showToast: false });
         setProfile(profileData);
+      } catch (e) {
+        console.error('Failed to fetch profile:', e);
       }
 
       // Fetch top-up options
-      const resOptions = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/esim/topup-options?iccid=${iccid}`);
-      if (resOptions.ok) {
-        const data = await resOptions.json();
-        setOptions(data);
-      }
+      const data = await safeFetch<TopUpOption[]>(`${apiUrl}/esim/topup-options?iccid=${iccid}`, { showToast: false });
+      setOptions(data || []);
     } catch (e) {
       console.error(e);
     } finally {
@@ -59,7 +62,7 @@ export default function TopUpSelectionPage() {
     try {
       const priceUSD = plan.price || 0;
       
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/topup/checkout`, {
+      const data = await safeFetch<{ url?: string }>(`${process.env.NEXT_PUBLIC_API_URL}/topup/checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -69,17 +72,14 @@ export default function TopUpSelectionPage() {
           currency: selectedCurrency,
           displayCurrency: selectedCurrency,
         }),
+        errorMessage: "Failed to start checkout. Please try again.",
       });
 
-      if (!res.ok) throw new Error('Checkout creation failed');
-
-      const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
       }
     } catch (error) {
       console.error("TopUp Checkout error:", error);
-      alert("Failed to start checkout. Please try again.");
     }
   };
 
@@ -122,7 +122,15 @@ export default function TopUpSelectionPage() {
       {loading ? (
         <div className="text-center py-20 text-[var(--voyage-muted)]">Loading top-up options...</div>
       ) : options.length === 0 ? (
-        <div className="text-center py-20 text-[var(--voyage-muted)]">No compatible top-up plans found.</div>
+        <EmptyState
+          title="No top-up plans available"
+          description="No compatible top-up plans were found for this eSIM. Please contact support if you need assistance."
+          icon={Package}
+          action={{
+            label: "Back to eSIM Details",
+            onClick: () => window.location.href = `/my-esims/${iccid}`
+          }}
+        />
       ) : (
         <PlanListWithFilters
           plans={options}

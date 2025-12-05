@@ -8,6 +8,9 @@ import { FlagIcon } from "@/components/FlagIcon";
 import { formatUsdDollars } from "@/lib/utils";
 import { PlanListWithFilters } from "@/components/PlanListWithFilters";
 import { useEffect, useState } from "react";
+import { safeFetch } from "@/lib/safe-fetch";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Package } from "lucide-react";
 
 export default function CountryPlansPage({ params }: { params: { code: string } }) {
   const { code } = params;
@@ -19,11 +22,8 @@ export default function CountryPlansPage({ params }: { params: { code: string } 
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const res = await fetch(`${apiUrl}/countries/${code}/plans`);
-        if (res.ok) {
-          const data = await res.json();
-          setPlans(data);
-        }
+        const data = await safeFetch<Plan[]>(`${apiUrl}/countries/${code}/plans`, { showToast: false });
+        setPlans(data || []);
       } catch (e) {
         console.error(e);
       } finally {
@@ -99,6 +99,16 @@ export default function CountryPlansPage({ params }: { params: { code: string } 
          
          {loading ? (
              <div className="text-center py-20 text-[var(--voyage-muted)]">Loading plans...</div>
+         ) : plans.length === 0 ? (
+             <EmptyState
+                title="No plans available"
+                description={`No eSIM plans are currently available for ${countryName}. Please check back later or browse other countries.`}
+                icon={Package}
+                action={{
+                  label: "Browse All Countries",
+                  onClick: () => window.location.href = "/countries"
+                }}
+             />
          ) : (
              <PlanListWithFilters 
                 plans={plans} 

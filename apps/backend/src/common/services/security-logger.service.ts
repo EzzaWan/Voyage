@@ -1,0 +1,44 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { PrismaService } from '../../prisma.service';
+
+export type SecurityEventType =
+  | 'RATE_LIMIT'
+  | 'INVALID_WEBHOOK'
+  | 'INVALID_CSRF'
+  | 'UNAUTHORIZED_ACCESS'
+  | 'ADMIN_ACTION'
+  | 'TOKEN_CREATE'
+  | 'TOKEN_REVOKE'
+  | 'OWNERSHIP_VIOLATION'
+  | 'BRUTE_FORCE_ATTEMPT'
+  | 'INVALID_IP';
+
+interface LogSecurityEventParams {
+  type: SecurityEventType;
+  ip?: string;
+  userId?: string;
+  details?: any;
+}
+
+@Injectable()
+export class SecurityLoggerService {
+  private readonly logger = new Logger(SecurityLoggerService.name);
+
+  constructor(private readonly prisma: PrismaService) {}
+
+  async logSecurityEvent(params: LogSecurityEventParams): Promise<void> {
+    try {
+      await this.prisma.securityEventLog.create({
+        data: {
+          type: params.type,
+          ip: params.ip || null,
+          userId: params.userId || null,
+          details: params.details || {},
+        },
+      });
+    } catch (error) {
+      this.logger.error('Failed to log security event:', error);
+    }
+  }
+}
+

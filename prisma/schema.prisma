@@ -8,15 +8,16 @@ datasource db {
 }
 
 model User {
-  id        String        @id @default(uuid())
-  email     String        @unique
-  name      String?
-  orders    Order[]
-  profiles  EsimProfile[] @relation("UserProfiles")
-  topups    TopUp[]
-  affiliate Affiliate?
-  referral  Referral?
-  createdAt DateTime      @default(now())
+  id           String        @id @default(uuid())
+  email        String        @unique
+  name         String?
+  orders       Order[]
+  profiles     EsimProfile[] @relation("UserProfiles")
+  topups       TopUp[]
+  affiliate    Affiliate?
+  referral     Referral?
+  mobileTokens MobileToken[]
+  createdAt    DateTime      @default(now())
 }
 
 model Plan {
@@ -43,11 +44,16 @@ model Order {
   displayAmountCents Int?        // Amount actually paid in display currency (cents)
   status           String        // pending, paid, provisioning, active, failed, cancelled
   paymentMethod    String
-  paymentRef       String?
+  paymentRef       String?       @unique
   esimOrderNo      String?       // eSIM Access orderNo
   receiptSent      Boolean       @default(false)
   profiles         EsimProfile[]
   createdAt        DateTime      @default(now())
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([paymentRef])
 }
 
 model EsimProfile {
@@ -67,6 +73,10 @@ model EsimProfile {
   user         User?              @relation("UserProfiles", fields: [userId], references: [id])
   topups       TopUp[]
   usageHistory EsimUsageHistory[]
+
+  @@unique([iccid], name: "IDX_ESIM_ICCID")
+  @@index([userId])
+  @@index([orderId])
 }
 
 model TopUp {
@@ -177,4 +187,88 @@ model Commission {
 
   @@index([affiliateId])
   @@index([orderId])
+}
+
+model ErrorLog {
+  id        String   @id @default(uuid())
+  message   String
+  stack     String?
+  route     String
+  userId    String?
+  status    Int?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([route])
+}
+
+model RateLimitLog {
+  id        String   @id @default(uuid())
+  ip        String
+  userId    String?
+  route     String
+  createdAt DateTime @default(now())
+
+  @@index([ip])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([route])
+}
+
+model SupportTicket {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  orderId   String?
+  device    String?
+  message   String   @db.VarChar(1000)
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([createdAt])
+  @@index([orderId])
+}
+
+model SecurityEventLog {
+  id        String   @id @default(uuid())
+  type      String
+  ip        String?
+  userId    String?
+  details   Json?
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@index([ip])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model MobileToken {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @db.VarChar(255)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@unique([token])
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([token])
+}
+
+model DeviceSupport {
+  id           String   @id @default(uuid())
+  manufacturer String
+  model        String
+  supported    Boolean  @default(false)
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([manufacturer])
+  @@index([model])
+  @@index([manufacturer, model])
 }
