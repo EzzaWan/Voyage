@@ -4,13 +4,16 @@ import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { PriceTag } from "@/components/PriceTag";
-import { Wifi, Globe, HardDrive, Calendar, Clock, RefreshCw, ArrowLeft, FileText } from "lucide-react";
+import { Wifi, Globe, HardDrive, Calendar, Clock, RefreshCw, ArrowLeft, FileText, QrCode } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { safeFetch } from '@/lib/safe-fetch';
 import { safeFetchBlob } from '@/lib/safe-fetch-blob';
+import { QRDisplay } from "@/components/esim/qr-display";
+import { InstallStepsDialog } from "@/components/esim/install-steps-dialog";
+import { toast } from "@/components/ui/use-toast";
 
 // Helper function to format user-friendly status
 function getStatusDisplay(esimStatus: string | undefined): { label: string; color: string } {
@@ -57,6 +60,7 @@ export default function EsimDetailPage() {
   const [history, setHistory] = useState<any[]>([]);
   const [usageHistory, setUsageHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [polling, setPolling] = useState(false);
   
   // State to store plan details for top-ups
   const [planDetailsMap, setPlanDetailsMap] = useState<Record<string, any>>({});
@@ -110,6 +114,51 @@ export default function EsimDetailPage() {
   useEffect(() => {
     if (iccid) fetchData();
   }, [iccid]);
+
+  useEffect(() => {
+    if (!profile || !polling) return;
+
+    const orderStatus = profile.order?.status;
+    const hasQR = profile.qrCodeUrl || profile.ac;
+
+    if (orderStatus === "provisioning" || orderStatus === "PROVISIONING" || (!hasQR && (orderStatus === "paid" || orderStatus === "PAID"))) {
+      const interval = setInterval(async () => {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+        try {
+          const data = await safeFetch<any>(`${apiUrl}/esim/${iccid}`, { showToast: false });
+          const newHasQR = data.qrCodeUrl || data.ac;
+          
+          if (newHasQR && !hasQR) {
+            toast({
+              title: "QR Code Ready!",
+              description: "Your eSIM QR code is now available for installation.",
+            });
+            setProfile(data);
+            setPolling(false);
+          } else {
+            setProfile(data);
+          }
+        } catch (e) {
+          console.error("Polling error:", e);
+        }
+      }, 3000);
+
+      return () => clearInterval(interval);
+    } else {
+      setPolling(false);
+    }
+  }, [profile, polling, iccid]);
+
+  useEffect(() => {
+    if (profile) {
+      const orderStatus = profile.order?.status;
+      const hasQR = profile.qrCodeUrl || profile.ac;
+      
+      if ((orderStatus === "provisioning" || orderStatus === "PROVISIONING" || (!hasQR && (orderStatus === "paid" || orderStatus === "PAID"))) && !polling) {
+        setPolling(true);
+      }
+    }
+  }, [profile]);
 
   if (loading) {
     return (
@@ -214,6 +263,57 @@ export default function EsimDetailPage() {
             <span className="text-sm font-mono text-white truncate max-w-full px-2">{profile.iccid}</span>
          </div>
       </div>
+
+      {/* QR Code Display Section */}
+      {(profile.qrCodeUrl || profile.ac || polling) && (
+        <div className="bg-[var(--voyage-card)] rounded-2xl p-8 border border-[var(--voyage-border)]">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+                <QrCode className="h-6 w-6" />
+                Install eSIM
+              </h3>
+              <p className="text-[var(--voyage-muted)]">
+                {polling && !profile.qrCodeUrl && !profile.ac
+                  ? "Your eSIM is being prepared. This may take a few moments..."
+                  : "Scan the QR code with your device to install the eSIM profile"}
+              </p>
+            </div>
+            {(profile.qrCodeUrl || profile.ac) && (
+              <InstallStepsDialog
+                activationCode={profile.ac}
+                smdpAddress={profile.ac?.split("$")[1] || null}
+              />
+            )}
+          </div>
+          
+          {polling && !profile.qrCodeUrl && !profile.ac ? (
+            <div className="bg-[var(--voyage-card)] rounded-xl border border-[var(--voyage-border)] p-12">
+              <div className="flex flex-col items-center justify-center text-center space-y-4">
+                <RefreshCw className="h-12 w-12 animate-spin text-[var(--voyage-accent)]" />
+                <div>
+                  <h4 className="text-lg font-semibold text-white mb-2">Preparing Your eSIM</h4>
+                  <p className="text-[var(--voyage-muted)]">
+                    We're preparing your eSIM QR code. This usually takes less than a minute.
+                    <br />
+                    The page will update automatically when ready.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <QRDisplay
+              qrCodeUrl={profile.qrCodeUrl}
+              activationCode={profile.ac}
+              iccid={profile.iccid}
+              esimStatus={profile.esimStatus}
+              smdpStatus={profile.smdpStatus}
+              planName={profile.planDetails?.name}
+              showDeviceCheck={true}
+            />
+          )}
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex justify-end gap-4">
