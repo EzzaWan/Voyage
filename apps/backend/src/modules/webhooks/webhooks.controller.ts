@@ -1,4 +1,4 @@
-import { Controller, Post, Req, Headers, BadRequestException, Inject, forwardRef, UseGuards } from '@nestjs/common';
+import { Controller, Post, Req, Headers, BadRequestException, Inject, forwardRef, UseGuards, UnauthorizedException } from '@nestjs/common';
 import { StripeService } from '../stripe/stripe.service';
 import { OrdersService } from '../orders/orders.service';
 import { TopUpService } from '../topup/topup.service';
@@ -7,7 +7,8 @@ import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
 import { RateLimit } from '../../common/decorators/rate-limit.decorator';
-import { validateWebhookIp } from '../../common/utils/webhook-ip-whitelist';
+import { validateWebhookIp, getClientIp } from '../../common/utils/webhook-ip-whitelist';
+import { SecurityLoggerService } from '../../common/services/security-logger.service';
 
 @Controller('webhooks')
 @UseGuards(RateLimitGuard)
@@ -19,6 +20,7 @@ export class WebhooksController {
     private readonly topUpService: TopUpService,
     private readonly webhooksService: WebhooksService,
     private readonly config: ConfigService,
+    private readonly securityLogger: SecurityLoggerService,
   ) {}
 
   @Post('stripe')
@@ -49,6 +51,16 @@ export class WebhooksController {
         this.config.get<string>('STRIPE_WEBHOOK_SECRET'),
       );
     } catch (err: any) {
+      const ip = getClientIp(req);
+      await this.securityLogger.logSecurityEvent({
+        type: 'INVALID_WEBHOOK',
+        ip,
+        details: {
+          webhookType: 'stripe',
+          error: err.message,
+          path: req.path,
+        },
+      });
       console.error("❌ Signature verification failed:", err.message);
       throw new BadRequestException(err.message);
     }
@@ -97,7 +109,27 @@ export class WebhooksController {
     @Headers('rt-timestamp') timestamp: string | undefined,
     @Headers('rt-request-id') requestId: string | undefined,
     @Headers('rt-access-code') accessCode: string | undefined,
+    @Headers('x-esim-secret') secretHeader: string | undefined,
   ) {
+    const ip = getClientIp(req);
+
+    // Validate secret header if configured
+    const expectedSecret = this.config.get<string>('ESIM_WEBHOOK_SECRET');
+    if (expectedSecret) {
+      if (!secretHeader || secretHeader !== expectedSecret) {
+        await this.securityLogger.logSecurityEvent({
+          type: 'INVALID_WEBHOOK',
+          ip,
+          details: {
+            webhookType: 'esim',
+            error: 'Missing or invalid secret header',
+            path: req.path,
+          },
+        });
+        throw new UnauthorizedException('Invalid webhook secret');
+      }
+    }
+
     // Validate IP whitelist if configured
     const allowedIps = this.config
       .get<string>('ALLOWED_WEBHOOK_IPS', '')
@@ -105,8 +137,21 @@ export class WebhooksController {
       .map((ip) => ip.trim())
       .filter(Boolean);
     
-    if (allowedIps.length > 0) {
-      validateWebhookIp(req, allowedIps);
+    try {
+      if (allowedIps.length > 0) {
+        validateWebhookIp(req, allowedIps);
+      }
+    } catch (err: any) {
+      await this.securityLogger.logSecurityEvent({
+        type: 'INVALID_IP',
+        ip,
+        details: {
+          webhookType: 'esim',
+          error: err.message,
+          path: req.path,
+        },
+      });
+      throw err;
     }
 
     const raw = req.rawBody;
@@ -120,6 +165,15 @@ export class WebhooksController {
         accessCode,
       });
     } catch (err: any) {
+      await this.securityLogger.logSecurityEvent({
+        type: 'INVALID_WEBHOOK',
+        ip,
+        details: {
+          webhookType: 'esim',
+          error: err.message,
+          path: req.path,
+        },
+      });
       console.error('❌ eSIM webhook error:', err.message);
       throw new BadRequestException(err.message);
     }

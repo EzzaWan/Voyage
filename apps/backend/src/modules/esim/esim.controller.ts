@@ -1,14 +1,18 @@
-import { Controller, Get, Param, Post, Body, Query, Inject, forwardRef, NotFoundException, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, Query, Inject, forwardRef, NotFoundException, UseGuards, Headers, BadRequestException } from '@nestjs/common';
 import { EsimService } from './esim.service';
 import { UsageService } from './usage.service';
 import { OrdersService } from '../orders/orders.service';
 import { TopUpService } from '../topup/topup.service';
 import { PrismaService } from '../../prisma.service';
 import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
+import { CsrfGuard } from '../../common/guards/csrf.guard';
 import { RateLimit } from '../../common/decorators/rate-limit.decorator';
+import { getUserIdFromEmail } from '../../common/utils/get-user-id';
+import { assertOwnership } from '../../common/utils/assert-ownership';
+import { EsimSyncDto, EsimSuspendDto, EsimUnsuspendDto, EsimRevokeDto } from '../../common/dto/esim-action.dto';
 
 @Controller() // Do NOT prefix with /api. Global prefix handles it.
-@UseGuards(RateLimitGuard)
+@UseGuards(RateLimitGuard, CsrfGuard)
 export class EsimController {
   constructor(
     private readonly esimService: EsimService,
@@ -127,12 +131,31 @@ export class EsimController {
   // FEATURE: SYNC SINGLE ESIM BY ICCID
   // ============================================
   @Post('esim/:iccid/sync')
-  @RateLimit({ limit: 10, window: 60 })
-  async syncEsimByIccid(@Param('iccid') iccid: string) {
+  @RateLimit({ limit: 10, window: 60 }) // 10 syncs per minute per user
+  async syncEsimByIccid(
+    @Param('iccid') iccid: string,
+    @Headers('x-user-email') userEmail: string | undefined,
+  ) {
+    if (!userEmail) {
+      throw new NotFoundException('User email required');
+    }
+
+    const userId = await getUserIdFromEmail(this.prisma, userEmail);
+    if (!userId) {
+      throw new NotFoundException('User not found');
+    }
+
     const profile = await this.ordersService.findByIccid(iccid);
     if (!profile) {
       throw new NotFoundException('Profile not found');
     }
+
+    // Validate ownership
+    assertOwnership({
+      userId,
+      ownerId: profile.userId,
+      resource: 'eSIM Profile',
+    });
 
     const orderNo = profile.order?.esimOrderNo;
     if (!orderNo) {
@@ -140,7 +163,7 @@ export class EsimController {
     }
 
     // Query provider for latest profile data
-    const res = await this.esimService.sdk.client.request<any>(
+    const res = await this.esimService.getEsimAccess().client.request<any>(
       'POST',
       '/esim/query',
       { orderNo, pager: { pageNum: 1, pageSize: 50 } }
@@ -229,5 +252,173 @@ export class EsimController {
       usedBytes: record.usedBytes.toString(),
       recordedAt: record.recordedAt.toISOString(),
     }));
+  }
+
+  // ============================================
+  // FEATURE: ESIM ACTIONS (SUSPEND/UNSUSPEND/REVOKE)
+  // ============================================
+  @Post('esim/:iccid/suspend')
+  @RateLimit({ limit: 5, window: 60 })
+  async suspendEsim(
+    @Param('iccid') iccid: string,
+    @Headers('x-user-email') userEmail: string | undefined,
+  ) {
+    if (!userEmail) {
+      throw new NotFoundException('User email required');
+    }
+
+    const userId = await getUserIdFromEmail(this.prisma, userEmail);
+    if (!userId) {
+      throw new NotFoundException('User not found');
+    }
+
+    const profile = await this.ordersService.findByIccid(iccid);
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
+    }
+
+    // Validate ownership
+    assertOwnership({
+      userId,
+      ownerId: profile.userId,
+      resource: 'eSIM Profile',
+    });
+
+    if (!profile.iccid) {
+      throw new BadRequestException('Profile ICCID is required for suspend');
+    }
+
+    try {
+      const result = await this.esimService.getEsimAccess().profiles.suspend({
+        iccid: profile.iccid,
+      });
+
+      if (result.success === 'true') {
+        // Update profile status in database
+        await this.prisma.esimProfile.update({
+          where: { id: profile.id },
+          data: { esimStatus: 'SUSPENDED' },
+        });
+
+        return {
+          success: true,
+          message: 'eSIM profile suspended successfully',
+        };
+      } else {
+        throw new BadRequestException(result.errorMessage || 'Failed to suspend profile');
+      }
+    } catch (error: any) {
+      throw new BadRequestException(error.message || 'Failed to suspend profile');
+    }
+  }
+
+  @Post('esim/:iccid/unsuspend')
+  @RateLimit({ limit: 5, window: 60 })
+  async unsuspendEsim(
+    @Param('iccid') iccid: string,
+    @Headers('x-user-email') userEmail: string | undefined,
+  ) {
+    if (!userEmail) {
+      throw new NotFoundException('User email required');
+    }
+
+    const userId = await getUserIdFromEmail(this.prisma, userEmail);
+    if (!userId) {
+      throw new NotFoundException('User not found');
+    }
+
+    const profile = await this.ordersService.findByIccid(iccid);
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
+    }
+
+    // Validate ownership
+    assertOwnership({
+      userId,
+      ownerId: profile.userId,
+      resource: 'eSIM Profile',
+    });
+
+    if (!profile.esimTranNo) {
+      throw new BadRequestException('Profile esimTranNo is required for unsuspend');
+    }
+
+    try {
+      const result = await this.esimService.getEsimAccess().profiles.unsuspend({
+        esimTranNo: profile.esimTranNo,
+      });
+
+      if (result.success === 'true') {
+        // Update profile status in database
+        await this.prisma.esimProfile.update({
+          where: { id: profile.id },
+          data: { esimStatus: 'IN_USE' },
+        });
+
+        return {
+          success: true,
+          message: 'eSIM profile unsuspended successfully',
+        };
+      } else {
+        throw new BadRequestException(result.errorMessage || 'Failed to unsuspend profile');
+      }
+    } catch (error: any) {
+      throw new BadRequestException(error.message || 'Failed to unsuspend profile');
+    }
+  }
+
+  @Post('esim/:iccid/revoke')
+  @RateLimit({ limit: 3, window: 60 })
+  async revokeEsim(
+    @Param('iccid') iccid: string,
+    @Headers('x-user-email') userEmail: string | undefined,
+  ) {
+    if (!userEmail) {
+      throw new NotFoundException('User email required');
+    }
+
+    const userId = await getUserIdFromEmail(this.prisma, userEmail);
+    if (!userId) {
+      throw new NotFoundException('User not found');
+    }
+
+    const profile = await this.ordersService.findByIccid(iccid);
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
+    }
+
+    // Validate ownership
+    assertOwnership({
+      userId,
+      ownerId: profile.userId,
+      resource: 'eSIM Profile',
+    });
+
+    if (!profile.esimTranNo) {
+      throw new BadRequestException('Profile esimTranNo is required for revoke');
+    }
+
+    try {
+      const result = await this.esimService.getEsimAccess().profiles.revoke({
+        esimTranNo: profile.esimTranNo,
+      });
+
+      if (result.success === 'true') {
+        // Update profile status in database
+        await this.prisma.esimProfile.update({
+          where: { id: profile.id },
+          data: { esimStatus: 'REVOKED' },
+        });
+
+        return {
+          success: true,
+          message: 'eSIM profile revoked successfully',
+        };
+      } else {
+        throw new BadRequestException(result.errorMessage || 'Failed to revoke profile');
+      }
+    } catch (error: any) {
+      throw new BadRequestException(error.message || 'Failed to revoke profile');
+    }
   }
 }

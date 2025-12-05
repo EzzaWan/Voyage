@@ -4,6 +4,8 @@
 
 import { toast } from "@/components/ui/use-toast";
 
+const CSRF_TOKEN_HEADER = 'x-csrf-token';
+
 export class AppError extends Error {
   constructor(
     message: string,
@@ -19,6 +21,29 @@ export class AppError extends Error {
 interface SafeFetchOptions extends RequestInit {
   showToast?: boolean;
   errorMessage?: string;
+  skipCsrf?: boolean; // Skip CSRF for GET requests or public endpoints
+}
+
+// Cache CSRF token in memory to avoid fetching on every request
+let csrfTokenCache: string | null = null;
+
+async function getCsrfTokenCached(): Promise<string | null> {
+  if (csrfTokenCache) {
+    return csrfTokenCache;
+  }
+
+  try {
+    const response = await fetch('/api/csrf-token');
+    if (response.ok) {
+      const data = await response.json();
+      csrfTokenCache = data.token;
+      return csrfTokenCache;
+    }
+  } catch (error) {
+    console.warn('Failed to fetch CSRF token:', error);
+  }
+  
+  return null;
 }
 
 /**
@@ -29,7 +54,21 @@ export async function safeFetch<T = any>(
   url: string,
   options: SafeFetchOptions = {}
 ): Promise<T> {
-  const { showToast = true, errorMessage, ...fetchOptions } = options;
+  const { showToast = true, errorMessage, skipCsrf = false, ...fetchOptions } = options;
+
+  // Add CSRF token for state-changing requests
+  const isStateChanging = ['POST', 'PATCH', 'PUT', 'DELETE'].includes(fetchOptions.method || 'GET');
+  const isInternalApi = url.startsWith('/api/') && !url.startsWith('/api/webhooks/');
+  
+  if (!skipCsrf && isStateChanging && isInternalApi) {
+    const csrfToken = await getCsrfTokenCached();
+    if (csrfToken) {
+      fetchOptions.headers = {
+        ...fetchOptions.headers,
+        [CSRF_TOKEN_HEADER]: csrfToken,
+      };
+    }
+  }
 
   try {
     const response = await fetch(url, fetchOptions);

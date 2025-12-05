@@ -5,17 +5,34 @@ import {
   UnauthorizedException,
   ForbiddenException,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
+import { ADMIN_ONLY_KEY } from '../../../common/decorators/admin-only.decorator';
+import { SecurityLoggerService } from '../../../common/services/security-logger.service';
+import { getClientIp } from '../../../common/utils/webhook-ip-whitelist';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
-  constructor(private configService: ConfigService) {}
+  constructor(
+    private configService: ConfigService,
+    private reflector: Reflector,
+    private securityLogger: SecurityLoggerService,
+  ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const adminEmail = request.headers['x-admin-email'];
+    const adminEmail = request.headers['x-admin-email'] as string | undefined;
+    const ip = getClientIp(request);
 
     if (!adminEmail) {
+      await this.securityLogger.logSecurityEvent({
+        type: 'UNAUTHORIZED_ACCESS',
+        ip,
+        details: {
+          route: request.url,
+          reason: 'Missing admin email header',
+        },
+      });
       throw new UnauthorizedException('Admin email required');
     }
 
@@ -30,10 +47,38 @@ export class AdminGuard implements CanActivate {
     }
 
     if (!allowedEmails.includes(adminEmail.toLowerCase())) {
+      await this.securityLogger.logSecurityEvent({
+        type: 'UNAUTHORIZED_ACCESS',
+        ip,
+        details: {
+          route: request.url,
+          attemptedEmail: adminEmail,
+          reason: 'Email not in admin list',
+        },
+      });
       throw new ForbiddenException('Access denied: not an admin');
     }
 
     request.adminEmail = adminEmail;
+
+    // Log admin action if @AdminOnly() decorator is present
+    const isAdminOnly = this.reflector.getAllAndOverride<boolean>(ADMIN_ONLY_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (isAdminOnly) {
+      await this.securityLogger.logSecurityEvent({
+        type: 'ADMIN_ACTION',
+        ip,
+        details: {
+          route: request.url,
+          method: request.method,
+          adminEmail,
+        },
+      });
+    }
+
     return true;
   }
 }

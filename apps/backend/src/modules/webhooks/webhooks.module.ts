@@ -7,6 +7,7 @@ import { OrdersModule } from '../orders/orders.module';
 import { TopUpModule } from '../topup/topup.module';
 import { AffiliateModule } from '../affiliate/affiliate.module';
 import { PrismaService } from '../../prisma.service';
+import { SecurityLoggerService } from '../../common/services/security-logger.service';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { PrismaService } from '../../prisma.service';
     forwardRef(() => TopUpModule),
   ],
   controllers: [WebhooksController],
-  providers: [WebhooksService, PrismaService],
+  providers: [WebhooksService, PrismaService, SecurityLoggerService],
 })
 export class WebhooksModule {}
 

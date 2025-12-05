@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { EmailService } from '../email/email.service';
 import { ConfigService } from '@nestjs/config';
+import { sanitizeInput } from '../../common/utils/sanitize';
 
 @Injectable()
 export class SupportService {
@@ -20,14 +21,19 @@ export class SupportService {
     device?: string;
     message: string;
   }) {
-    // Save to database
+    // Sanitize all user inputs to prevent XSS
+    const sanitizedName = sanitizeInput(data.name);
+    const sanitizedMessage = sanitizeInput(data.message);
+    const sanitizedDevice = data.device ? sanitizeInput(data.device) : null;
+
+    // Save to database with sanitized inputs
     const ticket = await this.prisma.supportTicket.create({
       data: {
-        name: data.name,
-        email: data.email,
+        name: sanitizedName,
+        email: data.email.toLowerCase().trim(), // Email doesn't need sanitization, just normalize
         orderId: data.orderId || null,
-        device: data.device || null,
-        message: data.message,
+        device: sanitizedDevice,
+        message: sanitizedMessage,
       },
     });
 
@@ -42,11 +48,11 @@ export class SupportService {
             template: 'contact-support',
             variables: {
               ticketId: ticket.id,
-              name: data.name,
+              name: sanitizedName,
               email: data.email,
               orderId: data.orderId || 'N/A',
-              device: data.device || 'N/A',
-              message: data.message,
+              device: sanitizedDevice || 'N/A',
+              message: sanitizedMessage,
               createdAt: new Date().toISOString(),
             },
           });

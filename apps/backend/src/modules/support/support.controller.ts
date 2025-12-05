@@ -1,33 +1,19 @@
 import { Controller, Post, Body, BadRequestException, UseGuards, Get, Query, Param, NotFoundException } from '@nestjs/common';
 import { SupportService } from './support.service';
 import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
+import { CsrfGuard } from '../../common/guards/csrf.guard';
 import { RateLimit } from '../../common/decorators/rate-limit.decorator';
 import { AdminGuard } from '../admin/guards/admin.guard';
+import { CreateSupportTicketDto } from '../../common/dto/support-ticket.dto';
 
 @Controller('support')
-@UseGuards(RateLimitGuard)
+@UseGuards(RateLimitGuard, CsrfGuard)
 export class SupportController {
   constructor(private readonly supportService: SupportService) {}
 
   @Post('contact')
-  @RateLimit({ limit: 5, window: 300 }) // 5 requests per 5 minutes
-  async submitContact(@Body() body: {
-    name: string;
-    email: string;
-    orderId?: string;
-    device?: string;
-    message: string;
-  }) {
-    if (!body.name || !body.email || !body.message) {
-      throw new BadRequestException('Name, email, and message are required');
-    }
-
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(body.email)) {
-      throw new BadRequestException('Invalid email address');
-    }
-
+  @RateLimit({ limit: 3, window: 3600 }) // 3 requests per hour (spam protection)
+  async submitContact(@Body() body: CreateSupportTicketDto) {
     return this.supportService.createSupportTicket(body);
   }
 }

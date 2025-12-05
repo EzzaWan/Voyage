@@ -5,10 +5,11 @@ import { ReceiptService } from '../receipt/receipt.service';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
+import { CsrfGuard } from '../../common/guards/csrf.guard';
 import { RateLimit } from '../../common/decorators/rate-limit.decorator';
 
 @Controller('orders')
-@UseGuards(RateLimitGuard)
+@UseGuards(RateLimitGuard, CsrfGuard)
 export class OrdersController {
   constructor(
     private readonly ordersService: OrdersService,

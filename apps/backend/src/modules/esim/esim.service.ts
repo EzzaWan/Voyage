@@ -24,6 +24,11 @@ export class EsimService {
     });
   }
 
+  // Expose esimAccess for controller use
+  getEsimAccess(): EsimAccess {
+    return this.esimAccess;
+  }
+
   // Check if mock mode is enabled
   async mockEnabled(): Promise<boolean> {
     return await this.adminSettingsService.getMockMode();
