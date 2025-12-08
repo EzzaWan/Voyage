@@ -8,6 +8,7 @@ import { QueryProfilesResponse, UsageItem } from '../../../../../libs/esim-acces
 import { EmailService } from '../email/email.service';
 import { CurrencyService } from '../currency/currency.service';
 import { AffiliateService } from '../affiliate/affiliate.service';
+import { AffiliateCommissionService } from '../affiliate/affiliate-commission.service';
 
 @Injectable()
 export class OrdersService {
@@ -18,6 +19,8 @@ export class OrdersService {
     private esimService: EsimService,
     private currencyService: CurrencyService,
     private affiliateService: AffiliateService,
+    @Inject(forwardRef(() => AffiliateCommissionService))
+    private commissionService?: AffiliateCommissionService,
     @Inject(forwardRef(() => EmailService))
     private emailService?: EmailService,
   ) {}
@@ -1183,12 +1186,22 @@ export class OrdersService {
           `(display: ${freshOrder.displayAmountCents || 'N/A'}, USD: ${freshOrder.amountCents})`
         );
         
-        await this.affiliateService.addCommission(
-          referral.affiliateId,
-          freshOrder.id,
-          'order',
-          commissionAmountCents,
-        );
+        // Use new commission service if available, otherwise fallback to old method
+        if (this.commissionService) {
+          await this.commissionService.createCommission(
+            referral.affiliateId,
+            freshOrder.id,
+            'order',
+            commissionAmountCents,
+          );
+        } else {
+          await this.affiliateService.addCommission(
+            referral.affiliateId,
+            freshOrder.id,
+            'order',
+            commissionAmountCents,
+          );
+        }
 
         this.logger.log(`[AFFILIATE] Added commission for order ${order.id} to affiliate ${referral.affiliateId}`);
       } catch (error) {

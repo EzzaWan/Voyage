@@ -19,4 +19,11 @@ export class StripeService {
       this.config.get('STRIPE_WEBHOOK_SECRET')
     );
   }
+
+  async refundPayment(paymentIntentId: string, amountCents: number): Promise<Stripe.Refund> {
+    return this.stripe.refunds.create({
+      payment_intent: paymentIntentId,
+      amount: amountCents,
+    });
+  }
 }

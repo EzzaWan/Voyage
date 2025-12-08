@@ -10,6 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import { ADMIN_ONLY_KEY } from '../../../common/decorators/admin-only.decorator';
 import { SecurityLoggerService } from '../../../common/services/security-logger.service';
 import { getClientIp } from '../../../common/utils/webhook-ip-whitelist';
+import { AdminSettingsService } from '../admin-settings.service';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
@@ -17,6 +18,7 @@ export class AdminGuard implements CanActivate {
     private configService: ConfigService,
     private reflector: Reflector,
     private securityLogger: SecurityLoggerService,
+    private adminSettingsService: AdminSettingsService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -36,17 +38,39 @@ export class AdminGuard implements CanActivate {
       throw new UnauthorizedException('Admin email required');
     }
 
-    const allowedEmails = this.configService
-      .get<string>('ADMIN_EMAILS', '')
-      .split(',')
-      .map((e) => e.trim().toLowerCase())
-      .filter(Boolean);
+    const normalizedEmail = adminEmail.toLowerCase();
+
+    // First, try to get admin emails from database (via AdminSettingsService)
+    let allowedEmails: string[] = [];
+    try {
+      allowedEmails = await this.adminSettingsService.getAdminEmails();
+    } catch (error) {
+      // If database check fails, log but continue to env var fallback
+      this.securityLogger.logSecurityEvent({
+        type: 'UNAUTHORIZED_ACCESS',
+        ip,
+        details: {
+          route: request.url,
+          reason: 'Failed to fetch admin emails from database, falling back to env vars',
+          error: error instanceof Error ? error.message : String(error),
+        },
+      });
+    }
+
+    // Fallback to environment variables if database has no admin emails
+    if (allowedEmails.length === 0) {
+      allowedEmails = this.configService
+        .get<string>('ADMIN_EMAILS', '')
+        .split(',')
+        .map((e) => e.trim().toLowerCase())
+        .filter(Boolean);
+    }
 
     if (allowedEmails.length === 0) {
       throw new ForbiddenException('No admin emails configured');
     }
 
-    if (!allowedEmails.includes(adminEmail.toLowerCase())) {
+    if (!allowedEmails.includes(normalizedEmail)) {
       await this.securityLogger.logSecurityEvent({
         type: 'UNAUTHORIZED_ACCESS',
         ip,

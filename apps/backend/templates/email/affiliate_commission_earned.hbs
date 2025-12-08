@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: #4F46E5; color: white; padding: 20px; text-align: center; }
+    .content { background: #f9fafb; padding: 30px; }
+    .amount { font-size: 24px; font-weight: bold; color: #10B981; }
+    .button { display: inline-block; padding: 12px 24px; background: #4F46E5; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Commission Earned!</h1>
+    </div>
+    <div class="content">
+      <p>Hi there,</p>
+      <p>Great news! You've earned a new commission from your referral program.</p>
+      <p><strong>Commission Amount:</strong> <span class="amount">${{formatCurrency commission.amountCents}}</span></p>
+      <p><strong>Order Type:</strong> {{commission.orderType}}</p>
+      <p><strong>Order ID:</strong> {{commission.orderId}}</p>
+      <p>This commission is currently pending and will be available for withdrawal after the 7-day holding period.</p>
+      <a href="{{dashboardUrl}}" class="button">View Dashboard</a>
+      <p>Keep referring to earn more!</p>
+      <p>Best regards,<br>The Voyage Team</p>
+    </div>
+  </div>
+</body>
+</html>
+
+

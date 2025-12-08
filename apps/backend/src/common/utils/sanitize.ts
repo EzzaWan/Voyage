@@ -36,3 +36,21 @@ export function sanitizeWithFormatting(input: string): string {
   // In production, you might want to use a proper sanitizer for this
   return sanitizeInput(input);
 }
+
+/**
+ * Sanitize email address - only removes HTML tags, doesn't escape special characters
+ * Preserves @, ., +, -, etc. which are valid in email addresses
+ */
+export function sanitizeEmail(input: string): string {
+  if (!input || typeof input !== 'string') {
+    return '';
+  }
+
+  // Only remove HTML tags, preserve email characters
+  let sanitized = input.replace(/<[^>]*>/g, '');
+  
+  // Trim whitespace
+  sanitized = sanitized.trim().toLowerCase();
+  
+  return sanitized;
+}

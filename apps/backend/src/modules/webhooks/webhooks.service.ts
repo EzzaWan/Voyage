@@ -3,6 +3,7 @@ import { StripeService } from '../stripe/stripe.service';
 import { PrismaService } from '../../prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { AffiliateService } from '../affiliate/affiliate.service';
+import { AffiliateCommissionService } from '../affiliate/affiliate-commission.service';
 import { Webhook } from 'svix';
 import { EsimAccess, WebhookEvent } from '../../../../../libs/esim-access';
 
@@ -18,6 +19,8 @@ export class WebhooksService {
     private config: ConfigService,
     @Inject(forwardRef(() => AffiliateService))
     private affiliateService: AffiliateService,
+    @Inject(forwardRef(() => AffiliateCommissionService))
+    private commissionService?: AffiliateCommissionService,
     // @InjectQueue('provisionQueue') private provisionQueue: Queue
   ) {
      this.esimAccess = new EsimAccess({
@@ -44,6 +47,31 @@ export class WebhooksService {
         });
         
         console.log(`Enqueued provision job for order ${orderId}`);
+      }
+    }
+
+    // Handle refunds - reverse commissions
+    if (event.type === 'charge.refunded' || event.type === 'payment_intent.canceled') {
+      const charge = event.data.object as any;
+      const orderId = charge.metadata?.orderId;
+      
+      if (orderId && this.commissionService) {
+        this.logger.log(`[WEBHOOK] Processing refund for order ${orderId}`);
+        
+        // Reverse commission for order
+        try {
+          await this.commissionService.reverseCommission(orderId, 'order');
+          
+          // Update order status if needed
+          await this.prisma.order.update({
+            where: { id: orderId },
+            data: { status: 'cancelled' },
+          });
+          
+          this.logger.log(`[WEBHOOK] Reversed commission for refunded order ${orderId}`);
+        } catch (error) {
+          this.logger.error(`[WEBHOOK] Failed to reverse commission for order ${orderId}:`, error);
+        }
       }
     }
   }

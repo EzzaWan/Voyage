@@ -11,7 +11,13 @@ export type SecurityEventType =
   | 'TOKEN_REVOKE'
   | 'OWNERSHIP_VIOLATION'
   | 'BRUTE_FORCE_ATTEMPT'
-  | 'INVALID_IP';
+  | 'INVALID_IP'
+  | 'AFFILIATE_PAYOUT_CHANGE'
+  | 'VCASH_CREDIT'
+  | 'VCASH_DEBIT'
+  | 'ORDER_REFUND_VCASH'
+  | 'AFFILIATE_COMMISSION_TO_VCASH'
+  | 'VCASH_ADMIN_ADJUST';
 
 interface LogSecurityEventParams {
   type: SecurityEventType;

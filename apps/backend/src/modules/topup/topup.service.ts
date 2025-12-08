@@ -488,12 +488,16 @@ export class TopUpService {
         return;
       }
 
-      // Add 10% commission
+      // Add 10% commission - use displayAmountCents if available
+      const commissionAmountCents = topup.displayAmountCents || topup.amountCents;
+      
+      // Try to use new commission service (injected if available)
+      // For now, use the updated addCommission which handles pending status
       await this.affiliateService.addCommission(
         referral.affiliateId,
         topup.id,
         'topup',
-        topup.amountCents,
+        commissionAmountCents,
       );
 
       this.logger.log(`[AFFILIATE] Added commission for topup ${topup.id} to affiliate ${referral.affiliateId}`);

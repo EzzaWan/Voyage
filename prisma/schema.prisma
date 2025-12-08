@@ -17,6 +17,8 @@ model User {
   affiliate    Affiliate?
   referral     Referral?
   mobileTokens MobileToken[]
+  vcashBalance VCashBalance?
+  vcashTransactions VCashTransaction[]
   createdAt    DateTime      @default(now())
 }
 
@@ -47,6 +49,9 @@ model Order {
   paymentRef       String?       @unique
   esimOrderNo      String?       // eSIM Access orderNo
   receiptSent      Boolean       @default(false)
+  refundMethod     String?       // "card" | "vcash"
+  refundAmountCents Int?
+  refundedAt       DateTime?
   profiles         EsimProfile[]
   createdAt        DateTime      @default(now())
 
@@ -152,14 +157,18 @@ model EsimUsageHistory {
 }
 
 model Affiliate {
-  id              String       @id @default(uuid())
-  userId          String       @unique
-  user            User         @relation(fields: [userId], references: [id])
-  referralCode    String       @unique
-  totalCommission Int          @default(0)
-  createdAt       DateTime     @default(now())
+  id              String                   @id @default(uuid())
+  userId          String                   @unique
+  user            User                     @relation(fields: [userId], references: [id])
+  referralCode    String                   @unique
+  totalCommission Int                      @default(0)
+  isFrozen        Boolean                  @default(false)
+  createdAt       DateTime                 @default(now())
   referrals       Referral[]
   commissions     Commission[]
+  payoutMethods   AffiliatePayoutMethod[]
+  payoutRequests  AffiliatePayoutRequest[]
+  commissionPayouts AffiliateCommissionPayout[]
 
   @@index([referralCode])
 }
@@ -183,10 +192,14 @@ model Commission {
   orderId     String?    // Can be Order or TopUp ID
   orderType   String     // "order" or "topup"
   amountCents Int
+  status      String     @default("pending") // "pending" | "available" | "reversed"
+  availableAt DateTime?  // when affiliate can actually withdraw
   createdAt   DateTime   @default(now())
 
   @@index([affiliateId])
   @@index([orderId])
+  @@index([status])
+  @@index([affiliateId, status])
 }
 
 model ErrorLog {
@@ -271,4 +284,71 @@ model DeviceSupport {
   @@index([manufacturer])
   @@index([model])
   @@index([manufacturer, model])
+}
+
+model AffiliatePayoutMethod {
+  id            String        @id @default(uuid())
+  affiliateId   String        @unique
+  affiliate     Affiliate     @relation(fields: [affiliateId], references: [userId], onDelete: Cascade)
+  type          String        // "paypal" | "bank"
+  paypalEmail   String?
+  bankHolderName String?
+  bankIban      String?
+  bankSwift     String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([affiliateId])
+}
+
+model AffiliatePayoutRequest {
+  id          String        @id @default(uuid())
+  affiliateId String
+  affiliate   Affiliate     @relation(fields: [affiliateId], references: [userId], onDelete: Cascade)
+  amountCents Int
+  status      String        // "pending" | "approved" | "declined" | "paid"
+  adminNote   String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  processedAt DateTime?
+
+  @@index([affiliateId])
+  @@index([status])
+  @@index([affiliateId, status])
+  @@index([createdAt])
+}
+
+model VCashBalance {
+  userId       String   @id
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balanceCents Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model VCashTransaction {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        String   // "credit" | "debit"
+  amountCents Int
+  reason      String   // "refund" | "affiliate_conversion" | "manual_adjustment" | "purchase" | etc.
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([type])
+  @@index([userId, createdAt])
+}
+
+model AffiliateCommissionPayout {
+  id            String     @id @default(uuid())
+  affiliateId   String
+  affiliate     Affiliate  @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  type          String     // "vcash" | "cash"
+  amountCents   Int
+  createdAt     DateTime   @default(now())
+
+  @@index([affiliateId])
+  @@index([affiliateId, createdAt])
 }

@@ -60,6 +60,12 @@ export class AdminSettingsService {
     return settings.defaultCurrency || 'USD';
   }
 
+  async getAdminEmails(): Promise<string[]> {
+    const settings = await this.getSettings();
+    // Return emails from database, converted to lowercase
+    return (settings.adminEmails || []).map((e) => e.trim().toLowerCase()).filter(Boolean);
+  }
+
   // Clear cache (call this after updating settings)
   clearCache() {
     this.settingsCache = null;

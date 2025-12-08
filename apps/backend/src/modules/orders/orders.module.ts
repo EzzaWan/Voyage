@@ -18,7 +18,7 @@ import { ConfigModule } from '@nestjs/config';
     forwardRef(() => EmailModule),
     forwardRef(() => ReceiptModule),
     CurrencyModule,
-    AffiliateModule,
+    forwardRef(() => AffiliateModule),
   ],
   controllers: [OrdersController],
   providers: [OrdersService, PrismaService],

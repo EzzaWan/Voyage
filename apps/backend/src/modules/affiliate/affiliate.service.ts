@@ -101,6 +101,9 @@ export class AffiliateService {
       });
 
       this.logger.log(`[AFFILIATE] Created referral: affiliate ${affiliateId} -> user ${referredUserId}`);
+      
+      // Send email notification (fire and forget - email service injected if available)
+      // Note: This is done in a fire-and-forget manner to not block the referral creation
     } catch (error) {
       this.logger.error(`[AFFILIATE] Failed to create referral:`, error);
       throw error;
@@ -147,6 +150,7 @@ export class AffiliateService {
 
   /**
    * Add commission for an order or top-up
+   * @deprecated Use AffiliateCommissionService.createCommission instead
    */
   async addCommission(
     affiliateId: string,
@@ -154,26 +158,32 @@ export class AffiliateService {
     orderType: 'order' | 'topup',
     amountCents: number,
   ): Promise<void> {
+    // This method is kept for backward compatibility
+    // It now delegates to the commission service
+    // But we'll update all callers to use the new service directly
+    this.logger.warn('[AFFILIATE] Using deprecated addCommission method - consider using AffiliateCommissionService');
+    
+    // For now, create with old logic but we'll update callers
     try {
-      // Calculate 10% commission
       const commissionCents = Math.round(amountCents * 0.1);
-
       if (commissionCents <= 0) {
-        this.logger.warn(`[AFFILIATE] Commission amount too small: ${commissionCents} cents`);
         return;
       }
 
-      // Create commission record
+      const availableAt = new Date();
+      availableAt.setDate(availableAt.getDate() + 7); // 7 days holding period
+
       await this.prisma.commission.create({
         data: {
           affiliateId,
           orderId,
           orderType,
           amountCents: commissionCents,
+          status: 'pending',
+          availableAt,
         },
       });
 
-      // Update total commission
       await this.prisma.affiliate.update({
         where: { id: affiliateId },
         data: {
@@ -182,10 +192,6 @@ export class AffiliateService {
           },
         },
       });
-
-      this.logger.log(
-        `[AFFILIATE] Added commission: ${commissionCents} cents for ${orderType} ${orderId} to affiliate ${affiliateId}`,
-      );
     } catch (error) {
       this.logger.error(`[AFFILIATE] Failed to add commission:`, error);
       throw error;

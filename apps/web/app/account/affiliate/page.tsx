@@ -1,11 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useUser } from "@clerk/nextjs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Copy, CheckCircle2, Users, DollarSign, ShoppingCart, ExternalLink, ArrowLeft } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Copy, CheckCircle2, Users, DollarSign, ShoppingCart, ExternalLink, ArrowLeft, Wallet, CreditCard, Activity } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getOrderStatusDisplay, getTopUpStatusDisplay } from "@/lib/admin-helpers";
@@ -18,6 +22,7 @@ interface AffiliateDashboard {
     referralCode: string;
     referralLink: string;
     totalCommission: number;
+    isFrozen: boolean;
     createdAt: string;
   };
   stats: {
@@ -26,6 +31,14 @@ interface AffiliateDashboard {
     totalPurchases: number;
     totalCommissions: number;
   };
+  balances: {
+    pendingBalance: number;
+    availableBalance: number;
+    lifetimeTotal: number;
+  };
+  payoutMethod: any;
+  payoutHistory: any[];
+  remainingCommission: number; // Commission available to convert (total - paid out)
   referrals: Array<{
     id: string;
     user: {
@@ -74,13 +87,26 @@ interface AffiliateDashboard {
 
 export default function AffiliateDashboardPage() {
   const { user, isLoaded } = useUser();
-  const { selectedCurrency, convert, formatCurrency: formatCurrencyContext } = useCurrency();
+  const { selectedCurrency, convert, formatCurrency: formatCurrencyContext, loading: currencyLoading } = useCurrency();
   const [dashboard, setDashboard] = useState<AffiliateDashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [submittingCashOut, setSubmittingCashOut] = useState(false);
+  const [convertingToVCash, setConvertingToVCash] = useState(false);
+  const [vcashAmount, setVcashAmount] = useState("");
+  const [cashOutForm, setCashOutForm] = useState({
+    paymentMethod: "",
+    affiliateCode: "",
+    amount: "",
+  });
 
   useEffect(() => {
-    if (!isLoaded || !user) return;
+    if (!isLoaded || !user) {
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
 
     const fetchDashboard = async () => {
       try {
@@ -91,19 +117,47 @@ export default function AffiliateDashboardPage() {
           },
           showToast: false,
         });
-        setDashboard(data);
+        
+        if (cancelled) return;
+        
+        // Ensure arrays exist and remainingCommission has a default
+        const safeData = {
+          ...data,
+          affiliate: data?.affiliate || null,
+          referrals: Array.isArray(data?.referrals) ? data.referrals : [],
+          commissions: Array.isArray(data?.commissions) ? data.commissions : [],
+          recentPurchases: Array.isArray(data?.recentPurchases) ? data.recentPurchases : [],
+          remainingCommission: typeof data?.remainingCommission === 'number' ? data.remainingCommission : 0,
+          balances: data?.balances || { pendingBalance: 0, availableBalance: 0, lifetimeTotal: 0 },
+          stats: data?.stats || { totalCommission: 0, totalReferrals: 0, totalPurchases: 0, totalCommissions: 0 },
+          payoutMethod: data?.payoutMethod || null,
+          payoutHistory: Array.isArray(data?.payoutHistory) ? data.payoutHistory : [],
+        };
+        
+        if (!cancelled) {
+          setDashboard(safeData);
+        }
       } catch (error) {
         console.error("Failed to fetch affiliate dashboard:", error);
+        if (!cancelled) {
+          setDashboard(null);
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
     fetchDashboard();
-  }, [user, isLoaded]);
+    
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, isLoaded]); // Use user?.id instead of entire user object
 
   const copyReferralLink = async () => {
-    if (!dashboard) return;
+    if (!dashboard?.affiliate?.referralLink) return;
 
     try {
       await navigator.clipboard.writeText(dashboard.affiliate.referralLink);
@@ -115,43 +169,57 @@ export default function AffiliateDashboardPage() {
   };
 
   // Format currency: use actual payment currency if available, otherwise convert from USD
-  const formatCurrency = (
+  // Memoize to prevent infinite re-renders - use stable references
+  const formatCurrency = useCallback((
     centsUSD: number,
     displayCurrency?: string | null,
     displayAmountCents?: number | null
   ) => {
-    // If we have the actual payment currency and amount, use that
-    if (displayCurrency && displayAmountCents) {
-      const currencyCode = displayCurrency.toUpperCase();
-      const amount = displayAmountCents / 100;
-      
-      try {
-        return new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: currencyCode.toLowerCase(),
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }).format(amount);
-      } catch (error) {
-        return `${currencyCode} ${amount.toFixed(2)}`;
+    try {
+      // If we have the actual payment currency and amount, use that
+      if (displayCurrency && displayAmountCents) {
+        const currencyCode = displayCurrency.toUpperCase();
+        const amount = displayAmountCents / 100;
+        
+        try {
+          return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: currencyCode.toLowerCase(),
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }).format(amount);
+        } catch (error) {
+          return `${currencyCode} ${amount.toFixed(2)}`;
+        }
       }
+      
+      // Fallback: convert from USD cents to viewer's selected currency
+      if (!centsUSD || isNaN(centsUSD) || centsUSD === 0) {
+        return formatCurrencyContext ? formatCurrencyContext(0) : '$0.00';
+      }
+      const amountUSD = centsUSD / 100;
+      const convertedAmount = convert ? convert(amountUSD) : amountUSD;
+      return formatCurrencyContext ? formatCurrencyContext(convertedAmount) : `$${convertedAmount.toFixed(2)}`;
+    } catch (error) {
+      console.error('Error formatting currency:', error);
+      return '$0.00';
     }
-    
-    // Fallback: convert from USD cents to viewer's selected currency
-    const amountUSD = centsUSD / 100;
-    const convertedAmount = convert(amountUSD);
-    return formatCurrencyContext(convertedAmount);
-  };
+  }, [convert, formatCurrencyContext]);
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
+  const formatDate = useCallback((dateStr: string) => {
+    if (!dateStr) return '';
+    try {
+      return new Date(dateStr).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch (error) {
+      return '';
+    }
+  }, []);
 
-  if (!isLoaded || loading) {
+  if (!isLoaded || loading || currencyLoading) {
     return (
       <div className="container mx-auto px-4 py-8 space-y-8">
         <Skeleton className="h-10 w-48" />
@@ -170,11 +238,15 @@ export default function AffiliateDashboardPage() {
     );
   }
 
-  if (!dashboard) {
+  if (!dashboard || !dashboard.affiliate) {
     return (
       <div className="container mx-auto px-4 py-20 text-center">
-        <h1 className="text-2xl font-bold text-white mb-4">Failed to load dashboard</h1>
-        <p className="text-[var(--voyage-muted)]">Please try refreshing the page.</p>
+        <h1 className="text-2xl font-bold text-white mb-4">
+          {loading ? 'Loading dashboard...' : 'Failed to load dashboard'}
+        </h1>
+        <p className="text-[var(--voyage-muted)]">
+          {loading ? 'Please wait...' : 'Please try refreshing the page.'}
+        </p>
       </div>
     );
   }
@@ -197,89 +269,360 @@ export default function AffiliateDashboardPage() {
         </div>
       </div>
 
-      {/* Referral Link Card */}
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
-        <CardHeader>
-          <CardTitle className="text-white">Your Referral Link</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="flex-1 p-4 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)]">
-              <p className="text-sm text-[var(--voyage-muted)] mb-1">Referral Code</p>
-              <p className="text-2xl font-bold text-white font-mono">{dashboard.affiliate.referralCode}</p>
+      {/* Top Section: Referral Link & Stats */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Referral Link Card */}
+        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)] h-full">
+          <CardHeader>
+            <CardTitle className="text-white">Your Referral Link</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <div className="w-full sm:w-1/3 p-3 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)]">
+                <p className="text-xs text-[var(--voyage-muted)] mb-1">Referral Code</p>
+                <p className="text-xl font-bold text-white font-mono break-all">{dashboard?.affiliate?.referralCode || 'N/A'}</p>
+              </div>
+              <div className="w-full sm:w-2/3 p-3 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)]">
+                <p className="text-xs text-[var(--voyage-muted)] mb-1">Referral Link</p>
+                <p className="text-sm text-white break-all">{dashboard?.affiliate?.referralLink || 'N/A'}</p>
+              </div>
             </div>
-            <div className="flex-1 p-4 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)]">
-              <p className="text-sm text-[var(--voyage-muted)] mb-1">Referral Link</p>
-              <p className="text-sm text-white break-all">{dashboard.affiliate.referralLink}</p>
+            <Button
+              onClick={copyReferralLink}
+              className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white"
+            >
+              {copied ? (
+                <>
+                  <CheckCircle2 className="h-4 w-4 mr-2" /> Copied!
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4 mr-2" /> Copy Referral Link
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)] flex flex-col justify-center">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[var(--voyage-muted)] mb-1">Total Commission</p>
+                  <p className="text-2xl font-bold text-[var(--voyage-accent)]">
+                    {formatCurrency(dashboard?.stats?.totalCommission || 0)}
+                  </p>
+                  <p className="text-xs text-[var(--voyage-muted)] mt-1">All-time earnings</p>
+                </div>
+                <DollarSign className="h-8 w-8 text-[var(--voyage-accent)]" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)] flex flex-col justify-center">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[var(--voyage-muted)] mb-1">Total Referrals</p>
+                  <p className="text-2xl font-bold text-white">
+                    {dashboard?.stats?.totalReferrals || 0}
+                  </p>
+                  <p className="text-xs text-[var(--voyage-muted)] mt-1">Users referred</p>
+                </div>
+                <Users className="h-8 w-8 text-white" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Actions Section: Convert & Cash Out */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+        {/* Convert to V-Cash Section */}
+        {dashboard?.remainingCommission !== undefined && dashboard.remainingCommission > 0 ? (
+          <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)] h-full">
+            <CardHeader>
+              <CardTitle className="text-white">Convert to V-Cash</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-[var(--voyage-muted)] mb-4">
+                Convert your affiliate earnings into V-Cash (store credit). V-Cash can be used on future Voyage purchases.
+              </p>
+              <div className="p-3 bg-[var(--voyage-bg-light)] rounded-lg mb-4">
+                <p className="text-sm text-[var(--voyage-muted)]">Available to convert:</p>
+                <p className="text-xl font-bold text-[var(--voyage-accent)]">
+                  {formatCurrency(dashboard?.remainingCommission || 0)}
+                </p>
+              </div>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!user || convertingToVCash || dashboard?.affiliate?.isFrozen) return;
+
+                  const amountNum = Math.round(parseFloat(vcashAmount) * 100); // Convert to cents
+                  if (!vcashAmount.trim() || isNaN(amountNum) || amountNum <= 0) {
+                    toast({
+                      title: "Error",
+                      description: "Please enter a valid amount",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+
+                  if (amountNum > (dashboard?.remainingCommission || 0)) {
+                    toast({
+                      title: "Error",
+                      description: `Amount exceeds available commission. Maximum: ${formatCurrency(dashboard?.remainingCommission || 0)}`,
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+
+                  setConvertingToVCash(true);
+                  try {
+                    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+                    const result = await safeFetch<{
+                      success: boolean;
+                      convertedAmountCents: number;
+                      remainingCommissionCents: number;
+                      vcashBalanceCents: number;
+                    }>(`${apiUrl}/affiliate/vcash/convert`, {
+                      method: "POST",
+                      headers: {
+                        "x-user-email": user.primaryEmailAddress?.emailAddress || "",
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({ amountCents: amountNum }),
+                    });
+
+                    toast({
+                      title: "Success",
+                      description: `Converted ${formatCurrency(result.convertedAmountCents)} to V-Cash successfully.`,
+                    });
+
+                    setVcashAmount("");
+                    
+                    // Refresh dashboard data
+                    window.location.reload();
+                  } catch (error: any) {
+                    toast({
+                      title: "Error",
+                      description: error.message || "Failed to convert to V-Cash",
+                      variant: "destructive",
+                    });
+                  } finally {
+                    setConvertingToVCash(false);
+                  }
+                }}
+                className="space-y-4"
+              >
+                <div className="space-y-2">
+                  <Label htmlFor="vcashAmount" className="text-white">
+                    Amount (USD)
+                  </Label>
+                  <Input
+                    id="vcashAmount"
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    placeholder={`Max: ${formatCurrency(dashboard?.remainingCommission || 0)}`}
+                    value={vcashAmount}
+                    onChange={(e) => setVcashAmount(e.target.value)}
+                    className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] text-white placeholder:text-[var(--voyage-muted)]"
+                    disabled={convertingToVCash || dashboard?.affiliate?.isFrozen}
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white"
+                  disabled={convertingToVCash || dashboard.affiliate?.isFrozen}
+                >
+                  {convertingToVCash ? "Converting..." : "Convert to V-Cash"}
+                </Button>
+                <Link href="/account/vcash">
+                  <Button variant="link" className="text-[var(--voyage-accent)] w-full">
+                    View V-Cash Balance →
+                  </Button>
+                </Link>
+              </form>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)] h-full flex items-center justify-center p-6 text-center">
+            <div className="space-y-2">
+              <p className="text-[var(--voyage-muted)]">
+                You need commission earnings to convert to V-Cash.
+              </p>
+              <Link href="/account/vcash">
+                <Button variant="link" className="text-[var(--voyage-accent)]">
+                  View V-Cash Balance →
+                </Button>
+              </Link>
             </div>
-          </div>
-          <Button
-            onClick={copyReferralLink}
-            className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white"
-          >
-            {copied ? (
-              <>
-                <CheckCircle2 className="h-4 w-4 mr-2" /> Copied!
-              </>
-            ) : (
-              <>
-                <Copy className="h-4 w-4 mr-2" /> Copy Referral Link
-              </>
+          </Card>
+        )}
+
+        {/* Cash-Out Request Form */}
+        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)] h-full">
+          <CardHeader>
+            <CardTitle className="text-white">Request Cash Out</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {dashboard?.affiliate?.isFrozen && (
+              <div className="p-4 bg-red-900/20 border border-red-500 rounded-lg mb-4">
+                <p className="text-red-400 font-medium">Account Frozen</p>
+                <p className="text-sm text-red-300 mt-1">Your affiliate account is currently frozen. Please contact support.</p>
+              </div>
             )}
-          </Button>
-        </CardContent>
-      </Card>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-[var(--voyage-muted)] mb-1">Total Commission</p>
-                <p className="text-2xl font-bold text-white">{formatCurrency(dashboard.stats.totalCommission)}</p>
-              </div>
-              <DollarSign className="h-8 w-8 text-[var(--voyage-accent)]" />
-            </div>
-          </CardContent>
-        </Card>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!user || submittingCashOut) return;
 
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-[var(--voyage-muted)] mb-1">Total Referrals</p>
-                <p className="text-2xl font-bold text-white">{dashboard.stats.totalReferrals}</p>
-              </div>
-              <Users className="h-8 w-8 text-[var(--voyage-accent)]" />
-            </div>
-          </CardContent>
-        </Card>
+                // Validation
+                if (!cashOutForm.paymentMethod.trim()) {
+                  toast({
+                    title: "Error",
+                    description: "Payment method is required",
+                    variant: "destructive",
+                  });
+                  return;
+                }
 
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-[var(--voyage-muted)] mb-1">Total Purchases</p>
-                <p className="text-2xl font-bold text-white">{dashboard.stats.totalPurchases}</p>
-              </div>
-              <ShoppingCart className="h-8 w-8 text-[var(--voyage-accent)]" />
-            </div>
-          </CardContent>
-        </Card>
+                if (!cashOutForm.affiliateCode.trim()) {
+                  toast({
+                    title: "Error",
+                    description: "Affiliate code is required",
+                    variant: "destructive",
+                  });
+                  return;
+                }
 
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-[var(--voyage-muted)] mb-1">Commission Records</p>
-                <p className="text-2xl font-bold text-white">{dashboard.stats.totalCommissions}</p>
+                const amountNum = parseFloat(cashOutForm.amount);
+                if (!cashOutForm.amount.trim() || isNaN(amountNum) || amountNum <= 0) {
+                  toast({
+                    title: "Error",
+                    description: "Please enter a valid amount",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+
+                setSubmittingCashOut(true);
+                try {
+                  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+                  await safeFetch(`${apiUrl}/affiliate/cash-out-request`, {
+                    method: "POST",
+                    headers: {
+                      "x-user-email": user.primaryEmailAddress?.emailAddress || "",
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      paymentMethod: cashOutForm.paymentMethod.trim(),
+                      affiliateCode: cashOutForm.affiliateCode.trim().toUpperCase(),
+                      amount: amountNum.toString(), // Send as string, backend will parse
+                    }),
+                  });
+
+                  toast({
+                    title: "Success",
+                    description: "Cash-out request submitted successfully. Admin will review and process it.",
+                  });
+
+                  // Reset form
+                  setCashOutForm({
+                    paymentMethod: "",
+                    affiliateCode: "",
+                    amount: "",
+                  });
+                } catch (error: any) {
+                  toast({
+                    title: "Error",
+                    description: error.message || "Failed to submit cash-out request",
+                    variant: "destructive",
+                  });
+                } finally {
+                  setSubmittingCashOut(false);
+                }
+              }}
+              className="space-y-4"
+            >
+              <div className="space-y-2">
+                <Label htmlFor="paymentMethod" className="text-white">
+                  Payment Method
+                </Label>
+                <Input
+                  id="paymentMethod"
+                  type="text"
+                  placeholder="e.g., PayPal: email@example.com or Bank Account: IBAN..."
+                  value={cashOutForm.paymentMethod}
+                  onChange={(e) =>
+                    setCashOutForm({ ...cashOutForm, paymentMethod: e.target.value })
+                  }
+                  className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] text-white placeholder:text-[var(--voyage-muted)]"
+                  disabled={submittingCashOut || dashboard?.affiliate?.isFrozen}
+                />
               </div>
-              <DollarSign className="h-8 w-8 text-[var(--voyage-accent)]" />
-            </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="affiliateCode" className="text-white">
+                  Affiliate Code
+                </Label>
+                <Input
+                  id="affiliateCode"
+                  type="text"
+                  placeholder={dashboard?.affiliate?.referralCode || ''}
+                  value={cashOutForm.affiliateCode}
+                  onChange={(e) =>
+                    setCashOutForm({ ...cashOutForm, affiliateCode: e.target.value.toUpperCase() })
+                  }
+                  className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] text-white placeholder:text-[var(--voyage-muted)] font-mono"
+                  disabled={submittingCashOut || dashboard?.affiliate?.isFrozen}
+                />
+                <p className="text-xs text-[var(--voyage-muted)]">
+                  Your affiliate code: <span className="font-mono font-bold">{dashboard?.affiliate?.referralCode || 'N/A'}</span>
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="amount" className="text-white">
+                  Amount (USD)
+                </Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                  value={cashOutForm.amount}
+                  onChange={(e) =>
+                    setCashOutForm({ ...cashOutForm, amount: e.target.value })
+                  }
+                  className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] text-white placeholder:text-[var(--voyage-muted)]"
+                  disabled={submittingCashOut || dashboard?.affiliate?.isFrozen}
+                />
+                {dashboard?.remainingCommission && dashboard.remainingCommission > 0 && (
+                  <p className="text-xs text-[var(--voyage-muted)]">
+                    Available: {formatCurrency(dashboard?.remainingCommission || 0)} (or request cash-out)
+                  </p>
+                )}
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white"
+                disabled={submittingCashOut || dashboard?.affiliate?.isFrozen}
+              >
+                {submittingCashOut ? "Submitting..." : "Submit Cash-Out Request"}
+              </Button>
+            </form>
           </CardContent>
         </Card>
       </div>
+
 
       {/* Recent Purchases */}
       <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
@@ -287,7 +630,7 @@ export default function AffiliateDashboardPage() {
           <CardTitle className="text-white">Recent Purchases</CardTitle>
         </CardHeader>
         <CardContent>
-          {dashboard.recentPurchases.length === 0 ? (
+          {!dashboard?.recentPurchases || (Array.isArray(dashboard.recentPurchases) && dashboard.recentPurchases.length === 0) ? (
             <p className="text-center text-[var(--voyage-muted)] py-8">No purchases yet from your referrals</p>
           ) : (
             <div className="overflow-x-auto">
@@ -303,7 +646,7 @@ export default function AffiliateDashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {dashboard.recentPurchases.map((purchase) => (
+                  {(dashboard?.recentPurchases || []).map((purchase) => (
                     <tr key={purchase.id} className="border-b border-[var(--voyage-border)] hover:bg-[var(--voyage-bg-light)]">
                       <td className="py-3 px-4 text-white">
                         <div>
@@ -356,11 +699,11 @@ export default function AffiliateDashboardPage() {
           <CardTitle className="text-white">Your Referrals</CardTitle>
         </CardHeader>
         <CardContent>
-          {dashboard.referrals.length === 0 ? (
+          {!dashboard?.referrals || (Array.isArray(dashboard.referrals) && dashboard.referrals.length === 0) ? (
             <p className="text-center text-[var(--voyage-muted)] py-8">No referrals yet. Share your link to get started!</p>
           ) : (
             <div className="space-y-4">
-              {dashboard.referrals.map((referral) => (
+              {(dashboard?.referrals || []).map((referral) => (
                 <div
                   key={referral.id}
                   className="p-4 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)]"

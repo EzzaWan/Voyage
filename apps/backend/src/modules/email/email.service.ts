@@ -309,5 +309,129 @@ export class EmailService {
       idempotencyKey: idempotency || `receipt-${variables.orderId || Date.now()}`,
     });
   }
+
+  // Affiliate email notifications
+  async sendAffiliateCommissionEarned(to: string, variables: any, idempotency?: string) {
+    const subject = `You earned commission — Voyage Affiliate`;
+    return this.sendEmail({
+      to,
+      template: 'affiliate_commission_earned',
+      subject,
+      variables,
+      idempotencyKey: idempotency || `commission-${variables.commission?.id || Date.now()}`,
+    });
+  }
+
+  async sendAffiliateNewReferral(to: string, variables: any, idempotency?: string) {
+    const subject = `New referral joined — Voyage Affiliate`;
+    return this.sendEmail({
+      to,
+      template: 'affiliate_new_referral',
+      subject,
+      variables,
+      idempotencyKey: idempotency || `referral-${variables.referral?.id || Date.now()}`,
+    });
+  }
+
+  async sendAffiliatePayoutRequested(to: string, variables: any, idempotency?: string) {
+    const subject = `Payout request submitted — Voyage Affiliate`;
+    return this.sendEmail({
+      to,
+      template: 'affiliate_payout_requested',
+      subject,
+      variables,
+      idempotencyKey: idempotency || `payout-request-${variables.payoutRequest?.id || Date.now()}`,
+    });
+  }
+
+  async sendAffiliatePayoutApproved(to: string, variables: any, idempotency?: string) {
+    const subject = `Payout approved — Voyage Affiliate`;
+    return this.sendEmail({
+      to,
+      template: 'affiliate_payout_approved',
+      subject,
+      variables,
+      idempotencyKey: idempotency || `payout-approved-${variables.payoutRequest?.id || Date.now()}`,
+    });
+  }
+
+  async sendAffiliatePayoutDeclined(to: string, variables: any, idempotency?: string) {
+    const subject = `Payout request declined — Voyage Affiliate`;
+    return this.sendEmail({
+      to,
+      template: 'affiliate_payout_declined',
+      subject,
+      variables,
+      idempotencyKey: idempotency || `payout-declined-${variables.payoutRequest?.id || Date.now()}`,
+    });
+  }
+
+  async sendAffiliatePayoutPaid(to: string, variables: any, idempotency?: string) {
+    const subject = `Payout sent — Voyage Affiliate`;
+    return this.sendEmail({
+      to,
+      template: 'affiliate_payout_paid',
+      subject,
+      variables,
+      idempotencyKey: idempotency || `payout-paid-${variables.payoutRequest?.id || Date.now()}`,
+    });
+  }
+
+  async sendAdminCashOutRequest(params: {
+    adminEmails: string[];
+    affiliateEmail: string;
+    affiliateName: string;
+    affiliateCode: string;
+    paymentMethod: string;
+    amount: number;
+    dashboardUrl: string;
+  }) {
+    const subject = `New Cash-Out Request — Voyage Affiliate`;
+    const variables = {
+      affiliateEmail: params.affiliateEmail,
+      affiliateName: params.affiliateName,
+      affiliateCode: params.affiliateCode,
+      paymentMethod: params.paymentMethod,
+      amount: params.amount,
+      amountFormatted: `$${(params.amount / 100).toFixed(2)}`,
+      dashboardUrl: params.dashboardUrl,
+    };
+
+    // Send to all admin emails
+    const emailPromises = params.adminEmails.map((adminEmail) =>
+      this.sendEmail({
+        to: adminEmail,
+        template: 'admin_cash_out_request',
+        subject,
+        variables,
+        idempotencyKey: `cash-out-request-${params.affiliateCode}-${Date.now()}`,
+      })
+    );
+
+    await Promise.allSettled(emailPromises);
+  }
+
+
+  async sendRefundToVCashEmail(to: string, variables: any, idempotency?: string) {
+    const subject = `Refund issued as V-Cash — Voyage`;
+    return this.sendEmail({
+      to,
+      template: 'refund_to_vcash',
+      subject,
+      variables,
+      idempotencyKey: idempotency || `refund-vcash-${variables.orderId || Date.now()}`,
+    });
+  }
+
+  async sendAffiliateCommissionConvertedToVCash(to: string, variables: any, idempotency?: string) {
+    const subject = `Commission converted to V-Cash — Voyage Affiliate`;
+    return this.sendEmail({
+      to,
+      template: 'affiliate_commission_converted_vcash',
+      subject,
+      variables,
+      idempotencyKey: idempotency || `affiliate-vcash-convert-${Date.now()}`,
+    });
+  }
 }
 

@@ -14,7 +14,7 @@ import { SecurityLoggerService } from '../../common/services/security-logger.ser
     StripeModule,
     EsimModule,
     OrdersModule,
-    AffiliateModule,
+    forwardRef(() => AffiliateModule),
     forwardRef(() => TopUpModule),
   ],
   controllers: [WebhooksController],

@@ -35,27 +35,44 @@ export default function AdminLayout({
       return;
     }
 
-    // Check if user is admin
+    // Check if user is admin via API (checks database first, then env vars)
     const checkAdmin = async () => {
       try {
-        const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
-          .split(",")
-          .map((e) => e.trim().toLowerCase())
-          .filter(Boolean);
-
-        const userEmail = user.primaryEmailAddress?.emailAddress?.toLowerCase();
-
-        if (!userEmail || !adminEmails.includes(userEmail)) {
+        const userEmail = user.primaryEmailAddress?.emailAddress;
+        if (!userEmail) {
           setIsAdmin(false);
           setLoading(false);
           return;
         }
 
-        setIsAdmin(true);
-        setLoading(false);
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+        const res = await fetch(`${apiUrl}/admin/check?email=${encodeURIComponent(userEmail)}`);
+
+        if (res.ok) {
+          const data = await res.json();
+          setIsAdmin(data.isAdmin === true);
+        } else {
+          // Fallback to env var check if API fails
+          const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
+            .split(",")
+            .map((e) => e.trim().toLowerCase())
+            .filter(Boolean);
+          setIsAdmin(adminEmails.includes(userEmail.toLowerCase()));
+        }
       } catch (error) {
         console.error("Admin check error:", error);
-        setIsAdmin(false);
+        // Fallback to env var check on error
+        try {
+          const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
+            .split(",")
+            .map((e) => e.trim().toLowerCase())
+            .filter(Boolean);
+          const userEmail = user.primaryEmailAddress?.emailAddress?.toLowerCase();
+          setIsAdmin(userEmail ? adminEmails.includes(userEmail) : false);
+        } catch (fallbackError) {
+          setIsAdmin(false);
+        }
+      } finally {
         setLoading(false);
       }
     };
@@ -94,17 +111,19 @@ export default function AdminLayout({
     );
   }
 
-  const navItems = [
-    { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
-    { href: "/admin/esims", label: "eSIM Profiles", icon: Smartphone },
-    { href: "/admin/topups", label: "Top-ups", icon: CreditCard },
-    { href: "/admin/users", label: "Users", icon: Users },
-    { href: "/admin/support", label: "Support Tickets", icon: MessageSquare },
-    { href: "/admin/settings", label: "Settings", icon: Settings },
-    { href: "/admin/emails", label: "Email Logs", icon: Mail },
-    { href: "/admin/logs", label: "Logs", icon: FileText },
-  ];
+        const navItems = [
+          { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+          { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
+          { href: "/admin/esims", label: "eSIM Profiles", icon: Smartphone },
+          { href: "/admin/topups", label: "Top-ups", icon: CreditCard },
+          { href: "/admin/users", label: "Users", icon: Users },
+          { href: "/admin/affiliates", label: "Affiliates", icon: Users },
+          { href: "/admin/affiliate/payouts", label: "Affiliate Payouts", icon: CreditCard },
+          { href: "/admin/support", label: "Support Tickets", icon: MessageSquare },
+          { href: "/admin/settings", label: "Settings", icon: Settings },
+          { href: "/admin/emails", label: "Email Logs", icon: Mail },
+          { href: "/admin/logs", label: "Logs", icon: FileText },
+        ];
 
   return (
     <div className="min-h-screen flex">
