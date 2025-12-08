@@ -24,7 +24,14 @@ export async function detectCurrency(): Promise<string> {
       const currency = (await response.text()).trim().toUpperCase();
       
       // Validate that it's one of our supported currencies
-      const supportedCurrencies = ['USD', 'EUR', 'GBP', 'PLN', 'AED', 'SGD', 'MYR', 'CAD', 'AUD', 'JPY'];
+      const supportedCurrencies = [
+        'USD', 'EUR', 'GBP', 'PLN', 'AED', 'SGD', 'MYR', 'CAD', 'AUD', 'JPY',
+        'CHF', 'NZD', 'SEK', 'NOK', 'DKK', 'HKD', 'TWD', 'KRW', 'INR', 'BRL',
+        'MXN', 'THB', 'ZAR', 'SAR', 'TRY', 'IDR', 'PHP', 'VND', 'HUF', 'CZK',
+        'RON', 'BGN', 'COP', 'CLP', 'PEN', 'NGN', 'KES', 'GHS', 'MAD', 'EGP',
+        'QAR', 'KWD', 'BHD', 'OMR', 'JOD', 'BDT', 'PKR', 'LKR', 'NPR', 'MMK',
+        'KZT', 'UZS', 'AZN', 'GEL', 'CRC', 'UYU'
+      ];
       if (supportedCurrencies.includes(currency)) {
         return currency;
       }

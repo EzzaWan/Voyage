@@ -8,7 +8,14 @@ export class CurrencyService implements OnModuleInit {
   private ratesCache: Map<string, number> = new Map();
   private cacheTimestamp: number = 0;
   private readonly CACHE_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
-  private readonly SUPPORTED_CURRENCIES = ['USD', 'EUR', 'GBP', 'PLN', 'AED', 'SGD', 'MYR', 'CAD', 'AUD', 'JPY'];
+  private readonly SUPPORTED_CURRENCIES = [
+    'USD', 'EUR', 'GBP', 'PLN', 'AED', 'SGD', 'MYR', 'CAD', 'AUD', 'JPY',
+    'CHF', 'NZD', 'SEK', 'NOK', 'DKK', 'HKD', 'TWD', 'KRW', 'INR', 'BRL',
+    'MXN', 'THB', 'ZAR', 'SAR', 'TRY', 'IDR', 'PHP', 'VND', 'HUF', 'CZK',
+    'RON', 'BGN', 'COP', 'CLP', 'PEN', 'NGN', 'KES', 'GHS', 'MAD', 'EGP',
+    'QAR', 'KWD', 'BHD', 'OMR', 'JOD', 'BDT', 'PKR', 'LKR', 'NPR', 'MMK',
+    'KZT', 'UZS', 'AZN', 'GEL', 'CRC', 'UYU'
+  ];
 
   constructor(
     private config: ConfigService,
