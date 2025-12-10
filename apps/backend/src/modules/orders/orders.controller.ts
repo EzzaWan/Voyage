@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, NotFoundException, Res, Req, ForbiddenException, Headers, Query, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, NotFoundException, Res, Req, ForbiddenException, Headers, Query, UseGuards, BadRequestException } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { PrismaService } from '../../prisma.service';
 import { ReceiptService } from '../receipt/receipt.service';
@@ -32,19 +32,36 @@ export class OrdersController {
     },
     @Req() req: any,
   ) {
-    const paymentMethod = body.paymentMethod || 'stripe';
-    
-    // If V-Cash payment, we need user email from headers
-    if (paymentMethod === 'vcash') {
-      const email = req.headers['x-user-email'] as string;
-      if (!email) {
-        throw new NotFoundException('User email required for V-Cash payment');
+    try {
+      const paymentMethod = body.paymentMethod || 'stripe';
+      
+      // Validate required fields
+      if (!body.planCode || !body.amount || !body.planName) {
+        throw new BadRequestException('Missing required fields: planCode, amount, and planName are required');
       }
-      return this.ordersService.createVCashOrder({ ...body, email });
+
+      // Validate amount
+      if (typeof body.amount !== 'number' || body.amount <= 0) {
+        throw new BadRequestException('Invalid amount. Amount must be a positive number.');
+      }
+      
+      // If V-Cash payment, we need user email from headers
+      if (paymentMethod === 'vcash') {
+        const email = req.headers['x-user-email'] as string;
+        if (!email) {
+          throw new NotFoundException('User email required for V-Cash payment');
+        }
+        return this.ordersService.createVCashOrder({ ...body, email });
+      }
+      
+      // Default to Stripe checkout
+      return await this.ordersService.createStripeCheckout(body);
+    } catch (error) {
+      // Log the error for debugging
+      console.error('[CREATE_ORDER_ERROR]', error);
+      // Re-throw to let the exception filter handle it
+      throw error;
     }
-    
-    // Default to Stripe checkout
-    return this.ordersService.createStripeCheckout(body);
   }
 
   @Get(':id/receipt')

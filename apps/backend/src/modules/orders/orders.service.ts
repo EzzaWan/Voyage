@@ -40,73 +40,114 @@ export class OrdersService {
     displayCurrency?: string;
     referralCode?: string;
   }) {
-    // amount is in USD (base price)
-    // currency is the target currency for Stripe checkout
-    // displayCurrency is optional, same as currency for UI consistency
-    
-    this.logger.log(`[CHECKOUT] Received from frontend: amount=${amount} USD, targetCurrency=${currency || 'USD'}`);
-    
-    // Determine target currency: use provided currency, or fallback to admin default, or USD
-    let targetCurrency = currency?.toUpperCase() || await this.currencyService.getDefaultCurrency() || 'USD';
-    
-    this.logger.log(`[CHECKOUT] Target currency: ${targetCurrency}`);
-    
-    // Convert USD amount to target currency
-    let convertedAmount = amount; // Default to USD amount
-    if (targetCurrency !== 'USD') {
-      convertedAmount = await this.currencyService.convert(amount, targetCurrency);
-      this.logger.log(`[CHECKOUT] Converted ${amount} USD → ${convertedAmount.toFixed(2)} ${targetCurrency}`);
-    }
-    
-    // Convert to cents (Stripe requires cents)
-    const unit_amount_cents = Math.round(convertedAmount * 100);
-    this.logger.log(`[CHECKOUT] Final Stripe amount: ${unit_amount_cents} cents (${convertedAmount.toFixed(2)} ${targetCurrency})`);
-    
-    // Stripe minimum: $0.50 USD equivalent for most currencies
-    // For non-USD, we'll use a conservative minimum
-    const STRIPE_MINIMUM_USD = 0.50;
-    const minimumInTargetCurrency = targetCurrency === 'USD' 
-      ? STRIPE_MINIMUM_USD 
-      : await this.currencyService.convert(STRIPE_MINIMUM_USD, targetCurrency);
-    const STRIPE_MINIMUM_CENTS = Math.round(minimumInTargetCurrency * 100);
-    
-    if (unit_amount_cents < STRIPE_MINIMUM_CENTS) {
-      throw new Error(
-        `Amount too low. Stripe requires a minimum charge equivalent to $${STRIPE_MINIMUM_USD.toFixed(2)} USD. ` +
-        `This plan costs ${convertedAmount.toFixed(2)} ${targetCurrency} (${amount.toFixed(2)} USD).`
+    try {
+      // amount is in USD (base price)
+      // currency is the target currency for Stripe checkout
+      // displayCurrency is optional, same as currency for UI consistency
+      
+      this.logger.log(`[CHECKOUT] Received from frontend: amount=${amount} USD, targetCurrency=${currency || 'USD'}`);
+      
+      // Validate Stripe is configured
+      if (!this.stripe?.stripe) {
+        this.logger.error('[CHECKOUT] Stripe is not configured. STRIPE_SECRET is missing.');
+        throw new BadRequestException('Payment system is not configured. Please contact support.');
+      }
+      
+      // Determine target currency: use provided currency, or fallback to admin default, or USD
+      let targetCurrency: string;
+      try {
+        targetCurrency = currency?.toUpperCase() || (await this.currencyService.getDefaultCurrency()) || 'USD';
+      } catch (error) {
+        this.logger.warn('[CHECKOUT] Failed to get default currency, using USD', error);
+        targetCurrency = 'USD';
+      }
+      
+      this.logger.log(`[CHECKOUT] Target currency: ${targetCurrency}`);
+      
+      // Convert USD amount to target currency
+      let convertedAmount = amount; // Default to USD amount
+      if (targetCurrency !== 'USD') {
+        try {
+          convertedAmount = await this.currencyService.convert(amount, targetCurrency);
+          this.logger.log(`[CHECKOUT] Converted ${amount} USD → ${convertedAmount.toFixed(2)} ${targetCurrency}`);
+        } catch (error) {
+          this.logger.error(`[CHECKOUT] Currency conversion failed, using USD amount`, error);
+          targetCurrency = 'USD';
+          convertedAmount = amount;
+        }
+      }
+      
+      // Convert to cents (Stripe requires cents)
+      const unit_amount_cents = Math.round(convertedAmount * 100);
+      this.logger.log(`[CHECKOUT] Final Stripe amount: ${unit_amount_cents} cents (${convertedAmount.toFixed(2)} ${targetCurrency})`);
+      
+      // Stripe minimum: $0.50 USD equivalent for most currencies
+      // For non-USD, we'll use a conservative minimum
+      const STRIPE_MINIMUM_USD = 0.50;
+      let minimumInTargetCurrency = STRIPE_MINIMUM_USD;
+      if (targetCurrency !== 'USD') {
+        try {
+          minimumInTargetCurrency = await this.currencyService.convert(STRIPE_MINIMUM_USD, targetCurrency);
+        } catch (error) {
+          this.logger.warn('[CHECKOUT] Failed to convert minimum, using USD minimum', error);
+          minimumInTargetCurrency = STRIPE_MINIMUM_USD;
+        }
+      }
+      const STRIPE_MINIMUM_CENTS = Math.round(minimumInTargetCurrency * 100);
+      
+      if (unit_amount_cents < STRIPE_MINIMUM_CENTS) {
+        throw new BadRequestException(
+          `Amount too low. Stripe requires a minimum charge equivalent to $${STRIPE_MINIMUM_USD.toFixed(2)} USD. ` +
+          `This plan costs ${convertedAmount.toFixed(2)} ${targetCurrency} (${amount.toFixed(2)} USD).`
+        );
+      }
+      
+      const webUrl = this.config.get('WEB_URL') || 'http://localhost:3000';
+
+      const session = await this.stripe.stripe.checkout.sessions.create({
+        mode: 'payment',
+        payment_method_types: ['card'],
+
+        line_items: [
+          {
+            price_data: {
+              currency: targetCurrency.toLowerCase(), // Stripe expects lowercase
+              unit_amount: unit_amount_cents,  // Stripe requires cents
+              product_data: {
+                name: planName,
+              },
+            },
+            quantity: 1,
+          },
+        ],
+
+        success_url: `${webUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${webUrl}/checkout/cancel`,
+        metadata: {
+          planCode,
+          amountUSD: amount.toString(), // Store original USD amount in metadata
+          displayCurrency: displayCurrency || targetCurrency,
+          ...(referralCode ? { referralCode } : {}), // Include referral code if provided
+        },
+      });
+
+      this.logger.log(`[CHECKOUT] Stripe session created: ${session.id}`);
+      return { url: session.url };
+    } catch (error) {
+      this.logger.error('[CHECKOUT] Failed to create Stripe checkout session', error);
+      
+      // If it's already a NestJS exception, re-throw it
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      
+      // Otherwise, wrap it
+      throw new BadRequestException(
+        error instanceof Error 
+          ? `Failed to create checkout: ${error.message}` 
+          : 'Failed to create checkout. Please try again.'
       );
     }
-    
-    const webUrl = this.config.get('WEB_URL') || 'http://localhost:3000';
-
-    const session = await this.stripe.stripe.checkout.sessions.create({
-      mode: 'payment',
-      payment_method_types: ['card'],
-
-      line_items: [
-        {
-          price_data: {
-            currency: targetCurrency.toLowerCase(), // Stripe expects lowercase
-            unit_amount: unit_amount_cents,  // Stripe requires cents
-            product_data: {
-              name: planName,
-            },
-          },
-          quantity: 1,
-        },
-      ],
-
-      success_url: `${webUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${webUrl}/checkout/cancel`,
-      metadata: {
-        planCode,
-        amountUSD: amount.toString(), // Store original USD amount in metadata
-        displayCurrency: displayCurrency || targetCurrency,
-        ...(referralCode ? { referralCode } : {}), // Include referral code if provided
-      },
-    });
-
-    return { url: session.url };
   }
 
   async createVCashOrder({ planCode, amount, currency, planName, displayCurrency, referralCode, email }: {
