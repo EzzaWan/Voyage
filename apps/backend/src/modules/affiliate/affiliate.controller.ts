@@ -676,20 +676,28 @@ export class AffiliateController {
       throw new NotFoundException('Affiliate not found');
     }
 
-    // Get user by ID or email
+    // Get user by ID or email, auto-create if doesn't exist
     let user;
     if (userId) {
       user = await this.prisma.user.findUnique({
         where: { id: userId },
       });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
     } else if (email) {
-      user = await this.prisma.user.findUnique({
+      // Auto-create user if they don't exist (e.g., just signed up via Clerk)
+      user = await this.prisma.user.upsert({
         where: { email },
+        create: {
+          id: crypto.randomUUID(),
+          email,
+          name: null, // Name will be updated when they make first purchase
+        },
+        update: {},
       });
-    }
-
-    if (!user) {
-      throw new NotFoundException('User not found');
+    } else {
+      throw new BadRequestException('Either user ID or email is required');
     }
 
     const ip = getClientIp(req);
