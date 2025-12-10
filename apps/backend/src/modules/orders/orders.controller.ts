@@ -35,14 +35,25 @@ export class OrdersController {
     try {
       const paymentMethod = body.paymentMethod || 'stripe';
       
-      // Validate required fields
-      if (!body.planCode || !body.amount || !body.planName) {
-        throw new BadRequestException('Missing required fields: planCode, amount, and planName are required');
+      // Validate required fields with detailed error messages
+      if (!body.planCode) {
+        throw new BadRequestException('Missing required field: planCode is required');
+      }
+      if (!body.planName) {
+        throw new BadRequestException('Missing required field: planName is required');
+      }
+      if (body.amount === undefined || body.amount === null) {
+        throw new BadRequestException('Missing required field: amount is required');
       }
 
       // Validate amount
-      if (typeof body.amount !== 'number' || body.amount <= 0) {
-        throw new BadRequestException('Invalid amount. Amount must be a positive number.');
+      if (typeof body.amount !== 'number' || body.amount <= 0 || !isFinite(body.amount)) {
+        throw new BadRequestException(`Invalid amount: ${body.amount}. Amount must be a positive number.`);
+      }
+
+      // Validate currency
+      if (!body.currency) {
+        throw new BadRequestException('Missing required field: currency is required');
       }
       
       // If V-Cash payment, we need user email from headers

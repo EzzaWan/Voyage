@@ -142,6 +142,10 @@ export function PlanDetails({ plan }: { plan: any }) {
         paymentMethod: paymentMethod,
       };
 
+      // Debug logging
+      console.log('[CHECKOUT] Request body:', requestBody);
+      console.log('[CHECKOUT] Plan object:', { packageCode: plan.packageCode, name: plan.name, price: plan.price });
+
       const data = await safeFetch<{ url?: string; success?: boolean; orderId?: string; message?: string }>(
         `${apiUrl}/orders`,
         {
@@ -178,9 +182,15 @@ export function PlanDetails({ plan }: { plan: any }) {
       }
     } catch (error: any) {
       console.error("Checkout error:", error);
+      console.error("Error details:", {
+        message: error.message,
+        status: error.status,
+        code: error.code,
+        cause: error.cause,
+      });
       toast({
         title: "Checkout failed",
-        description: error.message || "Failed to start checkout. Please try again.",
+        description: error.message || error.cause?.message || "Failed to start checkout. Please try again.",
         variant: "destructive",
       });
     } finally {
