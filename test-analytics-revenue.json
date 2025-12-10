@@ -1,0 +1,52 @@
+﻿{
+    "leaderboard":  [
+                        {
+                            "affiliateId":  "6b3623ad-c6f8-4fcc-983a-230414a3d8db",
+                            "referralCode":  "SHTJHVFZ",
+                            "userEmail":  "ezzawanpl@gmail.com",
+                            "userName":  "MACIEK M",
+                            "revenueCents":  0,
+                            "commissionCents":  0,
+                            "clicks":  0,
+                            "signups":  0,
+                            "buyers":  0,
+                            "conversionRate":  0
+                        },
+                        {
+                            "affiliateId":  "be613603-40f5-45f7-a57f-d0796ad8bbc7",
+                            "referralCode":  "ET7HOV0A",
+                            "userEmail":  "ezzawan9@gmail.com",
+                            "userName":  "BUKAYO SAKA",
+                            "revenueCents":  0,
+                            "commissionCents":  33,
+                            "clicks":  0,
+                            "signups":  0,
+                            "buyers":  0,
+                            "conversionRate":  0
+                        },
+                        {
+                            "affiliateId":  "c53d8e16-e90c-4e49-bb6a-483ed148d9bc",
+                            "referralCode":  "DYDPVPPZ",
+                            "userEmail":  "lilrannee@gmail.com",
+                            "userName":  null,
+                            "revenueCents":  0,
+                            "commissionCents":  0,
+                            "clicks":  0,
+                            "signups":  0,
+                            "buyers":  0,
+                            "conversionRate":  0
+                        },
+                        {
+                            "affiliateId":  "46440636-a2ef-4bf7-8364-de9d4015fe67",
+                            "referralCode":  "P4Y6PTIQ",
+                            "userEmail":  "test@example.com",
+                            "userName":  null,
+                            "revenueCents":  0,
+                            "commissionCents":  0,
+                            "clicks":  0,
+                            "signups":  0,
+                            "buyers":  0,
+                            "conversionRate":  0
+                        }
+                    ]
+}

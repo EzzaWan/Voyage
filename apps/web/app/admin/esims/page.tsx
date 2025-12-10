@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { AdminTable } from "@/components/admin/AdminTable";
@@ -16,7 +16,15 @@ interface EsimProfile {
   smdpStatus?: string;
   totalVolume?: string | null;
   expiredTime?: string | null;
-  order: {
+  Order?: {
+    User?: {
+      email: string;
+    };
+    user?: {
+      email: string;
+    };
+  };
+  order?: {
     user: {
       email: string;
     };
@@ -72,24 +80,25 @@ export default function AdminEsimsPage() {
     }
   };
 
-  const columns = [
+  const columns = useMemo(() => [
     {
       header: "ICCID",
-      accessor: (row: EsimProfile) => (
-        <span className="font-mono text-xs">{row.iccid}</span>
-      ),
-      className: "break-all min-w-[120px]",
+      accessor: (row: EsimProfile) => row.iccid,
+      className: "break-all min-w-[120px] font-mono text-xs",
     },
     {
       header: "esimTranNo",
-      accessor: (row: EsimProfile) => (
-        <span className="font-mono text-xs">{row.esimTranNo}</span>
-      ),
-      className: "break-all min-w-[100px]",
+      accessor: (row: EsimProfile) => row.esimTranNo,
+      className: "break-all min-w-[100px] font-mono text-xs",
     },
     {
       header: "Status",
       accessor: (row: EsimProfile) => {
+        const status = row.esimStatus || row.smdpStatus;
+        const statusDisplay = getEsimStatusDisplay(status);
+        return statusDisplay.label;
+      },
+      render: (row: EsimProfile) => {
         const status = row.esimStatus || row.smdpStatus;
         const statusDisplay = getEsimStatusDisplay(status);
         return <Badge className={statusDisplay.className}>{statusDisplay.label}</Badge>;
@@ -108,9 +117,14 @@ export default function AdminEsimsPage() {
     },
     {
       header: "User Email",
-      accessor: (row: EsimProfile) => row.order?.user?.email || "N/A",
+      accessor: (row: EsimProfile) => {
+        const order = row.Order || row.order;
+        if (!order) return "-";
+        const user = (order as any).User || (order as any).user;
+        return user?.email || "-";
+      },
     },
-  ];
+  ], []);
 
   if (loading) {
     return (

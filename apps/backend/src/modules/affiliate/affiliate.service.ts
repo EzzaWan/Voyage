@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { nanoid } from 'nanoid';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AffiliateService {
@@ -47,6 +48,7 @@ export class AffiliateService {
       // Create affiliate record
       await this.prisma.affiliate.create({
         data: {
+          id: crypto.randomUUID(),
           userId,
           referralCode: referralCode!,
           totalCommission: 0,
@@ -67,7 +69,7 @@ export class AffiliateService {
     return this.prisma.affiliate.findUnique({
       where: { referralCode: referralCode.toUpperCase() },
       include: {
-        user: {
+        User: {
           select: {
             id: true,
             email: true,
@@ -95,6 +97,7 @@ export class AffiliateService {
 
       await this.prisma.referral.create({
         data: {
+          id: crypto.randomUUID(),
           affiliateId,
           referredUserId,
         },
@@ -117,9 +120,9 @@ export class AffiliateService {
     return this.prisma.affiliate.findUnique({
       where: { userId },
       include: {
-        referrals: {
+        Referral: {
           include: {
-            user: {
+            User: {
               select: {
                 id: true,
                 email: true,
@@ -132,9 +135,9 @@ export class AffiliateService {
             createdAt: 'desc',
           },
         },
-        commissions: {
+        Commission: {
           include: {
-            affiliate: {
+            Affiliate: {
               select: {
                 referralCode: true,
               },
@@ -175,6 +178,7 @@ export class AffiliateService {
 
       await this.prisma.commission.create({
         data: {
+          id: crypto.randomUUID(),
           affiliateId,
           orderId,
           orderType,
@@ -205,18 +209,18 @@ export class AffiliateService {
     const affiliate = await this.prisma.affiliate.findUnique({
       where: { userId },
       include: {
-        referrals: {
+        Referral: {
           include: {
-            user: {
+            User: {
               include: {
-                orders: {
+                Order: {
                   where: {
                     status: {
                       in: ['paid', 'active', 'provisioning'],
                     },
                   },
                 },
-                topups: {
+                TopUp: {
                   where: {
                     status: 'completed',
                   },
@@ -225,7 +229,7 @@ export class AffiliateService {
             },
           },
         },
-        commissions: true,
+        Commission: true,
       },
     });
 
@@ -234,12 +238,12 @@ export class AffiliateService {
     }
 
     // Calculate stats
-    const totalReferrals = affiliate.referrals.length;
+    const totalReferrals = affiliate.Referral.length;
     const totalCommissions = affiliate.totalCommission;
-    const totalCommissionRecords = affiliate.commissions.length;
+    const totalCommissionRecords = affiliate.Commission.length;
 
     // Get all referred users' purchases
-    const referredUserIds = affiliate.referrals.map((r) => r.referredUserId);
+    const referredUserIds = affiliate.Referral.map((r) => r.referredUserId);
     const referredUsersOrders = await this.prisma.order.findMany({
       where: {
         userId: { in: referredUserIds },
@@ -280,7 +284,7 @@ export class AffiliateService {
         skip,
         take: limit,
         include: {
-          user: {
+          User: {
             select: {
               id: true,
               email: true,
@@ -290,8 +294,8 @@ export class AffiliateService {
           },
           _count: {
             select: {
-              referrals: true,
-              commissions: true,
+              Referral: true,
+              Commission: true,
             },
           },
         },
@@ -324,15 +328,15 @@ export class AffiliateService {
         skip,
         take: limit,
         include: {
-          affiliate: {
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  email: true,
-                  name: true,
-                },
-              },
+          Affiliate: {
+        include: {
+          User: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+            },
+          },
             },
           },
         },

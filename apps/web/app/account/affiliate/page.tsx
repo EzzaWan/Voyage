@@ -470,9 +470,26 @@ export default function AffiliateDashboardPage() {
           </CardHeader>
           <CardContent>
             {dashboard?.affiliate?.isFrozen && (
-              <div className="p-4 bg-red-900/20 border border-red-500 rounded-lg mb-4">
-                <p className="text-red-400 font-medium">Account Frozen</p>
-                <p className="text-sm text-red-300 mt-1">Your affiliate account is currently frozen. Please contact support.</p>
+              <div className="bg-red-500/20 border-2 border-red-500/50 rounded-lg p-6 mb-6">
+                <div className="flex items-start gap-3">
+                  <div className="flex-1">
+                    <p className="text-red-400 font-bold text-lg mb-2">⚠️ Account Frozen</p>
+                    <p className="text-sm text-red-300 mb-2">
+                      Your affiliate account has been temporarily frozen due to suspicious activity detected by our fraud detection system.
+                    </p>
+                    <p className="text-sm text-red-300 mb-3">
+                      While your account is frozen:
+                    </p>
+                    <ul className="list-disc list-inside text-sm text-red-300 space-y-1 ml-2">
+                      <li>You cannot request payouts</li>
+                      <li>You cannot convert commissions to V-Cash</li>
+                      <li>New commissions will still accrue but remain pending</li>
+                    </ul>
+                    <p className="text-sm text-red-300 mt-3">
+                      If you believe this is an error, please contact support to appeal the decision.
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -758,6 +775,17 @@ export default function AffiliateDashboardPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Footer - Affiliate Terms Link */}
+      <div className="pt-4 border-t border-[var(--voyage-border)] text-center">
+        <p className="text-sm text-[var(--voyage-muted)]">
+          By participating in the affiliate program, you agree to the{" "}
+          <Link href="/support/affiliate-terms" className="text-[var(--voyage-accent)] hover:underline">
+            Voyage Affiliate Terms of Service
+          </Link>
+          .
+        </p>
+      </div>
     </div>
   );
 }

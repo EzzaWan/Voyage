@@ -11,14 +11,14 @@ export class AdminTopupController {
   async getAllTopups(@Req() req: any) {
     const topups = await this.prisma.topUp.findMany({
       include: {
-        user: {
+        User: {
           select: {
             id: true,
             email: true,
             name: true,
           },
         },
-        profile: {
+        EsimProfile: {
           select: {
             id: true,
             iccid: true,

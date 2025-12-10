@@ -78,14 +78,61 @@ export default function VCashPage() {
     return formatCurrencyContext(convertedAmount);
   };
 
-  const getReasonLabel = (reason: string) => {
+  const getReasonLabel = (reason: string, metadata?: any) => {
+    // Handle ORDER_PAYMENT with UUID
+    if (reason.startsWith('ORDER_PAYMENT_')) {
+      const orderId = reason.replace('ORDER_PAYMENT_', '');
+      const planName = metadata?.planName || metadata?.plan?.name;
+      if (planName) {
+        return `Payment for ${planName}`;
+      }
+      return `Order Payment (${orderId.substring(0, 8)}...)`;
+    }
+
+    // Handle admin manual credit
+    if (reason === 'admin_manual_credit' || reason === 'manual_adjustment') {
+      const adminReason = metadata?.reason;
+      if (adminReason && adminReason !== 'admin_manual_credit') {
+        return `Admin Credit: ${adminReason}`;
+      }
+      return 'Admin Manual Credit';
+    }
+
+    // Handle affiliate conversion
+    if (reason === 'AFFILIATE_COMMISSION_TO_VCASH' || reason === 'affiliate_conversion') {
+      return 'Affiliate Commission Conversion';
+    }
+
+    // Handle refunds
+    if (reason.startsWith('ORDER_REFUND') || reason === 'refund' || reason === 'ORDER_REFUND_VCASH') {
+      const orderId = metadata?.orderId;
+      const planName = metadata?.planName;
+      if (planName) {
+        return `Refund: ${planName}`;
+      }
+      if (orderId) {
+        return `Refund for Order (${orderId.substring(0, 8)}...)`;
+      }
+      return 'Order Refund';
+    }
+
+    // Handle order refund to V-Cash
+    if (reason === 'ORDER_REFUND_VCASH') {
+      const orderId = metadata?.orderId;
+      if (orderId) {
+        return `Refund to V-Cash (Order ${orderId.substring(0, 8)}...)`;
+      }
+      return 'Refund to V-Cash';
+    }
+
+    // Generic mappings
     const labels: Record<string, string> = {
-      refund: "Refund",
-      affiliate_conversion: "Affiliate Conversion",
-      manual_adjustment: "Manual Adjustment",
-      purchase: "Purchase",
+      refund: 'Refund',
+      purchase: 'Purchase',
     };
-    return labels[reason] || reason;
+
+    // Return formatted reason or original if no match
+    return labels[reason] || reason.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
   };
 
   const formatDate = (dateStr: string) => {
@@ -203,7 +250,14 @@ export default function VCashPage() {
                         {formatCurrency(Math.abs(transaction.amountCents))}
                       </td>
                       <td className="py-3 px-4 text-white">
-                        {getReasonLabel(transaction.reason)}
+                        <div className="flex flex-col">
+                          <span>{getReasonLabel(transaction.reason, transaction.metadata)}</span>
+                          {transaction.metadata?.orderId && !transaction.metadata?.planName && (
+                            <span className="text-xs text-[var(--voyage-muted)] font-mono mt-1">
+                              Order: {transaction.metadata.orderId.substring(0, 8)}...
+                            </span>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { AdminTable } from "@/components/admin/AdminTable";
@@ -47,13 +47,11 @@ export default function AdminUsersPage() {
     }
   }, [user, apiUrl]);
 
-  const columns = [
+  const columns = useMemo(() => [
     {
       header: "ID",
-      accessor: (row: User) => (
-        <span className="font-mono text-xs">{row.id}</span>
-      ),
-      className: "break-all min-w-[120px]",
+      accessor: (row: User) => row.id,
+      className: "break-all min-w-[120px] font-mono text-xs",
     },
     {
       header: "Email",
@@ -82,7 +80,7 @@ export default function AdminUsersPage() {
           day: "numeric",
         }),
     },
-  ];
+  ], []);
 
   if (loading) {
     return (

@@ -33,7 +33,7 @@ export class TopUpService {
     // Verify profile exists
     const profile = await this.prisma.esimProfile.findUnique({
       where: { id: profileId },
-      include: { user: true },
+      include: { User: true },
     });
 
     if (!profile) {
@@ -102,7 +102,8 @@ export class TopUpService {
     // Create TopUp record in database (store in USD)
     await this.prisma.topUp.create({
       data: {
-        userId: profile.userId || profile.user?.id || '',
+        id: crypto.randomUUID(),
+        userId: profile.userId || profile.User?.id || '',
         profileId: profile.id,
         planCode,
         amountCents: Math.round(amount * 100), // Always store in USD cents
@@ -143,7 +144,7 @@ export class TopUpService {
     // Find topup record
     const topup = await this.prisma.topUp.findFirst({
       where: { paymentRef: session.id },
-      include: { profile: true },
+      include: { EsimProfile: true },
     });
 
     if (!topup) {
@@ -164,7 +165,7 @@ export class TopUpService {
     });
 
     // Get profile to access esimTranNo
-    const profile = topup.profile;
+    const profile = topup.EsimProfile;
     if (!profile || !profile.esimTranNo) {
       this.logger.error(`[TOPUP] Profile not found or missing esimTranNo for topup ${topup.id}`);
       await this.prisma.topUp.update({
@@ -231,15 +232,15 @@ export class TopUpService {
     const topup = await this.prisma.topUp.findUnique({
       where: { id: topupId },
       include: {
-        profile: {
+        EsimProfile: {
           include: {
-            order: true,
+            Order: true,
           },
         },
       },
     });
 
-    if (!topup || !topup.profile) {
+    if (!topup || !topup.EsimProfile) {
       this.logger.error(`[TOPUP] Topup or profile not found for ${topupId}`);
       return;
     }
@@ -252,7 +253,7 @@ export class TopUpService {
     try {
       // Query provider for profile status by iccid (most reliable for topups)
       // We can also use orderNo if rechargeOrder is available, but iccid is better
-      const iccid = topup.profile.iccid;
+      const iccid = topup.EsimProfile.iccid;
       const orderNo = topup.rechargeOrder;
       
       if (!iccid) {
@@ -281,12 +282,12 @@ export class TopUpService {
 
       // Find matching profile
       const providerProfile = res.obj.esimList.find(
-        (p) => p.iccid === topup.profile.iccid || p.esimTranNo === topup.profile.esimTranNo
+        (p) => p.iccid === topup.EsimProfile.iccid || p.esimTranNo === topup.EsimProfile.esimTranNo
       ) || res.obj.esimList[0];
 
       // Check if totalVolume or usage has changed (indicating recharge applied)
       const newTotalVolume = providerProfile.totalVolume ?? null;
-      const oldTotalVolume = topup.profile.totalVolume;
+      const oldTotalVolume = topup.EsimProfile.totalVolume;
 
       if (newTotalVolume !== null && oldTotalVolume !== null) {
         const volumeIncreased = BigInt(newTotalVolume) > BigInt(oldTotalVolume);
@@ -294,11 +295,11 @@ export class TopUpService {
         if (volumeIncreased) {
           // Update profile with new volume
           await this.prisma.esimProfile.update({
-            where: { id: topup.profile.id },
+            where: { id: topup.EsimProfile.id },
             data: {
               totalVolume: newTotalVolume,
-              esimStatus: providerProfile.esimStatus || topup.profile.esimStatus,
-              smdpStatus: providerProfile.smdpStatus || topup.profile.smdpStatus,
+              esimStatus: providerProfile.esimStatus || topup.EsimProfile.esimStatus,
+              smdpStatus: providerProfile.smdpStatus || topup.EsimProfile.smdpStatus,
             },
           });
 
@@ -325,11 +326,11 @@ export class TopUpService {
       } else if (newTotalVolume !== null && oldTotalVolume === null) {
         // First time we have volume data, update profile
         await this.prisma.esimProfile.update({
-          where: { id: topup.profile.id },
+          where: { id: topup.EsimProfile.id },
           data: {
             totalVolume: newTotalVolume,
-            esimStatus: providerProfile.esimStatus || topup.profile.esimStatus,
-            smdpStatus: providerProfile.smdpStatus || topup.profile.smdpStatus,
+            esimStatus: providerProfile.esimStatus || topup.EsimProfile.esimStatus,
+            smdpStatus: providerProfile.smdpStatus || topup.EsimProfile.smdpStatus,
           },
         });
 
@@ -354,7 +355,7 @@ export class TopUpService {
     return this.prisma.topUp.findMany({
       where: { userId },
       include: {
-        profile: {
+        EsimProfile: {
           select: {
             id: true,
             iccid: true,
@@ -369,12 +370,12 @@ export class TopUpService {
   async getTopUpsByIccid(iccid: string) {
     return this.prisma.topUp.findMany({
       where: {
-        profile: {
+        EsimProfile: {
           iccid: iccid
         }
       },
       include: {
-        profile: {
+        EsimProfile: {
           select: {
             id: true,
             iccid: true,
@@ -394,9 +395,9 @@ export class TopUpService {
         },
       },
       include: {
-        profile: {
+        EsimProfile: {
           include: {
-            order: true,
+            Order: true,
           },
         },
       },
@@ -415,10 +416,10 @@ export class TopUpService {
       const fullTopup = await this.prisma.topUp.findUnique({
         where: { id: topup.id },
         include: {
-          user: true,
-          profile: {
+          User: true,
+          EsimProfile: {
             include: {
-              order: true,
+              Order: true,
             },
           },
         },
@@ -441,11 +442,11 @@ export class TopUpService {
       const amount = (fullTopup.amountCents / 100).toFixed(2);
 
       await this.emailService.sendTopupConfirmation(
-        fullTopup.user.email,
+        fullTopup.User.email,
         {
           user: {
-            name: fullTopup.user.name || 'Customer',
-            email: fullTopup.user.email,
+            name: fullTopup.User.name || 'Customer',
+            email: fullTopup.User.email,
           },
           topup: {
             id: fullTopup.id,
@@ -453,8 +454,8 @@ export class TopUpService {
             currency: fullTopup.currency?.toUpperCase() || 'USD',
             status: fullTopup.status,
           },
-          profile: {
-            iccid: fullTopup.profile.iccid,
+          EsimProfile: {
+            iccid: fullTopup.EsimProfile.iccid,
           },
           plan: {
             name: planDetails?.name || fullTopup.planCode,
@@ -479,11 +480,11 @@ export class TopUpService {
       const referral = await this.prisma.referral.findUnique({
         where: { referredUserId: topup.userId },
         include: {
-          affiliate: true,
+          Affiliate: true,
         },
       });
 
-      if (!referral || !referral.affiliate) {
+      if (!referral || !referral.Affiliate) {
         // User was not referred, no commission
         return;
       }

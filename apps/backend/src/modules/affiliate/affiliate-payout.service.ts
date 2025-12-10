@@ -13,6 +13,7 @@ import { AffiliateCommissionService } from './affiliate-commission.service';
 import { EmailService } from '../email/email.service';
 import { sanitizeInput, sanitizeEmail } from '../../common/utils/sanitize';
 import { SecurityLoggerService } from '../../common/services/security-logger.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AffiliatePayoutService {
@@ -88,12 +89,15 @@ export class AffiliatePayoutService {
         bankSwift: type === 'bank' ? bankSwift : null,
       },
       create: {
+        id: crypto.randomUUID(),
         affiliateId: affiliate.userId,
         type,
         paypalEmail: type === 'paypal' ? paypalEmail : null,
         bankHolderName: type === 'bank' ? bankHolderName : null,
         bankIban: type === 'bank' ? bankIban : null,
         bankSwift: type === 'bank' ? bankSwift : null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     });
 
@@ -202,9 +206,12 @@ export class AffiliatePayoutService {
 
     const payoutRequest = await this.prisma.affiliatePayoutRequest.create({
       data: {
+        id: crypto.randomUUID(),
         affiliateId,
         amountCents,
         status: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     });
 
@@ -217,13 +224,13 @@ export class AffiliatePayoutService {
       try {
         const affiliate = await this.prisma.affiliate.findUnique({
           where: { id: affiliateId },
-          include: { user: true },
+          include: { User: true },
         });
 
-        if (affiliate?.user?.email) {
+        if (affiliate?.User?.email) {
           const webUrl = this.config.get<string>('WEB_URL') || 'http://localhost:3000';
           await this.emailService.sendAffiliatePayoutRequested(
-            affiliate.user.email,
+            affiliate.User.email,
             {
               payoutRequest: {
                 id: payoutRequest.id,
@@ -275,16 +282,16 @@ export class AffiliatePayoutService {
       this.prisma.affiliatePayoutRequest.findMany({
         where,
         include: {
-          affiliate: {
+          Affiliate: {
             include: {
-              user: {
+              User: {
                 select: {
                   id: true,
                   email: true,
                   name: true,
                 },
               },
-              payoutMethods: true,
+              AffiliatePayoutMethod: true,
             },
           },
         },
@@ -312,7 +319,7 @@ export class AffiliatePayoutService {
   async approvePayoutRequest(requestId: string, adminEmail: string): Promise<any> {
     const request = await this.prisma.affiliatePayoutRequest.findUnique({
       where: { id: requestId },
-      include: { affiliate: { include: { user: true } } },
+      include: { Affiliate: { include: { User: true } } },
     });
 
     if (!request) {
@@ -332,7 +339,7 @@ export class AffiliatePayoutService {
     );
     await this.securityLogger.logSecurityEvent({
       type: 'AFFILIATE_PAYOUT_CHANGE',
-      userId: request.affiliate.userId,
+      userId: request.Affiliate.userId,
       details: {
         requestId,
         oldStatus: request.status,
@@ -341,11 +348,11 @@ export class AffiliatePayoutService {
       },
     });
 
-    if (this.emailService && request.affiliate.user?.email) {
+    if (this.emailService && request.Affiliate.User?.email) {
       try {
         const webUrl = this.config.get<string>('WEB_URL') || 'http://localhost:3000';
         await this.emailService.sendAffiliatePayoutApproved(
-          request.affiliate.user.email,
+          request.Affiliate.User.email,
           {
             payoutRequest: {
               id: updatedRequest.id,
@@ -368,7 +375,7 @@ export class AffiliatePayoutService {
   async declinePayoutRequest(requestId: string, adminEmail: string, adminNote?: string): Promise<any> {
     const request = await this.prisma.affiliatePayoutRequest.findUnique({
       where: { id: requestId },
-      include: { affiliate: { include: { user: true } } },
+      include: { Affiliate: { include: { User: true } } },
     });
 
     if (!request) {
@@ -388,7 +395,7 @@ export class AffiliatePayoutService {
     );
     await this.securityLogger.logSecurityEvent({
       type: 'AFFILIATE_PAYOUT_CHANGE',
-      userId: request.affiliate.userId,
+      userId: request.Affiliate.userId,
       details: {
         requestId,
         oldStatus: request.status,
@@ -398,11 +405,11 @@ export class AffiliatePayoutService {
       },
     });
 
-    if (this.emailService && request.affiliate.user?.email) {
+    if (this.emailService && request.Affiliate.User?.email) {
       try {
         const webUrl = this.config.get<string>('WEB_URL') || 'http://localhost:3000';
         await this.emailService.sendAffiliatePayoutDeclined(
-          request.affiliate.user.email,
+          request.Affiliate.User.email,
           {
             payoutRequest: {
               id: updatedRequest.id,
@@ -426,7 +433,7 @@ export class AffiliatePayoutService {
   async markPayoutAsPaid(requestId: string, adminEmail: string): Promise<any> {
     const request = await this.prisma.affiliatePayoutRequest.findUnique({
       where: { id: requestId },
-      include: { affiliate: { include: { user: true } } },
+      include: { Affiliate: { include: { User: true } } },
     });
 
     if (!request) {
@@ -448,7 +455,7 @@ export class AffiliatePayoutService {
     );
     await this.securityLogger.logSecurityEvent({
       type: 'AFFILIATE_PAYOUT_CHANGE',
-      userId: request.affiliate.userId,
+      userId: request.Affiliate.userId,
       details: {
         requestId,
         oldStatus: request.status,
@@ -457,11 +464,11 @@ export class AffiliatePayoutService {
       },
     });
 
-    if (this.emailService && request.affiliate.user?.email) {
+    if (this.emailService && request.Affiliate.User?.email) {
       try {
         const webUrl = this.config.get<string>('WEB_URL') || 'http://localhost:3000';
         await this.emailService.sendAffiliatePayoutPaid(
-          request.affiliate.user.email,
+          request.Affiliate.User.email,
           {
             payoutRequest: {
               id: updatedRequest.id,

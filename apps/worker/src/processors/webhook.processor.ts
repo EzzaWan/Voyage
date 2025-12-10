@@ -3,6 +3,7 @@ import { Job } from 'bull';
 import { PrismaService } from '../prisma.service';
 import { EsimAccess, WebhookEvent } from '../../../../libs/esim-access'; // import strict types
 import { ConfigService } from '@nestjs/config';
+import * as crypto from 'crypto';
 
 @Processor('webhookQueue')
 export class WebhookProcessor {
@@ -40,6 +41,7 @@ export class WebhookProcessor {
                    if (order) {
                        await this.prisma.esimProfile.create({
                            data: {
+                               id: crypto.randomUUID(),
                                orderId: order.id,
                                userId: order.userId, // Now required by schema fix
                                esimTranNo: profile.esimTranNo,

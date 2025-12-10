@@ -6,12 +6,12 @@ import {
   ClerkProvider,
   SignedIn,
   SignedOut,
-  UserButton,
 } from "@clerk/nextjs";
-import { AdminNavLink } from "@/components/AdminNavLink";
+import { NavigationUserMenu } from "@/components/NavigationUserMenu";
 import { CurrencyProvider } from "@/components/providers/CurrencyProvider";
 import { CurrencySelector } from "@/components/CurrencySelector";
 import { ReferralTracker } from "@/components/ReferralTracker";
+import { SignupTracker } from "@/components/SignupTracker";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { ErrorToastProvider } from "@/components/ui/error-toast-provider";
 import { Toaster } from "@/components/ui/toaster";
@@ -44,14 +44,9 @@ export default function RootLayout({
                      </Link>
                      <div className="flex items-center gap-6 text-sm font-medium">
                         <Link href="/countries" className="hover:text-[var(--voyage-accent)] transition-colors">Store</Link>
-                        <Link href="/support" className="hover:text-[var(--voyage-accent)] transition-colors">Support</Link>
-                        <SignedIn>
-                          <Link href="/my-esims" className="hover:text-[var(--voyage-accent)] transition-colors">My eSIMs</Link>
-                          <Link href="/account" className="hover:text-[var(--voyage-accent)] transition-colors">Account</Link>
-                          <AdminNavLink />
-                        </SignedIn>
                         
                         <SignedOut>
+                          <Link href="/support" className="hover:text-[var(--voyage-accent)] transition-colors">Support</Link>
                           <div className="flex items-center gap-3">
                             <Link href="/sign-in" className="hover:text-[var(--voyage-accent)] transition-colors">
                               Sign In
@@ -68,13 +63,7 @@ export default function RootLayout({
                         <CurrencySelector />
                         
                         <SignedIn>
-                          <UserButton 
-                            appearance={{
-                              elements: {
-                                avatarBox: "w-8 h-8",
-                              },
-                            }}
-                          />
+                          <NavigationUserMenu />
                         </SignedIn>
                      </div>
                    </div>
@@ -82,6 +71,9 @@ export default function RootLayout({
                 
                 <div className="max-w-6xl mx-auto px-6 py-10">
                    <ReferralTracker />
+                   <SignedIn>
+                     <SignupTracker />
+                   </SignedIn>
                    {children}
                 </div>
                 <Toaster />

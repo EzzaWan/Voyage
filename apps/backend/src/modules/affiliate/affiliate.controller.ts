@@ -1,8 +1,12 @@
-import { Controller, Get, Post, Query, Req, Body, UseGuards, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Query, Req, Body, UseGuards, NotFoundException, BadRequestException, Headers } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import * as crypto from 'crypto';
 import { AffiliateService } from './affiliate.service';
 import { AffiliateCommissionService } from './affiliate-commission.service';
 import { AffiliatePayoutService } from './affiliate-payout.service';
+import { AffiliateAnalyticsService } from './affiliate-analytics.service';
+import { FraudService } from './fraud/fraud.service';
+import { FraudDetectionService } from './fraud/fraud-detection.service';
 import { EmailService } from '../email/email.service';
 import { AdminSettingsService } from '../admin/admin-settings.service';
 import { VCashService } from '../vcash/vcash.service';
@@ -10,6 +14,9 @@ import { PrismaService } from '../../prisma.service';
 import { sanitizeInput } from '../../common/utils/sanitize';
 import { SecurityLoggerService } from '../../common/services/security-logger.service';
 import { getClientIp } from '../../common/utils/webhook-ip-whitelist';
+import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
+import { RateLimit } from '../../common/decorators/rate-limit.decorator';
+import { redis, rateLimitKey } from '../../common/utils/redis';
 
 @Controller('affiliate')
 export class AffiliateController {
@@ -17,6 +24,9 @@ export class AffiliateController {
     private affiliateService: AffiliateService,
     private commissionService: AffiliateCommissionService,
     private payoutService: AffiliatePayoutService,
+    private analyticsService: AffiliateAnalyticsService,
+    private fraudService: FraudService,
+    private fraudDetection: FraudDetectionService,
     private prisma: PrismaService,
     private config: ConfigService,
     private emailService: EmailService,
@@ -39,6 +49,7 @@ export class AffiliateController {
     const user = await this.prisma.user.upsert({
       where: { email },
       create: {
+        id: crypto.randomUUID(),
         email,
         name: null, // Name will be updated when they make first purchase
       },
@@ -79,6 +90,7 @@ export class AffiliateController {
     const user = await this.prisma.user.upsert({
       where: { email },
       create: {
+        id: crypto.randomUUID(),
         email,
         name: null, // Name will be updated when they make first purchase
       },
@@ -132,22 +144,22 @@ export class AffiliateController {
     const affiliate = await this.prisma.affiliate.findUnique({
       where: { id: affiliateId },
       include: {
-        user: {
+        User: {
           select: {
             id: true,
             email: true,
             name: true,
           },
         },
-        referrals: {
+        Referral: {
           include: {
-            user: {
+            User: {
               select: {
                 id: true,
                 email: true,
                 name: true,
                 createdAt: true,
-                orders: {
+                Order: {
                   where: {
                     status: {
                       in: ['paid', 'active', 'provisioning', 'esim_created'],
@@ -166,7 +178,7 @@ export class AffiliateController {
                   },
                   take: 10, // Limit to 10 orders per user to reduce query size
                 },
-                topups: {
+                TopUp: {
                   where: {
                     status: 'completed',
                   },
@@ -191,7 +203,7 @@ export class AffiliateController {
           },
           take: 100, // Limit to 100 most recent referrals to prevent huge responses
         },
-        commissions: {
+        Commission: {
           orderBy: {
             createdAt: 'desc',
           },
@@ -205,14 +217,14 @@ export class AffiliateController {
     }
 
     // Calculate stats
-    const totalReferrals = affiliate.referrals.length;
+    const totalReferrals = affiliate.Referral.length;
     const totalPurchases =
-      affiliate.referrals.reduce((sum, ref) => {
-        return sum + ref.user.orders.length + ref.user.topups.length;
+      affiliate.Referral.reduce((sum, ref) => {
+        return sum + ref.User.Order.length + ref.User.TopUp.length;
       }, 0) || 0;
 
     // Get recent orders and topups from referred users (limited to prevent huge responses)
-    const referredUserIds = affiliate.referrals.map((r) => r.referredUserId);
+    const referredUserIds = affiliate.Referral.map((r) => r.referredUserId);
     
     // Limit to 100 most recent orders/topups combined to prevent performance issues
     const allReferredOrders = referredUserIds.length > 0 ? await this.prisma.order.findMany({
@@ -229,7 +241,7 @@ export class AffiliateController {
         displayAmountCents: true,
         status: true,
         createdAt: true,
-        user: {
+        User: {
           select: {
             email: true,
             name: true,
@@ -254,7 +266,7 @@ export class AffiliateController {
         displayAmountCents: true,
         status: true,
         createdAt: true,
-        user: {
+        User: {
           select: {
             email: true,
             name: true,
@@ -299,7 +311,7 @@ export class AffiliateController {
         totalCommission: affiliate.totalCommission,
         totalReferrals,
         totalPurchases,
-        totalCommissions: affiliate.commissions.length,
+        totalCommissions: affiliate.Commission.length,
       },
       balances: {
         pendingBalance: balances.pendingBalance,
@@ -309,16 +321,16 @@ export class AffiliateController {
       payoutMethod,
       payoutHistory,
       remainingCommission,
-      referrals: affiliate.referrals.map((ref) => ({
+      referrals: affiliate.Referral.map((ref) => ({
         id: ref.id,
         user: {
-          id: ref.user.id,
-          email: ref.user.email,
-          name: ref.user.name,
-          joinedAt: ref.user.createdAt,
+          id: ref.User.id,
+          email: ref.User.email,
+          name: ref.User.name,
+          joinedAt: ref.User.createdAt,
         },
         createdAt: ref.createdAt,
-        orders: ref.user.orders.map((order) => ({
+        orders: ref.User.Order.map((order) => ({
           id: order.id,
           amountCents: order.amountCents,
           displayCurrency: order.displayCurrency,
@@ -326,7 +338,7 @@ export class AffiliateController {
           status: order.status,
           createdAt: order.createdAt,
         })),
-        topups: ref.user.topups.map((topup) => ({
+        topups: ref.User.TopUp.map((topup) => ({
           id: topup.id,
           amountCents: topup.amountCents,
           displayCurrency: topup.displayCurrency,
@@ -335,7 +347,7 @@ export class AffiliateController {
           createdAt: topup.createdAt,
         })),
       })),
-      commissions: affiliate.commissions.map((comm) => ({
+      commissions: affiliate.Commission.map((comm) => ({
         id: comm.id,
         orderId: comm.orderId,
         orderType: comm.orderType,
@@ -346,8 +358,8 @@ export class AffiliateController {
         ...allReferredOrders.map((order) => ({
           type: 'order' as const,
           id: order.id,
-          userEmail: order.user.email,
-          userName: order.user.name,
+          userEmail: order.User.email,
+          userName: order.User.name,
           amountCents: order.amountCents,
           displayCurrency: order.displayCurrency,
           displayAmountCents: order.displayAmountCents,
@@ -357,8 +369,8 @@ export class AffiliateController {
         ...allReferredTopups.map((topup) => ({
           type: 'topup' as const,
           id: topup.id,
-          userEmail: topup.user.email,
-          userName: topup.user.name,
+          userEmail: topup.User.email,
+          userName: topup.User.name,
           amountCents: topup.amountCents,
           displayCurrency: topup.displayCurrency,
           displayAmountCents: topup.displayAmountCents,
@@ -453,6 +465,7 @@ export class AffiliateController {
     try {
       await this.prisma.adminLog.create({
         data: {
+          id: crypto.randomUUID(),
           action: 'CASH_OUT_REQUEST',
           adminEmail: 'system',
           entityType: 'affiliate',
@@ -531,6 +544,7 @@ export class AffiliateController {
     // Create payout record
     await this.prisma.affiliateCommissionPayout.create({
       data: {
+        id: crypto.randomUUID(),
         affiliateId: affiliate.id,
         type: 'vcash',
         amountCents: body.amountCents,
@@ -586,6 +600,342 @@ export class AffiliateController {
       remainingCommissionCents: remainingCommission - body.amountCents,
       vcashBalanceCents: newVcashBalance,
     };
+  }
+
+  /**
+   * Track affiliate click (public endpoint, rate limited)
+   */
+  @Post('track-click')
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ limit: 1, window: 5 }) // 1 click per IP per 5 seconds per code
+  async trackClick(
+    @Body() body: { referralCode: string; deviceFingerprint?: string },
+    @Req() req: any,
+    @Headers('user-agent') userAgent?: string,
+  ) {
+    const referralCode = sanitizeInput(body.referralCode?.toUpperCase().trim());
+    if (!referralCode) {
+      throw new BadRequestException('Referral code is required');
+    }
+
+    // Find affiliate
+    const affiliate = await this.affiliateService.findAffiliateByCode(referralCode);
+    if (!affiliate) {
+      throw new NotFoundException('Affiliate not found');
+    }
+
+    // Additional rate limiting: 1 click per IP per 5 sec per code
+    const ip = getClientIp(req);
+    if (ip && ip !== 'unknown') {
+      const rateLimitKeyForClick = `affiliate_click:${ip}:${referralCode}`;
+      const existing = await redis.get(rateLimitKeyForClick);
+      if (existing) {
+        // Already tracked recently, silently ignore
+        return { success: true, message: 'Click tracked' };
+      }
+      await redis.setex(rateLimitKeyForClick, 5, '1');
+    }
+
+    // Generate device fingerprint if not provided
+    let deviceFingerprint = body.deviceFingerprint;
+    if (!deviceFingerprint && userAgent) {
+      deviceFingerprint = this.fraudDetection.generateDeviceFingerprint(userAgent);
+    }
+
+    // Track click
+    const clickId = await this.analyticsService.trackClick(affiliate.id, referralCode, ip, userAgent, deviceFingerprint);
+
+    // Run fraud checks asynchronously (don't block the response)
+    this.fraudDetection.checkIPReputation(ip, affiliate.id, clickId).catch((err) => {
+      this.fraudService['logger'].warn('[FRAUD] Failed to check IP reputation:', err);
+    });
+
+    return { success: true, message: 'Click tracked' };
+  }
+
+  /**
+   * Track affiliate signup (requires auth - can be called by email)
+   */
+  @Post('track-signup')
+  async trackSignup(
+    @Body() body: { referralCode: string; userId?: string; email?: string; deviceFingerprint?: string },
+    @Req() req: any,
+    @Headers('user-agent') userAgent?: string,
+  ) {
+    const referralCode = sanitizeInput(body.referralCode?.toUpperCase().trim());
+    const userId = body.userId ? sanitizeInput(body.userId) : undefined;
+    const email = body.email ? sanitizeInput(body.email) : undefined;
+
+    if (!referralCode || (!userId && !email)) {
+      throw new BadRequestException('Referral code and either user ID or email are required');
+    }
+
+    // Find affiliate
+    const affiliate = await this.affiliateService.findAffiliateByCode(referralCode);
+    if (!affiliate) {
+      throw new NotFoundException('Affiliate not found');
+    }
+
+    // Get user by ID or email
+    let user;
+    if (userId) {
+      user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+    } else if (email) {
+      user = await this.prisma.user.findUnique({
+        where: { email },
+      });
+    }
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const ip = getClientIp(req);
+
+    // Generate device fingerprint if not provided
+    let deviceFingerprint = body.deviceFingerprint;
+    if (!deviceFingerprint && userAgent) {
+      deviceFingerprint = this.fraudDetection.generateDeviceFingerprint(userAgent);
+    }
+
+    // Track signup
+    const signupId = await this.analyticsService.trackSignup(
+      affiliate.id,
+      referralCode,
+      user.id,
+      ip,
+      userAgent,
+      deviceFingerprint,
+    );
+
+    // Run fraud checks asynchronously
+    Promise.all([
+      this.fraudDetection.checkIPReputation(ip, affiliate.id, signupId),
+      this.fraudDetection.checkDeviceFingerprint(affiliate.id, deviceFingerprint || '', user.id, signupId),
+      this.fraudDetection.checkEmailRisk(user.email, affiliate.id, user.id, signupId),
+    ]).catch((err) => {
+      this.fraudService['logger'].warn('[FRAUD] Failed to run fraud checks:', err);
+    });
+
+    return { success: true, message: 'Signup tracked' };
+  }
+
+  /**
+   * Get analytics overview
+   */
+  @Get('analytics/overview')
+  async getAnalyticsOverview(@Req() req: any) {
+    const email = req.headers['x-user-email'] as string;
+    if (!email) {
+      throw new NotFoundException('User email not found');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const affiliate = await this.prisma.affiliate.findUnique({
+      where: { userId: user.id },
+    });
+    if (!affiliate) {
+      throw new NotFoundException('Affiliate not found');
+    }
+
+    const [
+      clicks,
+      signups,
+      buyers,
+      funnel,
+      referredRevenueCents,
+      commissionBalances,
+      clickGraph,
+      signupGraph,
+      earningsGraph,
+      deviceStats,
+      geoStats,
+    ] = await Promise.all([
+      this.analyticsService.getClicks(affiliate.id),
+      this.analyticsService.getSignups(affiliate.id),
+      this.analyticsService.getReferredPurchases(affiliate.id),
+      this.analyticsService.getFunnel(affiliate.id),
+      this.analyticsService.getReferredRevenue(affiliate.id),
+      this.commissionService.getCommissionBalances(affiliate.id),
+      this.analyticsService.getClickTimeSeries(affiliate.id, 30),
+      this.analyticsService.getSignupTimeSeries(affiliate.id, 30),
+      this.analyticsService.getCommissionTimeSeries(affiliate.id, 30),
+      this.analyticsService.getDeviceStats(affiliate.id),
+      this.analyticsService.getGeoStats(affiliate.id),
+    ]);
+
+    // Calculate earnings today and last 30 days
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const [earningsTodayResult, earningsLast30DaysResult] = await Promise.all([
+      this.prisma.commission.aggregate({
+        where: {
+          affiliateId: affiliate.id,
+          createdAt: { gte: today },
+          status: { in: ['pending', 'available'] },
+        },
+        _sum: { amountCents: true },
+      }),
+      this.prisma.commission.aggregate({
+        where: {
+          affiliateId: affiliate.id,
+          createdAt: { gte: thirtyDaysAgo },
+          status: { in: ['pending', 'available'] },
+        },
+        _sum: { amountCents: true },
+      }),
+    ]);
+
+    const earningsToday = earningsTodayResult._sum.amountCents || 0;
+    const earningsLast30Days = earningsLast30DaysResult._sum.amountCents || 0;
+
+    return {
+      clicks,
+      signups,
+      buyers,
+      clickToSignup: funnel.clickToSignup,
+      signupToBuyer: funnel.signupToBuyer,
+      clickToBuyer: funnel.clickToBuyer,
+      referredRevenueCents,
+      commissionCents: commissionBalances.lifetimeTotal,
+      availableCommissionCents: commissionBalances.availableBalance,
+      pendingCommissionCents: commissionBalances.pendingBalance,
+      earningsToday,
+      earningsLast30Days,
+      earningsGraph,
+      clickGraph,
+      signupGraph,
+      deviceStats,
+      geoStats,
+    };
+  }
+
+  /**
+   * Get funnel metrics
+   */
+  @Get('analytics/funnel')
+  async getFunnel(@Req() req: any) {
+    const email = req.headers['x-user-email'] as string;
+    if (!email) {
+      throw new NotFoundException('User email not found');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const affiliate = await this.prisma.affiliate.findUnique({
+      where: { userId: user.id },
+    });
+    if (!affiliate) {
+      throw new NotFoundException('Affiliate not found');
+    }
+
+    return this.analyticsService.getFunnel(affiliate.id);
+  }
+
+  /**
+   * Get time series data
+   */
+  @Get('analytics/time-series')
+  async getTimeSeries(@Req() req: any, @Query('days') days?: string) {
+    const email = req.headers['x-user-email'] as string;
+    if (!email) {
+      throw new NotFoundException('User email not found');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const affiliate = await this.prisma.affiliate.findUnique({
+      where: { userId: user.id },
+    });
+    if (!affiliate) {
+      throw new NotFoundException('Affiliate not found');
+    }
+
+    const daysNum = days ? parseInt(days, 10) : 30;
+    const validDays = isNaN(daysNum) || daysNum < 1 || daysNum > 365 ? 30 : daysNum;
+
+    const [clicks, signups, commissions] = await Promise.all([
+      this.analyticsService.getClickTimeSeries(affiliate.id, validDays),
+      this.analyticsService.getSignupTimeSeries(affiliate.id, validDays),
+      this.analyticsService.getCommissionTimeSeries(affiliate.id, validDays),
+    ]);
+
+    return { clicks, signups, commissions };
+  }
+
+  /**
+   * Get device statistics
+   */
+  @Get('analytics/devices')
+  async getDevices(@Req() req: any) {
+    const email = req.headers['x-user-email'] as string;
+    if (!email) {
+      throw new NotFoundException('User email not found');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const affiliate = await this.prisma.affiliate.findUnique({
+      where: { userId: user.id },
+    });
+    if (!affiliate) {
+      throw new NotFoundException('Affiliate not found');
+    }
+
+    return this.analyticsService.getDeviceStats(affiliate.id);
+  }
+
+  /**
+   * Get geography statistics
+   */
+  @Get('analytics/geography')
+  async getGeography(@Req() req: any) {
+    const email = req.headers['x-user-email'] as string;
+    if (!email) {
+      throw new NotFoundException('User email not found');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const affiliate = await this.prisma.affiliate.findUnique({
+      where: { userId: user.id },
+    });
+    if (!affiliate) {
+      throw new NotFoundException('Affiliate not found');
+    }
+
+    return this.analyticsService.getGeoStats(affiliate.id);
   }
 }
 

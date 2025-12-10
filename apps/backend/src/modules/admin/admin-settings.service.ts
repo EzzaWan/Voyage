@@ -33,6 +33,7 @@ export class AdminSettingsService {
           defaultCurrency: 'USD',
           adminEmails: [],
           emailEnabled: true,
+          updatedAt: new Date(),
         },
       });
       this.logger.log('Created default AdminSettings');

@@ -45,6 +45,28 @@ export function getStoredReferralCode(): string | null {
 }
 
 /**
+ * Track affiliate click on backend
+ */
+async function trackAffiliateClick(referralCode: string, deviceFingerprint?: string): Promise<void> {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+    await fetch(`${apiUrl}/affiliate/track-click`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        referralCode,
+        deviceFingerprint: deviceFingerprint || null,
+      }),
+    });
+  } catch (error) {
+    // Silently fail - don't interrupt user experience
+    console.debug('Failed to track affiliate click:', error);
+  }
+}
+
+/**
  * Initialize referral tracking
  * Call this on app load to detect and store referral codes
  */
@@ -53,6 +75,21 @@ export function initReferralTracking(): string | null {
   const urlRef = getReferralFromUrl();
   if (urlRef) {
     storeReferralCode(urlRef);
+    
+    // Generate device fingerprint for fraud detection
+    let deviceFingerprint: string | undefined;
+    try {
+      const { generateDeviceFingerprint } = require('./device-fingerprint');
+      deviceFingerprint = generateDeviceFingerprint() || undefined;
+    } catch (e) {
+      // Ignore if fingerprint generation fails
+    }
+    
+    // Track click on backend
+    trackAffiliateClick(urlRef, deviceFingerprint).catch(() => {
+      // Silent fail
+    });
+    
     // Clean up URL param to avoid showing it
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);

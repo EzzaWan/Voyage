@@ -20,14 +20,30 @@ export class OrdersController {
 
   @Post()
   @RateLimit({ limit: 5, window: 30 })
-  async createOrder(@Body() body: {
-    planCode: string;
-    amount: number;
-    currency: string;
-    planName: string;
-    displayCurrency?: string;
-    referralCode?: string;
-  }) {
+  async createOrder(
+    @Body() body: {
+      planCode: string;
+      amount: number;
+      currency: string;
+      planName: string;
+      displayCurrency?: string;
+      referralCode?: string;
+      paymentMethod?: 'stripe' | 'vcash';
+    },
+    @Req() req: any,
+  ) {
+    const paymentMethod = body.paymentMethod || 'stripe';
+    
+    // If V-Cash payment, we need user email from headers
+    if (paymentMethod === 'vcash') {
+      const email = req.headers['x-user-email'] as string;
+      if (!email) {
+        throw new NotFoundException('User email required for V-Cash payment');
+      }
+      return this.ordersService.createVCashOrder({ ...body, email });
+    }
+    
+    // Default to Stripe checkout
     return this.ordersService.createStripeCheckout(body);
   }
 
@@ -43,7 +59,7 @@ export class OrdersController {
     const order = await this.prisma.order.findUnique({
       where: { id },
       include: {
-        user: true,
+        User: true,
       },
     });
 
@@ -57,7 +73,7 @@ export class OrdersController {
 
     // Security check: verify user owns the order OR is admin
     const isAdmin = await this.checkIfAdmin(adminEmail);
-    const isOwner = userEmail && order.user.email.toLowerCase() === userEmail.toLowerCase();
+    const isOwner = userEmail && order.User.email.toLowerCase() === userEmail.toLowerCase();
 
     if (!isAdmin && !isOwner) {
       throw new ForbiddenException('Access denied. You must be the order owner or an admin.');
@@ -80,8 +96,8 @@ export class OrdersController {
     const order = await this.prisma.order.findUnique({
       where: { id },
       include: {
-        user: true,
-        profiles: {
+        User: true,
+        EsimProfile: {
           take: 1, // Just get the first profile if it exists
           orderBy: { id: 'asc' },
         },
@@ -94,12 +110,12 @@ export class OrdersController {
 
     // If eSIM profile exists, send combined eSIM ready + receipt email (same as original)
     // Otherwise, send receipt-only email
-    if (order.profiles && order.profiles.length > 0) {
-      const profile = order.profiles[0];
-      await this.ordersService.sendEsimReadyEmail(order, order.user, order.planId, profile);
+    if (order.EsimProfile && order.EsimProfile.length > 0) {
+      const profile = order.EsimProfile[0];
+      await this.ordersService.sendEsimReadyEmail(order, order.User, order.planId, profile);
       return { success: true, message: 'eSIM ready and receipt email sent' };
     } else {
-      await this.ordersService.sendReceiptEmail(order, order.user, order.planId);
+      await this.ordersService.sendReceiptEmail(order, order.User, order.planId);
       return { success: true, message: 'Receipt email sent' };
     }
   }

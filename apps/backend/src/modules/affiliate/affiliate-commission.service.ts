@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException, Inject, forwardRef } from '@nest
 import { PrismaService } from '../../prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from '../email/email.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AffiliateCommissionService {
@@ -53,6 +54,7 @@ export class AffiliateCommissionService {
       // Create commission record with pending status
       const commission = await this.prisma.commission.create({
         data: {
+          id: crypto.randomUUID(),
           affiliateId,
           orderId,
           orderType,
@@ -81,13 +83,13 @@ export class AffiliateCommissionService {
         try {
           const affiliate = await this.prisma.affiliate.findUnique({
             where: { id: affiliateId },
-            include: { user: true },
+            include: { User: true },
           });
 
-          if (affiliate?.user?.email) {
+          if (affiliate?.User?.email) {
             const webUrl = this.config.get<string>('WEB_URL') || 'http://localhost:3000';
             await this.emailService.sendAffiliateCommissionEarned(
-              affiliate.user.email,
+              affiliate.User.email,
               {
                 commission: {
                   id: commission.id,
@@ -127,7 +129,7 @@ export class AffiliateCommissionService {
           },
         },
         include: {
-          affiliate: true,
+          Affiliate: true,
         },
       });
 

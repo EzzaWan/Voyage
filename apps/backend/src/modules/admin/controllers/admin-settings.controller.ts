@@ -39,6 +39,7 @@ export class AdminSettingsController {
           defaultMarkupPercent: 0,
           defaultCurrency: 'USD',
           adminEmails: [],
+          updatedAt: new Date(),
         },
       });
     }
@@ -80,6 +81,7 @@ export class AdminSettingsController {
         emailFrom: body.emailFrom,
         emailProvider: body.emailProvider,
         emailEnabled: body.emailEnabled ?? true,
+        updatedAt: new Date(),
       },
     });
 

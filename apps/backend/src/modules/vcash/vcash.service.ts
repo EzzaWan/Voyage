@@ -2,6 +2,7 @@ import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { SecurityLoggerService } from '../../common/services/security-logger.service';
 import { getClientIp } from '../../common/utils/webhook-ip-whitelist';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class VCashService {
@@ -86,12 +87,14 @@ export class VCashService {
         create: {
           userId,
           balanceCents: amountCents,
+          updatedAt: new Date(),
         },
       });
 
       // Create transaction record
       await tx.vCashTransaction.create({
         data: {
+          id: crypto.randomUUID(),
           userId,
           type: 'credit',
           amountCents,
@@ -162,12 +165,14 @@ export class VCashService {
         create: {
           userId,
           balanceCents: 0 - amountCents, // Should never happen, but for safety
+          updatedAt: new Date(),
         },
       });
 
       // Create transaction record
       await tx.vCashTransaction.create({
         data: {
+          id: crypto.randomUUID(),
           userId,
           type: 'debit',
           amountCents,

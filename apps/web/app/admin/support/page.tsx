@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminTable } from "@/components/admin/AdminTable";
@@ -53,17 +53,16 @@ export default function AdminSupportTicketsPage() {
     }
   };
 
-  const columns = [
+  const columns = useMemo(() => [
     {
       header: "Name",
-      accessor: (row: SupportTicket) => (
-        <div className="font-medium text-white">{row.name}</div>
-      ),
-      className: "w-[150px]",
+      accessor: (row: SupportTicket) => row.name,
+      className: "w-[150px] font-medium text-white",
     },
     {
       header: "Email",
-      accessor: (row: SupportTicket) => (
+      accessor: (row: SupportTicket) => row.email,
+      render: (row: SupportTicket) => (
         <div className="truncate max-w-[200px]" title={row.email}>
           <a href={`mailto:${row.email}`} className="text-[var(--voyage-accent)] hover:underline">
             {row.email}
@@ -74,7 +73,8 @@ export default function AdminSupportTicketsPage() {
     },
     {
       header: "Order ID",
-      accessor: (row: SupportTicket) =>
+      accessor: (row: SupportTicket) => row.orderId || "",
+      render: (row: SupportTicket) =>
         row.orderId ? (
           <Link href={`/admin/orders/${row.orderId}`} className="text-[var(--voyage-accent)] hover:underline font-mono text-sm">
             {row.orderId}
@@ -86,7 +86,8 @@ export default function AdminSupportTicketsPage() {
     },
     {
       header: "Device",
-      accessor: (row: SupportTicket) =>
+      accessor: (row: SupportTicket) => row.device || "",
+      render: (row: SupportTicket) =>
         row.device ? (
           <div className="flex items-center gap-2">
             <Smartphone className="h-4 w-4 text-[var(--voyage-muted)]" />
@@ -99,7 +100,8 @@ export default function AdminSupportTicketsPage() {
     },
     {
       header: "Message",
-      accessor: (row: SupportTicket) => (
+      accessor: (row: SupportTicket) => row.message,
+      render: (row: SupportTicket) => (
         <div className="truncate max-w-[300px]" title={row.message}>
           <p className="text-sm text-[var(--voyage-muted)]">{row.message}</p>
         </div>
@@ -108,17 +110,10 @@ export default function AdminSupportTicketsPage() {
     },
     {
       header: "Submitted",
-      accessor: (row: SupportTicket) => (
-        <div className="flex items-center gap-2 text-sm">
-          <Calendar className="h-4 w-4 text-[var(--voyage-muted)]" />
-          <span className="text-[var(--voyage-muted)]">
-            {new Date(row.createdAt).toLocaleString()}
-          </span>
-        </div>
-      ),
+      accessor: (row: SupportTicket) => new Date(row.createdAt).toLocaleString(),
       className: "w-[180px]",
     },
-  ];
+  ], []);
 
   if (loading) {
     return (

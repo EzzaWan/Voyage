@@ -58,12 +58,12 @@ export class EsimController {
 
     // 1. Find profile
     const profile = await this.ordersService.findByIccid(iccid);
-    if (!profile || !profile.order) {
+    if (!profile || !profile.Order) {
       throw new NotFoundException('Profile not found');
     }
 
     // 2. Get original plan details to find location
-    const planId = profile.order.planId;
+    const planId = profile.Order.planId;
     const planDetails = await this.esimService.getPlan(planId);
     const locationCode = planDetails.location; // e.g. 'US'
 
@@ -91,7 +91,7 @@ export class EsimController {
     if (!profile) throw new NotFoundException('Profile not found');
     
     // Enrich with plan details
-    const planId = profile.order?.planId;
+    const planId = profile.Order?.planId;
     let planDetails = null;
     if (planId) {
       try {
@@ -157,7 +157,7 @@ export class EsimController {
       resource: 'eSIM Profile',
     });
 
-    const orderNo = profile.order?.esimOrderNo;
+    const orderNo = profile.Order?.esimOrderNo;
     if (!orderNo) {
       throw new NotFoundException('Order not found for this profile');
     }

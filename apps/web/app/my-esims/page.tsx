@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -111,6 +112,7 @@ function formatPlanName(planDetails: PlanDetails | undefined, planId?: string): 
 
 export default function MyEsimsPage() {
   const { user, isLoaded } = useUser();
+  const router = useRouter();
   const [esims, setEsims] = useState<EsimProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEsim, setSelectedEsim] = useState<EsimProfile | null>(null);
@@ -309,13 +311,16 @@ export default function MyEsimsPage() {
                         </Button>
                      )}
 
-                     <Link href={`/my-esims/${esim.iccid}/topup`} className="block w-full" onClick={(e) => e.stopPropagation()}>
-                       <Button 
-                          className="w-full h-10 text-md font-bold bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white shadow-[0_0_20px_rgba(30,144,255,0.3)] transition-all mt-2"
-                       >
-                          Top Up
-                       </Button>
-                     </Link>
+                     <Button 
+                        className="w-full h-10 text-md font-bold bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white shadow-[0_0_20px_rgba(30,144,255,0.3)] transition-all mt-2"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          router.push(`/my-esims/${esim.iccid}/topup`);
+                        }}
+                     >
+                        Top Up
+                     </Button>
                      
                      {esim.ac && (
                         <Button 

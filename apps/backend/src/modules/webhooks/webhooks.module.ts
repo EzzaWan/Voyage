@@ -20,5 +20,7 @@ import { SecurityLoggerService } from '../../common/services/security-logger.ser
   controllers: [WebhooksController],
   providers: [WebhooksService, PrismaService, SecurityLoggerService],
 })
-export class WebhooksModule {}
+export class WebhooksModule {
+  // FraudService is accessed via forwardRef from AffiliateModule
+}
 

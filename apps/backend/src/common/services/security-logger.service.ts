@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
+import * as crypto from 'crypto';
 
 export type SecurityEventType =
   | 'RATE_LIMIT'
@@ -17,7 +18,11 @@ export type SecurityEventType =
   | 'VCASH_DEBIT'
   | 'ORDER_REFUND_VCASH'
   | 'AFFILIATE_COMMISSION_TO_VCASH'
-  | 'VCASH_ADMIN_ADJUST';
+  | 'VCASH_ADMIN_ADJUST'
+  | 'VCASH_ADMIN_CREDIT'
+  | 'AFFILIATE_FRAUD_EVENT'
+  | 'AFFILIATE_FROZEN'
+  | 'AFFILIATE_UNFROZEN';
 
 interface LogSecurityEventParams {
   type: SecurityEventType;
@@ -36,6 +41,7 @@ export class SecurityLoggerService {
     try {
       await this.prisma.securityEventLog.create({
         data: {
+          id: crypto.randomUUID(),
           type: params.type,
           ip: params.ip || null,
           userId: params.userId || null,

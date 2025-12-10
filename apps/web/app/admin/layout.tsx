@@ -13,8 +13,10 @@ import {
   Settings,
   FileText,
   ShieldX,
+  Shield,
   Mail,
   MessageSquare,
+  Wallet,
 } from "lucide-react";
 
 export default function AdminLayout({
@@ -119,6 +121,8 @@ export default function AdminLayout({
           { href: "/admin/users", label: "Users", icon: Users },
           { href: "/admin/affiliates", label: "Affiliates", icon: Users },
           { href: "/admin/affiliate/payouts", label: "Affiliate Payouts", icon: CreditCard },
+          { href: "/admin/affiliate/fraud", label: "Affiliate Fraud", icon: Shield },
+          { href: "/admin/vcash", label: "V-Cash Management", icon: Wallet },
           { href: "/admin/support", label: "Support Tickets", icon: MessageSquare },
           { href: "/admin/settings", label: "Settings", icon: Settings },
           { href: "/admin/emails", label: "Email Logs", icon: Mail },

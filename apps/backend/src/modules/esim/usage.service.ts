@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
 import { EsimService } from './esim.service';
 import { UsageItem } from '../../../../../libs/esim-access/types';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class UsageService {
@@ -65,6 +66,7 @@ export class UsageService {
       if (shouldCreateHistory) {
         await this.prisma.esimUsageHistory.create({
           data: {
+            id: crypto.randomUUID(),
             profileId,
             usedBytes,
           },

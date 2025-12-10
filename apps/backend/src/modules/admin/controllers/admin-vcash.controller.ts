@@ -135,6 +135,68 @@ export class AdminVCashController {
       newBalanceCents: newBalance,
     };
   }
+
+  /**
+   * Admin credit V-Cash to a user (credit-only endpoint)
+   */
+  @Post('credit')
+  async creditVCash(
+    @Req() req: any,
+    @Body() body: {
+      userId: string;
+      amountCents: number;
+      reason?: string;
+    },
+  ) {
+    if (!body.userId || !body.amountCents) {
+      throw new BadRequestException('userId and amountCents are required');
+    }
+
+    if (body.amountCents <= 0) {
+      throw new BadRequestException('Amount must be greater than 0');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: body.userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const ip = getClientIp(req);
+    const reason = body.reason || 'admin_manual_credit';
+
+    await this.vcashService.credit(
+      body.userId,
+      body.amountCents,
+      'admin_manual_credit',
+      {
+        reason,
+        adminEmail: req.adminEmail,
+      },
+      ip,
+    );
+
+    // Log security event
+    await this.securityLogger.logSecurityEvent({
+      type: 'VCASH_ADMIN_CREDIT' as any,
+      userId: body.userId,
+      ip,
+      details: {
+        adminEmail: req.adminEmail,
+        amountCents: body.amountCents,
+        reason,
+      },
+    });
+
+    const newBalance = await this.vcashService.getBalance(body.userId);
+
+    return {
+      success: true,
+      newBalance,
+    };
+  }
 }
 
 

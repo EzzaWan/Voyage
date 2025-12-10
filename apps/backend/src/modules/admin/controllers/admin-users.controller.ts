@@ -2,9 +2,11 @@ import {
   Controller,
   Get,
   Param,
+  Query,
   UseGuards,
   Req,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { AdminGuard } from '../guards/admin.guard';
 import { PrismaService } from '../../../prisma.service';
@@ -14,14 +16,44 @@ import { PrismaService } from '../../../prisma.service';
 export class AdminUsersController {
   constructor(private readonly prisma: PrismaService) {}
 
+  @Get('search')
+  async searchUser(@Query('email') email: string, @Req() req: any) {
+    if (!email || !email.trim()) {
+      throw new BadRequestException('Email is required');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { email: email.trim().toLowerCase() },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+    };
+  }
+
   @Get()
   async getAllUsers(@Req() req: any) {
     const users = await this.prisma.user.findMany({
-      include: {
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        createdAt: true,
         _count: {
           select: {
-            orders: true,
-            profiles: true,
+            Order: true,
+            EsimProfile: true,
           },
         },
       },
@@ -35,8 +67,8 @@ export class AdminUsersController {
       email: user.email,
       name: user.name,
       createdAt: user.createdAt,
-      orderCount: user._count.orders,
-      esimCount: user._count.profiles,
+      orderCount: user._count.Order,
+      esimCount: user._count.EsimProfile,
     }));
   }
 
@@ -45,9 +77,9 @@ export class AdminUsersController {
     const user = await this.prisma.user.findUnique({
       where: { id },
       include: {
-        orders: {
+        Order: {
           include: {
-            profiles: {
+            EsimProfile: {
               select: {
                 id: true,
                 iccid: true,
@@ -60,14 +92,14 @@ export class AdminUsersController {
             createdAt: 'desc',
           },
         },
-        profiles: {
+        EsimProfile: {
           orderBy: {
             id: 'desc',
           },
         },
-        topups: {
+        TopUp: {
           include: {
-            profile: {
+            EsimProfile: {
               select: {
                 id: true,
                 iccid: true,

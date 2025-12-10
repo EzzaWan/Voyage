@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Check, Smartphone, Shield, Wifi, Globe, Download, AlertTriangle, X, ExternalLink } from "lucide-react";
+import { Check, Smartphone, Shield, Wifi, Globe, Download, AlertTriangle, X, ExternalLink, Wallet, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PriceTag } from "./PriceTag";
 import { FlagIcon } from "./FlagIcon";
@@ -9,18 +9,28 @@ import { useCurrency } from "./providers/CurrencyProvider";
 import { getStoredReferralCode } from "@/lib/referral";
 import Link from "next/link";
 import { safeFetch } from "@/lib/safe-fetch";
+import { useUser } from "@clerk/nextjs";
+import { toast } from "@/components/ui/use-toast";
+import { useRouter } from "next/navigation";
 
 export function PlanDetails({ plan }: { plan: any }) {
   console.log("PLAN DEBUG:", plan);
   const { selectedCurrency, convert, formatCurrency } = useCurrency();
+  const { user, isLoaded: userLoaded } = useUser();
+  const router = useRouter();
   const sizeGB = (plan.volume / 1024 / 1024 / 1024).toFixed(1);
   const [showDeviceWarning, setShowDeviceWarning] = useState(false);
   const [deviceCompatibility, setDeviceCompatibility] = useState<any>(null);
   const [proceedWithCheckout, setProceedWithCheckout] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'vcash'>('stripe');
+  const [vcashBalance, setVcashBalance] = useState<number | null>(null);
+  const [loadingVCash, setLoadingVCash] = useState(false);
+  const [processing, setProcessing] = useState(false);
   
   // Convert USD price to selected currency
   const priceUSD = plan.price || 0;
   const convertedPrice = convert(priceUSD);
+  const priceUSDCents = Math.round(priceUSD * 100);
 
   // Check device compatibility on mount and before checkout
   useEffect(() => {
@@ -42,38 +52,139 @@ export function PlanDetails({ plan }: { plan: any }) {
     checkDeviceCompatibility();
   }, []);
 
+  // Fetch V-Cash balance when user is loaded and signed in
+  useEffect(() => {
+    if (!userLoaded || !user) {
+      setVcashBalance(null);
+      return;
+    }
+
+    const fetchVCashBalance = async () => {
+      setLoadingVCash(true);
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+        const userEmail = user.primaryEmailAddress?.emailAddress;
+        if (!userEmail) {
+          setLoadingVCash(false);
+          return;
+        }
+
+        const data = await safeFetch<{ balanceCents: number }>(`${apiUrl}/vcash`, {
+          headers: {
+            'x-user-email': userEmail,
+          },
+          showToast: false,
+        });
+        setVcashBalance(data.balanceCents);
+      } catch (error) {
+        console.error("Failed to fetch V-Cash balance:", error);
+        setVcashBalance(null);
+      } finally {
+        setLoadingVCash(false);
+      }
+    };
+
+    fetchVCashBalance();
+  }, [userLoaded, user]);
+
   async function buyNow() {
+    // Check if user is signed in for V-Cash payment
+    if (paymentMethod === 'vcash' && (!userLoaded || !user)) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to use V-Cash for payment.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Check device compatibility before proceeding
     const savedDevice = localStorage.getItem('deviceModel');
     if (savedDevice && deviceCompatibility && !deviceCompatibility.supported && !proceedWithCheckout) {
       setShowDeviceWarning(true);
       return;
     }
+
+    // Check V-Cash balance if using V-Cash
+    if (paymentMethod === 'vcash') {
+      if (vcashBalance === null || vcashBalance < priceUSDCents) {
+        toast({
+          title: "Insufficient V-Cash",
+          description: `You need $${(priceUSDCents / 100).toFixed(2)} but only have $${vcashBalance ? (vcashBalance / 100).toFixed(2) : '0.00'} in V-Cash.`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    setProcessing(true);
     console.log("FRONT price dollars:", plan.price);
     try {
       // Get referral code if available
       const referralCode = getStoredReferralCode();
       console.log('[CHECKOUT] Referral code from cookie:', referralCode || 'none');
       
-      const data = await safeFetch<{ url?: string }>(`${process.env.NEXT_PUBLIC_API_URL}/orders`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          planCode: plan.packageCode,
-          currency: selectedCurrency,
-          displayCurrency: selectedCurrency,
-          amount: priceUSD,  // Send original USD price
-          planName: plan.name,
-          referralCode: referralCode || undefined, // Only include if exists
-        }),
-        errorMessage: "Failed to start checkout. Please try again.",
-      });
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      
+      // Add user email header for V-Cash payments
+      if (paymentMethod === 'vcash' && user?.primaryEmailAddress?.emailAddress) {
+        headers['x-user-email'] = user.primaryEmailAddress.emailAddress;
+      }
 
-      if (data.url) {
+      const requestBody: any = {
+        planCode: plan.packageCode,
+        currency: selectedCurrency,
+        displayCurrency: selectedCurrency,
+        amount: priceUSD,  // Send original USD price
+        planName: plan.name,
+        referralCode: referralCode || undefined, // Only include if exists
+        paymentMethod: paymentMethod,
+      };
+
+      const data = await safeFetch<{ url?: string; success?: boolean; orderId?: string; message?: string }>(
+        `${apiUrl}/orders`,
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify(requestBody),
+          errorMessage: "Failed to start checkout. Please try again.",
+        }
+      );
+
+      if (paymentMethod === 'vcash' && data.success) {
+        // V-Cash payment successful - redirect to order confirmation
+        toast({
+          title: "Order placed successfully!",
+          description: "Your order has been placed using V-Cash.",
+        });
+        
+        // Refresh V-Cash balance
+        if (user?.primaryEmailAddress?.emailAddress) {
+          const balanceData = await safeFetch<{ balanceCents: number }>(`${apiUrl}/vcash`, {
+            headers: {
+              'x-user-email': user.primaryEmailAddress.emailAddress,
+            },
+            showToast: false,
+          });
+          setVcashBalance(balanceData.balanceCents);
+        }
+
+        // Redirect to my-esims or order confirmation
+        router.push('/my-esims');
+      } else if (data.url) {
+        // Stripe checkout - redirect to Stripe
         window.location.href = data.url;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Checkout error:", error);
+      toast({
+        title: "Checkout failed",
+        description: error.message || "Failed to start checkout. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setProcessing(false);
     }
   }
 
@@ -172,6 +283,70 @@ export function PlanDetails({ plan }: { plan: any }) {
                        {formatCurrency(convertedPrice)}
                      </span>
                  </div>
+
+                 {/* V-Cash Balance Display (if signed in) */}
+                 {userLoaded && user && (
+                   <div className="mb-6 p-4 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)]">
+                     <div className="flex items-center justify-between mb-2">
+                       <div className="flex items-center gap-2">
+                         <Wallet className="h-4 w-4 text-[var(--voyage-accent)]" />
+                         <span className="text-sm text-[var(--voyage-muted)]">V-Cash Balance</span>
+                       </div>
+                       {loadingVCash ? (
+                         <span className="text-sm text-[var(--voyage-muted)]">Loading...</span>
+                       ) : (
+                         <span className="text-lg font-bold text-white">
+                           ${vcashBalance !== null ? (vcashBalance / 100).toFixed(2) : '0.00'}
+                         </span>
+                       )}
+                     </div>
+                     {vcashBalance !== null && vcashBalance >= priceUSDCents && (
+                       <p className="text-xs text-green-400 mt-1">
+                         ✓ Sufficient balance for this purchase
+                       </p>
+                     )}
+                     {vcashBalance !== null && vcashBalance < priceUSDCents && (
+                       <p className="text-xs text-yellow-400 mt-1">
+                         ⚠ You need ${((priceUSDCents - vcashBalance) / 100).toFixed(2)} more
+                       </p>
+                     )}
+                   </div>
+                 )}
+
+                 {/* Payment Method Selection (if signed in with V-Cash balance) */}
+                 {userLoaded && user && vcashBalance !== null && vcashBalance > 0 && (
+                   <div className="mb-6">
+                     <label className="text-sm font-medium text-white mb-3 block">Payment Method</label>
+                     <div className="grid grid-cols-2 gap-3">
+                       <button
+                         onClick={() => setPaymentMethod('vcash')}
+                         disabled={vcashBalance < priceUSDCents}
+                         className={`p-3 rounded-lg border-2 transition-all ${
+                           paymentMethod === 'vcash'
+                             ? 'border-[var(--voyage-accent)] bg-[var(--voyage-accent)]/10'
+                             : 'border-[var(--voyage-border)] hover:border-[var(--voyage-accent)]/50'
+                         } ${vcashBalance < priceUSDCents ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                       >
+                         <Wallet className="h-5 w-5 mx-auto mb-2 text-[var(--voyage-accent)]" />
+                         <div className="text-xs font-medium text-white">V-Cash</div>
+                         {vcashBalance < priceUSDCents && (
+                           <div className="text-xs text-yellow-400 mt-1">Insufficient</div>
+                         )}
+                       </button>
+                       <button
+                         onClick={() => setPaymentMethod('stripe')}
+                         className={`p-3 rounded-lg border-2 transition-all ${
+                           paymentMethod === 'stripe'
+                             ? 'border-[var(--voyage-accent)] bg-[var(--voyage-accent)]/10'
+                             : 'border-[var(--voyage-border)] hover:border-[var(--voyage-accent)]/50'
+                         } cursor-pointer`}
+                       >
+                         <CreditCard className="h-5 w-5 mx-auto mb-2 text-[var(--voyage-accent)]" />
+                         <div className="text-xs font-medium text-white">Card</div>
+                       </button>
+                     </div>
+                   </div>
+                 )}
                  
                  <div className="space-y-4 mb-8">
                      <div className="flex items-center gap-3 text-sm text-[var(--voyage-muted)]">
@@ -190,9 +365,10 @@ export function PlanDetails({ plan }: { plan: any }) {
 
                  <Button 
                     onClick={buyNow}
-                    className="w-full h-14 text-lg font-bold bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white shadow-[0_0_20px_rgba(30,144,255,0.3)] transition-all"
+                    disabled={processing || (paymentMethod === 'vcash' && vcashBalance !== null && vcashBalance < priceUSDCents)}
+                    className="w-full h-14 text-lg font-bold bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white shadow-[0_0_20px_rgba(30,144,255,0.3)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                  >
-                    Buy Now
+                    {processing ? 'Processing...' : paymentMethod === 'vcash' ? 'Pay with V-Cash' : 'Buy Now'}
                  </Button>
                  
                  <div className="mt-4 flex justify-center">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminTable } from "@/components/admin/AdminTable";
@@ -69,10 +69,11 @@ export default function AdminEmailLogsPage() {
     return <Badge className={statusInfo.className}>{statusInfo.label}</Badge>;
   };
 
-  const columns = [
+  const columns = useMemo(() => [
     {
       header: "To",
-      accessor: (row: EmailLog) => (
+      accessor: (row: EmailLog) => row.to,
+      render: (row: EmailLog) => (
         <div className="truncate max-w-[180px]" title={row.to}>
           {row.to}
         </div>
@@ -81,7 +82,8 @@ export default function AdminEmailLogsPage() {
     },
     {
       header: "Subject",
-      accessor: (row: EmailLog) => (
+      accessor: (row: EmailLog) => row.subject,
+      render: (row: EmailLog) => (
         <div className="truncate max-w-[220px]" title={row.subject}>
           {row.subject}
         </div>
@@ -90,19 +92,19 @@ export default function AdminEmailLogsPage() {
     },
     {
       header: "Template",
-      accessor: (row: EmailLog) => (
-        <span className="font-mono text-xs">{row.template}</span>
-      ),
-      className: "w-[100px]",
+      accessor: (row: EmailLog) => row.template,
+      className: "w-[100px] font-mono text-xs",
     },
     {
       header: "Status",
-      accessor: (row: EmailLog) => getStatusBadge(row.status),
+      accessor: (row: EmailLog) => row.status,
+      render: (row: EmailLog) => getStatusBadge(row.status),
       className: "w-[80px]",
     },
     {
       header: "Provider ID",
-      accessor: (row: EmailLog) =>
+      accessor: (row: EmailLog) => row.providerId || "",
+      render: (row: EmailLog) =>
         row.providerId ? (
           <div className="font-mono text-xs truncate max-w-[120px]" title={row.providerId}>
             {row.providerId}
@@ -114,7 +116,8 @@ export default function AdminEmailLogsPage() {
     },
     {
       header: "Error",
-      accessor: (row: EmailLog) =>
+      accessor: (row: EmailLog) => row.error || "",
+      render: (row: EmailLog) =>
         row.error ? (
           <div className="text-red-400 text-xs truncate max-w-[150px]" title={row.error}>
             {row.error}
@@ -130,7 +133,7 @@ export default function AdminEmailLogsPage() {
         new Date(row.createdAt).toLocaleString(),
       className: "w-[150px]",
     },
-  ];
+  ], []);
 
   if (loading) {
     return (

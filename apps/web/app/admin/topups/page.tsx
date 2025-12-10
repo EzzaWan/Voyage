@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useUser } from "@clerk/nextjs";
 import { AdminTable } from "@/components/admin/AdminTable";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,10 +17,17 @@ interface TopUp {
   paymentRef?: string;
   rechargeOrder?: string;
   createdAt: string;
-  user: {
+  User?: {
     email: string;
   };
-  profile: {
+  user?: {
+    email: string;
+  };
+  EsimProfile?: {
+    iccid: string;
+    esimTranNo: string;
+  };
+  profile?: {
     iccid: string;
     esimTranNo: string;
   };
@@ -44,12 +51,18 @@ export default function AdminTopupsPage() {
 
         if (res.ok) {
           const data = await res.json();
-          setTopups(data);
+          // Ensure data is an array and has proper structure
+          const topupsData = Array.isArray(data) ? data : [];
+          setTopups(topupsData);
           
           // Fetch plan names for all unique plan codes
-          const uniquePlanCodes = Array.from(new Set(data.map((t: TopUp) => t.planCode))) as string[];
-          const names = await getPlanNames(uniquePlanCodes, apiUrl);
-          setPlanNames(names);
+          if (topupsData.length > 0) {
+            const uniquePlanCodes = Array.from(new Set(topupsData.map((t: TopUp) => t.planCode).filter(Boolean))) as string[];
+            if (uniquePlanCodes.length > 0) {
+              const names = await getPlanNames(uniquePlanCodes, apiUrl);
+              setPlanNames(names);
+            }
+          }
         }
       } catch (error) {
         console.error("Failed to fetch topups:", error);
@@ -63,24 +76,27 @@ export default function AdminTopupsPage() {
     }
   }, [user, apiUrl]);
 
-  const columns = [
+  const columns = useMemo(() => [
     {
       header: "ID",
-      accessor: (row: TopUp) => (
-        <span className="font-mono text-xs">{row.id}</span>
-      ),
-      className: "break-all min-w-[120px]",
+      accessor: (row: TopUp) => row.id,
+      className: "break-all min-w-[120px] font-mono text-xs",
     },
     {
       header: "esimTranNo",
-      accessor: (row: TopUp) => (
-        <span className="font-mono text-xs">{row.profile.esimTranNo}</span>
-      ),
-      className: "break-all min-w-[100px]",
+      accessor: (row: TopUp) => {
+        const profile = row.EsimProfile || row.profile;
+        return profile?.esimTranNo || "-";
+      },
+      className: "break-all min-w-[100px] font-mono text-xs",
     },
     {
       header: "Plan",
       accessor: (row: TopUp) => {
+        const planName = planNames.get(row.planCode);
+        return planName || row.planCode;
+      },
+      render: (row: TopUp) => {
         const planName = planNames.get(row.planCode);
         return (
           <div>
@@ -101,22 +117,24 @@ export default function AdminTopupsPage() {
       header: "Status",
       accessor: (row: TopUp) => {
         const statusDisplay = getTopUpStatusDisplay(row.status);
+        return statusDisplay.label;
+      },
+      render: (row: TopUp) => {
+        const statusDisplay = getTopUpStatusDisplay(row.status);
         return <Badge className={statusDisplay.className}>{statusDisplay.label}</Badge>;
       },
     },
     {
       header: "Provider Response",
-      accessor: (row: TopUp) =>
-        row.rechargeOrder ? (
-          <span className="font-mono text-xs">{row.rechargeOrder}</span>
-        ) : (
-          <span className="text-[var(--voyage-muted)]">-</span>
-        ),
-      className: "break-all min-w-[100px]",
+      accessor: (row: TopUp) => row.rechargeOrder || "-",
+      className: (row: TopUp) => row.rechargeOrder ? "break-all min-w-[100px] font-mono text-xs" : "break-all min-w-[100px] text-[var(--voyage-muted)]",
     },
     {
       header: "User Email",
-      accessor: (row: TopUp) => row.user.email,
+      accessor: (row: TopUp) => {
+        const user = row.User || row.user;
+        return user?.email || "-";
+      },
     },
     {
       header: "Created",
@@ -127,7 +145,7 @@ export default function AdminTopupsPage() {
           day: "numeric",
         }),
     },
-  ];
+  ], [planNames]);
 
   if (loading) {
     return (

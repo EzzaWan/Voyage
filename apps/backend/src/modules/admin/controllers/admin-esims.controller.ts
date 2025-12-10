@@ -29,9 +29,9 @@ export class AdminEsimsController {
   async getAllEsims(@Req() req: any) {
     const profiles = await this.prisma.esimProfile.findMany({
       include: {
-        order: {
+        Order: {
           include: {
-            user: {
+            User: {
               select: {
                 id: true,
                 email: true,
@@ -40,7 +40,7 @@ export class AdminEsimsController {
             },
           },
         },
-        user: {
+        User: {
           select: {
             id: true,
             email: true,
@@ -65,15 +65,15 @@ export class AdminEsimsController {
     const profile = await this.prisma.esimProfile.findUnique({
       where: { id },
       include: {
-        order: {
+        Order: {
           include: {
-            user: true,
+            User: true,
           },
         },
-        user: true,
-        topups: {
+        User: true,
+        TopUp: {
           include: {
-            user: {
+            User: {
               select: {
                 email: true,
                 name: true,
@@ -103,7 +103,7 @@ export class AdminEsimsController {
     const profile = await this.prisma.esimProfile.findUnique({
       where: { id },
       include: {
-        order: true,
+        Order: true,
       },
     });
 
@@ -138,7 +138,7 @@ export class AdminEsimsController {
     const profile = await this.prisma.esimProfile.findUnique({
       where: { id },
       include: {
-        topups: true,
+        TopUp: true,
       },
     });
 
@@ -147,7 +147,7 @@ export class AdminEsimsController {
     }
 
     // Check if profile has topups - warn but allow deletion
-    if (profile.topups && profile.topups.length > 0) {
+    if (profile.TopUp && profile.TopUp.length > 0) {
       // Delete topups first (they reference the profile)
       await this.prisma.topUp.deleteMany({
         where: { profileId: id },
@@ -165,7 +165,7 @@ export class AdminEsimsController {
       'delete_esim',
       'esim_profile',
       id,
-      { profileId: id, iccid: profile.iccid, hadTopups: profile.topups?.length || 0 },
+      { profileId: id, iccid: profile.iccid, hadTopups: profile.TopUp?.length || 0 },
     );
 
     return { success: true, message: 'eSIM profile deleted successfully' };

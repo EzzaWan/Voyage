@@ -12,6 +12,8 @@ import { AdminLogsController } from './controllers/admin-logs.controller';
 import { AdminAffiliatesController } from './controllers/admin-affiliates.controller';
 import { AdminPayoutsController } from './controllers/admin-payouts.controller';
 import { AdminVCashController } from './controllers/admin-vcash.controller';
+import { AdminAffiliateAnalyticsController } from './controllers/admin-affiliate-analytics.controller';
+import { AdminFraudController } from './controllers/admin-fraud.controller';
 import { PrismaService } from '../../prisma.service';
 import { OrdersModule } from '../orders/orders.module';
 import { EsimModule } from '../esim/esim.module';
@@ -35,6 +37,8 @@ import { CommonModule } from '../../common/modules/common.module';
     AdminAffiliatesController,
     AdminPayoutsController,
     AdminVCashController,
+    AdminAffiliateAnalyticsController,
+    AdminFraudController,
   ],
   providers: [AdminService, AdminSettingsService, CurrencyConverterService, AdminGuard, PrismaService],
   exports: [AdminService, AdminSettingsService, CurrencyConverterService, AdminGuard],

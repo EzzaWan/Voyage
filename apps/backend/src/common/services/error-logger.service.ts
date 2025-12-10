@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
+import * as crypto from 'crypto';
 
 interface LogErrorParams {
   message: string;
@@ -20,6 +21,7 @@ export class ErrorLoggerService {
     try {
       await this.prisma.errorLog.create({
         data: {
+          id: crypto.randomUUID(),
           message: params.message,
           stack: params.stack || null,
           route: params.route,
@@ -44,6 +46,7 @@ export class ErrorLoggerService {
     try {
       await this.prisma.errorLog.create({
         data: {
+          id: crypto.randomUUID(),
           message: params.message,
           stack: params.stack || null,
           route: params.url,

@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef, BadRequestException, NotFoundException } from '@nestjs/common';
 import { StripeService } from '../stripe/stripe.service';
 import { PrismaService } from '../../prisma.service';
 import { ConfigService } from '@nestjs/config';
@@ -9,6 +9,9 @@ import { EmailService } from '../email/email.service';
 import { CurrencyService } from '../currency/currency.service';
 import { AffiliateService } from '../affiliate/affiliate.service';
 import { AffiliateCommissionService } from '../affiliate/affiliate-commission.service';
+import { FraudDetectionService } from '../affiliate/fraud/fraud-detection.service';
+import { VCashService } from '../vcash/vcash.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class OrdersService {
@@ -19,10 +22,13 @@ export class OrdersService {
     private esimService: EsimService,
     private currencyService: CurrencyService,
     private affiliateService: AffiliateService,
+    private vcashService: VCashService,
     @Inject(forwardRef(() => AffiliateCommissionService))
     private commissionService?: AffiliateCommissionService,
     @Inject(forwardRef(() => EmailService))
     private emailService?: EmailService,
+    @Inject(forwardRef(() => FraudDetectionService))
+    private fraudDetection?: FraudDetectionService,
   ) {}
   private readonly logger = new Logger(OrdersService.name);
 
@@ -103,6 +109,107 @@ export class OrdersService {
     return { url: session.url };
   }
 
+  async createVCashOrder({ planCode, amount, currency, planName, displayCurrency, referralCode, email }: {
+    planCode: string;
+    amount: number;
+    currency: string;
+    planName: string;
+    displayCurrency?: string;
+    referralCode?: string;
+    email: string;
+  }) {
+    this.logger.log(`[VCASH CHECKOUT] Received from frontend: amount=${amount} USD, email=${email}, planCode=${planCode}`);
+
+    // Get or create user
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found. Please sign in to use V-Cash.');
+    }
+
+    // Calculate amount in USD cents
+    const amountUSDCents = Math.round(amount * 100);
+    
+    // Check V-Cash balance
+    const vcashBalance = await this.vcashService.getBalance(user.id);
+    
+    if (vcashBalance < amountUSDCents) {
+      throw new BadRequestException(
+        `Insufficient V-Cash balance. Available: $${(vcashBalance / 100).toFixed(2)}, Required: $${(amountUSDCents / 100).toFixed(2)}`
+      );
+    }
+
+    // Get display currency (or default to USD)
+    const targetCurrency = currency?.toUpperCase() || await this.currencyService.getDefaultCurrency() || 'USD';
+    let displayAmountCents = amountUSDCents;
+    
+    // Convert to display currency if needed
+    if (targetCurrency !== 'USD') {
+      const convertedAmount = await this.currencyService.convert(amount, targetCurrency);
+      displayAmountCents = Math.round(convertedAmount * 100);
+    }
+
+    // Create order first (before debiting to ensure order exists if something fails)
+    const orderId = crypto.randomUUID();
+    
+    // Debit V-Cash
+    const ip = 'system'; // V-Cash orders are internal, no IP tracking needed
+    await this.vcashService.debit(
+      user.id,
+      amountUSDCents,
+      `ORDER_PAYMENT_${orderId}`,
+      { orderId, planCode, planName },
+      ip
+    );
+
+    this.logger.log(`[VCASH CHECKOUT] Debited ${amountUSDCents} cents from user ${user.id}. Creating order...`);
+
+    // Create order
+    const order = await this.prisma.order.create({
+      data: {
+        id: orderId,
+        userId: user.id,
+        planId: planCode || 'unknown',
+        amountCents: amountUSDCents,
+        currency: 'usd',
+        displayCurrency: targetCurrency,
+        displayAmountCents: displayAmountCents,
+        status: 'paid',
+        paymentMethod: 'vcash',
+        paymentRef: `vcash_${orderId}`,
+        esimOrderNo: `PENDING-${orderId}`,
+      },
+    });
+
+    // Handle referral if provided
+    if (referralCode) {
+      this.logger.log(`[AFFILIATE] Processing referral code: ${referralCode} for user ${user.id} (email: ${email})`);
+      this.handleReferral(referralCode, user.id).catch((err) => {
+        this.logger.error(`[AFFILIATE] Failed to handle referral:`, err);
+      });
+    }
+
+    // Send order confirmation email (fire and forget)
+    this.sendOrderConfirmationEmail(order, user, planCode).catch((err) => {
+      this.logger.error(`[EMAIL] Failed to send order confirmation: ${err.message}`);
+    });
+
+    // Trigger eSIM provisioning (async, don't wait)
+    this.performEsimOrderForOrder(order, user, planCode).catch((err) => {
+      this.logger.error(`[ESIM] Failed to provision eSIM for V-Cash order ${orderId}:`, err);
+    });
+
+    this.logger.log(`[VCASH CHECKOUT] Order ${orderId} created successfully. V-Cash balance remaining: $${((vcashBalance - amountUSDCents) / 100).toFixed(2)}`);
+
+    return {
+      success: true,
+      orderId: order.id,
+      message: 'Order created successfully with V-Cash payment',
+    };
+  }
+
   async handleStripePayment(session: Stripe.Checkout.Session) {
     this.logger.log(`handleStripePayment start. session.id=${session?.id}`);
     this.logger.log(`session.metadata=${JSON.stringify(session?.metadata)}`);
@@ -121,6 +228,7 @@ export class OrdersService {
     const user = await this.prisma.user.upsert({
       where: { email },
       create: {
+        id: crypto.randomUUID(),
         email,
         name: session.customer_details?.name || 'Guest',
       },
@@ -177,6 +285,7 @@ export class OrdersService {
 
     const order = await this.prisma.order.create({
       data: {
+        id: crypto.randomUUID(),
         userId: user.id,
         planId: planCode || 'unknown',
         amountCents: amountUSDCents, // Always store in USD cents
@@ -200,8 +309,10 @@ export class OrdersService {
 
   async performEsimOrderForOrder(order, user, planCode: string, session?: Stripe.Checkout.Session) {
     // provider requires transactionId < 50 chars
-    const transactionId = `stripe_${order.id}`;  
-    // "stripe_" (7 chars) + UUID (36 chars) = 43 chars (valid)
+    // Use payment method prefix: stripe_ or vcash_
+    const paymentPrefix = order.paymentMethod === 'vcash' ? 'vcash_' : 'stripe_';
+    const transactionId = `${paymentPrefix}${order.id}`;  
+    // "stripe_" or "vcash_" (7 chars) + UUID (36 chars) = 43 chars (valid)
     
     // Convert Stripe cents to provider format (1/10000th units)
     // Stripe: 25 cents = $0.25 → Provider: 2500 (1/10000th units) = $0.25
@@ -328,6 +439,7 @@ export class OrdersService {
       // Create new profile
       await this.prisma.esimProfile.create({
         data: {
+          id: crypto.randomUUID(),
           orderId: order.id,
           userId: user.id,
           esimTranNo: profile.esimTranNo || null,
@@ -400,8 +512,8 @@ export class OrdersService {
     return this.prisma.esimProfile.findFirst({
       where: { iccid },
       include: {
-        order: true,
-        user: true,
+        Order: true,
+        User: true,
       },
     });
   }
@@ -419,7 +531,7 @@ export class OrdersService {
         },
       },
       include: {
-        user: true,
+        User: true,
       },
       take: 10, // Process max 10 orders per cycle to avoid overwhelming
     });
@@ -551,6 +663,7 @@ export class OrdersService {
           // Create new profile
           await this.prisma.esimProfile.create({
             data: {
+              id: crypto.randomUUID(),
               orderId: order.id,
               userId: order.userId,
               esimTranNo: profile.esimTranNo || `TEMP_${order.id}`,
@@ -577,7 +690,7 @@ export class OrdersService {
         // IMPORTANT: We only send emails when a profile is successfully created, NOT during pending retries
         const updatedOrder = await this.prisma.order.findUnique({
           where: { id: order.id },
-          include: { user: true },
+          include: { User: true },
         });
 
         // Double-check: Only send if receipt hasn't been sent yet (prevents duplicates during retries)
@@ -592,7 +705,7 @@ export class OrdersService {
             this.logger.log(`[RETRY] Sending emails for order ${order.id} (was pending/failed, now succeeded)`);
             
             // Send eSIM ready email with receipt link (combined email)
-            this.sendEsimReadyEmail(updatedOrder, updatedOrder.user, order.planId, createdProfile).catch((err) => {
+            this.sendEsimReadyEmail(updatedOrder, updatedOrder.User, order.planId, createdProfile).catch((err) => {
               this.logger.error(`[RETRY][EMAIL] Failed to send eSIM ready email: ${err.message}`);
             });
 
@@ -636,13 +749,13 @@ export class OrdersService {
     const ordersWithProfiles = await this.prisma.order.findMany({
       where: {
         receiptSent: false, // Only orders that haven't sent emails yet
-        profiles: {
+        EsimProfile: {
           some: {}, // Has at least one profile (not pending)
         },
       },
       include: {
-        user: true,
-        profiles: {
+        User: true,
+        EsimProfile: {
           orderBy: { id: 'asc' },
           take: 1, // Just need first profile for email
         },
@@ -658,13 +771,13 @@ export class OrdersService {
 
     for (const order of ordersWithProfiles) {
       try {
-        const profile = order.profiles[0];
+        const profile = order.EsimProfile[0];
         if (!profile) continue;
 
         this.logger.log(`[EMAIL] Sending emails for order ${order.id} (profile created, emails not sent)`);
 
         // Send eSIM ready email with receipt link (combined email) - ONLY ONCE
-        await this.sendEsimReadyEmail(order, order.user, order.planId, profile);
+        await this.sendEsimReadyEmail(order, order.User, order.planId, profile);
 
         // Mark receipt as sent IMMEDIATELY to prevent duplicate emails on future retries/webhooks
         await this.prisma.order.update({
@@ -687,7 +800,7 @@ export class OrdersService {
 
     const profiles = await this.prisma.esimProfile.findMany({
       include: {
-        order: true,
+        Order: true,
       },
     });
 
@@ -696,7 +809,7 @@ export class OrdersService {
     // Step 1: Sync profile status, volume, expiry, etc. from /esim/query
     for (const profile of profiles) {
       try {
-        const orderNo = profile.order?.esimOrderNo;
+        const orderNo = profile.Order?.esimOrderNo;
 
         if (!orderNo) {
           this.logger.warn(`[SYNC] Skipping profile ${profile.id} - no orderNo found`);
@@ -864,6 +977,7 @@ export class OrdersService {
                 try {
                   await this.prisma.esimUsageHistory.create({
                     data: {
+                      id: crypto.randomUUID(),
                       profileId: profile.id,
                       usedBytes: newUsage,
                     },
@@ -1155,6 +1269,7 @@ export class OrdersService {
             amountCents: true,
             displayAmountCents: true,
             displayCurrency: true,
+            paymentRef: true,
           },
         });
 
@@ -1167,13 +1282,44 @@ export class OrdersService {
         const referral = await this.prisma.referral.findUnique({
           where: { referredUserId: freshOrder.userId },
           include: {
-            affiliate: true,
+            Affiliate: true,
           },
         });
 
-        if (!referral || !referral.affiliate) {
+        if (!referral || !referral.Affiliate) {
           // User was not referred, no commission
           return;
+        }
+
+        // Check payment method for fraud if fraud detection is available
+        if (this.fraudDetection && freshOrder.paymentRef) {
+          try {
+            // Get payment method details from Stripe
+            const paymentIntent = await this.stripe.stripe.paymentIntents.retrieve(freshOrder.paymentRef);
+            if (paymentIntent.payment_method) {
+              const pm = typeof paymentIntent.payment_method === 'string'
+                ? await this.stripe.stripe.paymentMethods.retrieve(paymentIntent.payment_method)
+                : paymentIntent.payment_method;
+              
+              const paymentMethodId = pm.id;
+              const cardLast4 = pm.card?.last4 || '';
+              const cardFingerprint = pm.card?.fingerprint || null;
+
+              // Run payment method fraud check
+              this.fraudDetection.checkPaymentMethod(
+                paymentMethodId,
+                cardLast4,
+                cardFingerprint,
+                referral.affiliateId,
+                freshOrder.id,
+                freshOrder.userId,
+              ).catch((err) => {
+                this.logger.warn('[FRAUD] Failed to check payment method:', err);
+              });
+            }
+          } catch (err) {
+            this.logger.warn('[FRAUD] Failed to retrieve payment method for fraud check:', err);
+          }
         }
 
         // Add 10% commission based on the amount user actually paid
@@ -1201,6 +1347,13 @@ export class OrdersService {
             'order',
             commissionAmountCents,
           );
+        }
+
+        // Run fraud checks for refund patterns after commission is created
+        if (this.fraudDetection) {
+          this.fraudDetection.checkRefundPattern(referral.affiliateId, freshOrder.id, freshOrder.userId).catch((err) => {
+            this.logger.warn('[FRAUD] Failed to check refund pattern:', err);
+          });
         }
 
         this.logger.log(`[AFFILIATE] Added commission for order ${order.id} to affiliate ${referral.affiliateId}`);

@@ -12,6 +12,7 @@ import { RateLimitOptions, RATE_LIMIT_KEY } from '../decorators/rate-limit.decor
 import { redis, rateLimitKey } from '../utils/redis';
 import { ErrorLoggerService } from '../services/error-logger.service';
 import { PrismaService } from '../../prisma.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class RateLimitGuard implements CanActivate {
@@ -119,6 +120,7 @@ export class RateLimitGuard implements CanActivate {
     try {
       await this.prisma.rateLimitLog.create({
         data: {
+          id: crypto.randomUUID(),
           ip: params.ip,
           userId: params.userId || null,
           route: `${params.method} ${params.route}`,

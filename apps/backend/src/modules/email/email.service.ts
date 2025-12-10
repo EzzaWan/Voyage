@@ -5,6 +5,7 @@ import Handlebars from 'handlebars';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { AdminSettingsService } from '../admin/admin-settings.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class EmailService {
@@ -139,6 +140,7 @@ export class EmailService {
     // Save initial log (status pending or mock)
     const emailLog = await this.prisma.emailLog.create({
       data: {
+        id: crypto.randomUUID(),
         to,
         from: this.fromAddress,
         subject,

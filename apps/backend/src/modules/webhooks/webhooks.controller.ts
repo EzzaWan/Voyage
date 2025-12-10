@@ -9,6 +9,8 @@ import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
 import { RateLimit } from '../../common/decorators/rate-limit.decorator';
 import { validateWebhookIp, getClientIp } from '../../common/utils/webhook-ip-whitelist';
 import { SecurityLoggerService } from '../../common/services/security-logger.service';
+import { PrismaService } from '../../prisma.service';
+import { FraudService } from '../affiliate/fraud/fraud.service';
 
 @Controller('webhooks')
 @UseGuards(RateLimitGuard)
@@ -21,6 +23,9 @@ export class WebhooksController {
     private readonly webhooksService: WebhooksService,
     private readonly config: ConfigService,
     private readonly securityLogger: SecurityLoggerService,
+    private readonly prisma: PrismaService,
+    @Inject(forwardRef(() => FraudService))
+    private readonly fraudService?: FraudService,
   ) {}
 
   @Post('stripe')
@@ -77,6 +82,54 @@ export class WebhooksController {
         } else {
           // Regular order payment
           await this.ordersService.handleStripePayment(session);
+        }
+      }
+
+      // Handle chargebacks/disputes
+      if (event.type === 'charge.dispute.created' || event.type === 'charge.dispute.updated') {
+        try {
+          const dispute = event.data.object as Stripe.Dispute;
+          const charge = await this.stripe.stripe.charges.retrieve(dispute.charge as string);
+          const orderId = charge.metadata?.orderId;
+
+          if (orderId && this.fraudService) {
+            const order = await this.prisma.order.findUnique({
+              where: { id: orderId },
+              include: {
+                User: {
+                  include: {
+                    Referral: {
+                      include: {
+                        Affiliate: {
+                          select: { id: true },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            });
+
+            if (order && order.User.Referral) {
+              // Chargeback detected - high priority fraud event
+              await this.fraudService.addEvent(
+                order.User.Referral.Affiliate.id,
+                'CHARGEBACK',
+                60, // Auto-freeze score
+                {
+                  orderId,
+                  disputeId: dispute.id,
+                  chargeId: dispute.charge,
+                  reason: dispute.reason,
+                  amount: dispute.amount,
+                },
+                order.userId,
+                orderId,
+              );
+            }
+          }
+        } catch (err) {
+          console.error('Failed to process chargeback webhook:', err);
         }
       }
 

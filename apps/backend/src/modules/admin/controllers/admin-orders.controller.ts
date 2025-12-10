@@ -43,14 +43,14 @@ export class AdminOrdersController {
   async getAllOrders(@Req() req: any) {
     const orders = await this.prisma.order.findMany({
       include: {
-        user: {
+        User: {
           select: {
             id: true,
             email: true,
             name: true,
           },
         },
-        profiles: {
+        EsimProfile: {
           select: {
             id: true,
             iccid: true,
@@ -76,8 +76,8 @@ export class AdminOrdersController {
     const order = await this.prisma.order.findUnique({
       where: { id },
       include: {
-        user: true,
-        profiles: true,
+        User: true,
+        EsimProfile: true,
       },
     });
 
@@ -121,8 +121,8 @@ export class AdminOrdersController {
     const order = await this.prisma.order.findUnique({
       where: { id },
       include: {
-        user: true,
-        profiles: true,
+        User: true,
+        EsimProfile: true,
       },
     });
 
@@ -131,7 +131,7 @@ export class AdminOrdersController {
     }
 
     // Check if order is already successfully created
-    if (order.status === 'esim_created' && order.profiles && order.profiles.length > 0) {
+    if (order.status === 'esim_created' && order.EsimProfile && order.EsimProfile.length > 0) {
       return {
         success: false,
         error: 'Order already has eSIM profile(s) created. Use Sync instead to update status.',
@@ -143,7 +143,7 @@ export class AdminOrdersController {
       // Retry provisioning
       await this.ordersService.performEsimOrderForOrder(
         order,
-        order.user,
+        order.User,
         order.planId,
         undefined as any,
       );
@@ -171,7 +171,7 @@ export class AdminOrdersController {
     const order = await this.prisma.order.findUnique({
       where: { id },
       include: {
-        profiles: true,
+        EsimProfile: true,
       },
     });
 
@@ -189,7 +189,7 @@ export class AdminOrdersController {
         'sync_order',
         'order',
         id,
-        { orderId: id, profileCount: order.profiles.length },
+        { orderId: id, profileCount: order.EsimProfile.length },
       );
 
       return { success: true, message: 'Order sync completed' };
@@ -214,7 +214,7 @@ export class AdminOrdersController {
     const order = await this.prisma.order.findUnique({
       where: { id },
       include: {
-        user: true,
+        User: true,
       },
     });
 
@@ -231,12 +231,18 @@ export class AdminOrdersController {
     const ip = getClientIp(req);
 
     if (refundMethod === 'vcash') {
+      // Get plan name for better transaction history
+      const plan = await this.prisma.plan.findUnique({
+        where: { id: order.planId },
+        select: { name: true },
+      });
+
       // Refund as V-Cash
       await this.vcashService.credit(
         order.userId,
         refundAmountCents,
         'refund',
-        { orderId: order.id },
+        { orderId: order.id, planName: plan?.name || order.planId },
         ip,
       );
 
@@ -278,7 +284,7 @@ export class AdminOrdersController {
           const webUrl = this.config.get<string>('WEB_URL') || 'http://localhost:3000';
           const vcashBalance = await this.vcashService.getBalance(order.userId);
           await this.emailService.sendRefundToVCashEmail(
-            order.user.email,
+            order.User.email,
             {
               orderId: order.id,
               refundAmountFormatted: `$${(refundAmountCents / 100).toFixed(2)}`,

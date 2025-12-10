@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { AdminTable } from "@/components/admin/AdminTable";
@@ -20,7 +20,11 @@ interface Order {
   paymentRef?: string;
   esimOrderNo?: string;
   createdAt: string;
-  user: {
+  User?: {
+    email: string;
+    name?: string;
+  };
+  user?: {
     email: string;
     name?: string;
   };
@@ -64,21 +68,26 @@ export default function AdminOrdersPage() {
     }
   }, [user, apiUrl]);
 
-  const columns = [
+  const columns = useMemo(() => [
     {
       header: "Order ID",
-      accessor: (row: Order) => (
-        <span className="font-mono text-xs">{row.id}</span>
-      ),
-      className: "break-all min-w-[120px]",
+      accessor: (row: Order) => row.id,
+      className: "break-all min-w-[120px] font-mono text-xs",
     },
     {
       header: "User Email",
-      accessor: (row: Order) => row.user.email,
+      accessor: (row: Order) => {
+        const user = row.User || row.user;
+        return user?.email || "-";
+      },
     },
     {
       header: "Plan",
       accessor: (row: Order) => {
+        const planName = planNames.get(row.planId);
+        return planName || row.planId;
+      },
+      render: (row: Order) => {
         const planName = planNames.get(row.planId);
         return (
           <div>
@@ -99,28 +108,22 @@ export default function AdminOrdersPage() {
       header: "Status",
       accessor: (row: Order) => {
         const statusDisplay = getOrderStatusDisplay(row.status);
+        return statusDisplay.label;
+      },
+      render: (row: Order) => {
+        const statusDisplay = getOrderStatusDisplay(row.status);
         return <Badge className={statusDisplay.className}>{statusDisplay.label}</Badge>;
       },
     },
     {
       header: "Provider Order",
-      accessor: (row: Order) =>
-        row.esimOrderNo ? (
-          <span className="font-mono text-xs">{row.esimOrderNo}</span>
-        ) : (
-          <span className="text-[var(--voyage-muted)]">-</span>
-        ),
-      className: "break-all min-w-[100px]",
+      accessor: (row: Order) => row.esimOrderNo || "-",
+      className: (row: Order) => row.esimOrderNo ? "break-all min-w-[100px] font-mono text-xs" : "break-all min-w-[100px] text-[var(--voyage-muted)]",
     },
     {
       header: "Payment Ref",
-      accessor: (row: Order) =>
-        row.paymentRef ? (
-          <span className="font-mono text-xs">{row.paymentRef}</span>
-        ) : (
-          <span className="text-[var(--voyage-muted)]">-</span>
-        ),
-      className: "break-all min-w-[100px]",
+      accessor: (row: Order) => row.paymentRef || "-",
+      className: (row: Order) => row.paymentRef ? "break-all min-w-[100px] font-mono text-xs" : "break-all min-w-[100px] text-[var(--voyage-muted)]",
     },
     {
       header: "Created",
@@ -133,7 +136,7 @@ export default function AdminOrdersPage() {
           minute: "2-digit",
         }),
     },
-  ];
+  ], [planNames]);
 
   if (loading) {
     return (

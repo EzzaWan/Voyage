@@ -33,6 +33,8 @@ async function getCsrfTokenCached(): Promise<string | null> {
   }
 
   try {
+    // Always fetch from frontend endpoint (relative path)
+    // The CSRF token endpoint is on the Next.js frontend server
     const response = await fetch('/api/csrf-token');
     if (response.ok) {
       const data = await response.json();
@@ -58,15 +60,28 @@ export async function safeFetch<T = any>(
 
   // Add CSRF token for state-changing requests
   const isStateChanging = ['POST', 'PATCH', 'PUT', 'DELETE'].includes(fetchOptions.method || 'GET');
-  const isInternalApi = url.startsWith('/api/') && !url.startsWith('/api/webhooks/');
+  // Check if it's an API endpoint (either relative /api/ or full URL containing /api/)
+  const isInternalApi = (url.startsWith('/api/') || url.includes('/api/')) && !url.includes('/api/webhooks/');
   
   if (!skipCsrf && isStateChanging && isInternalApi) {
+    // Always fetch CSRF token from frontend endpoint (relative path)
+    // The token works for both frontend and backend API calls
     const csrfToken = await getCsrfTokenCached();
     if (csrfToken) {
       fetchOptions.headers = {
         ...fetchOptions.headers,
         [CSRF_TOKEN_HEADER]: csrfToken,
       };
+    } else {
+      // If CSRF token fetch failed, clear cache and try once more
+      csrfTokenCache = null;
+      const retryToken = await getCsrfTokenCached();
+      if (retryToken) {
+        fetchOptions.headers = {
+          ...fetchOptions.headers,
+          [CSRF_TOKEN_HEADER]: retryToken,
+        };
+      }
     }
   }
 

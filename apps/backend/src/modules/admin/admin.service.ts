@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AdminService {
@@ -17,6 +18,7 @@ export class AdminService {
     try {
       await this.prisma.adminLog.create({
         data: {
+          id: crypto.randomUUID(),
           action,
           adminEmail,
           entityType,

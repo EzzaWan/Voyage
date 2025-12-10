@@ -4,6 +4,8 @@ import { PrismaService } from '../../prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { AffiliateService } from '../affiliate/affiliate.service';
 import { AffiliateCommissionService } from '../affiliate/affiliate-commission.service';
+import { AffiliateAnalyticsService } from '../affiliate/affiliate-analytics.service';
+import { FraudDetectionService } from '../affiliate/fraud/fraud-detection.service';
 import { Webhook } from 'svix';
 import { EsimAccess, WebhookEvent } from '../../../../../libs/esim-access';
 
@@ -21,6 +23,10 @@ export class WebhooksService {
     private affiliateService: AffiliateService,
     @Inject(forwardRef(() => AffiliateCommissionService))
     private commissionService?: AffiliateCommissionService,
+    @Inject(forwardRef(() => AffiliateAnalyticsService))
+    private analyticsService?: AffiliateAnalyticsService,
+    @Inject(forwardRef(() => FraudDetectionService))
+    private fraudDetection?: FraudDetectionService,
     // @InjectQueue('provisionQueue') private provisionQueue: Queue
   ) {
      this.esimAccess = new EsimAccess({
@@ -98,6 +104,7 @@ export class WebhooksService {
     // Save webhook event
     await this.prisma.webhookEvent.create({
       data: {
+        id: crypto.randomUUID(),
         source: 'esim-access',
         payload: payload,
       },
@@ -153,6 +160,7 @@ export class WebhooksService {
         const user = await this.prisma.user.upsert({
           where: { email },
           create: {
+            id: crypto.randomUUID(),
             email,
             name,
           },
@@ -170,6 +178,10 @@ export class WebhooksService {
         } catch (err) {
           this.logger.error(`[CLERK] Failed to create affiliate for user ${user.id}:`, err);
         }
+
+        // Track affiliate signup if referral cookie exists (handled via frontend API call)
+        // Frontend will call /api/affiliate/track-signup after user signs up
+        // We can't access cookies in webhook, so this is handled separately
       } else if (eventType === 'user.updated') {
         // Update user data
         const email = data.email_addresses?.[0]?.email_address;

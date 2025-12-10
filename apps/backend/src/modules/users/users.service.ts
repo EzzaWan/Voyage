@@ -26,7 +26,7 @@ export class UsersService {
         userId: user.id
       },
       include: {
-        order: true // Optional: include order details if needed
+        Order: true // Optional: include order details if needed
       }
     });
 
@@ -46,13 +46,13 @@ export class UsersService {
           orderUsage: profile.orderUsage ? profile.orderUsage.toString() : null,
           expiredTime: profile.expiredTime ? profile.expiredTime.toISOString() : null,
           userId: profile.userId,
-          order: profile.order,
+          order: profile.Order,
         };
 
         // Fetch plan details if planId exists
-        if (profile.order?.planId) {
+        if (profile.Order?.planId) {
           try {
-            const planDetails = await this.esimService.getPlan(profile.order.planId);
+            const planDetails = await this.esimService.getPlan(profile.Order.planId);
             serialized.planDetails = {
               name: planDetails.name,
               packageCode: planDetails.packageCode,
@@ -63,7 +63,7 @@ export class UsersService {
             };
           } catch (error) {
             // If plan fetch fails, just log and continue without plan details
-            console.warn(`[UsersService] Failed to fetch plan details for ${profile.order.planId}:`, error);
+            console.warn(`[UsersService] Failed to fetch plan details for ${profile.Order.planId}:`, error);
           }
         }
 

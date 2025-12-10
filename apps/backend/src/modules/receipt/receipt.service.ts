@@ -17,8 +17,8 @@ export class ReceiptService {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
       include: {
-        user: true,
-        profiles: {
+        User: true,
+        EsimProfile: {
           orderBy: { id: 'asc' },
         },
       },
@@ -140,10 +140,10 @@ export class ReceiptService {
           doc.fillColor('#000000'); // Reset color
         }
 
-        if (order.profiles && order.profiles.length > 0) {
+        if (order.EsimProfile && order.EsimProfile.length > 0) {
           doc.moveDown(0.5);
           doc.fontSize(12).font('Helvetica-Bold').text('eSIM Profiles:', { underline: true });
-          order.profiles.forEach((profile: any, index: number) => {
+          order.EsimProfile.forEach((profile: any, index: number) => {
             doc.fontSize(10).font('Helvetica');
             doc.text(`Profile ${index + 1}:`);
             doc.text(`  ICCID: ${sanitize(profile.iccid)}`, { indent: 10 });

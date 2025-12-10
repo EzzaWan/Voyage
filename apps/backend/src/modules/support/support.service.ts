@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma.service';
 import { EmailService } from '../email/email.service';
 import { ConfigService } from '@nestjs/config';
 import { sanitizeInput } from '../../common/utils/sanitize';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class SupportService {
@@ -29,6 +30,7 @@ export class SupportService {
     // Save to database with sanitized inputs
     const ticket = await this.prisma.supportTicket.create({
       data: {
+        id: crypto.randomUUID(),
         name: sanitizedName,
         email: data.email.toLowerCase().trim(), // Email doesn't need sanitization, just normalize
         orderId: data.orderId || null,
