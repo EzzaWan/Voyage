@@ -1300,6 +1300,7 @@ export class OrdersService {
 
   /**
    * Add commission for a completed order
+   * NOTE: V-Cash payments do NOT generate commissions
    */
   private async addCommissionForOrder(order: any): Promise<void> {
       try {
@@ -1313,11 +1314,31 @@ export class OrdersService {
             displayAmountCents: true,
             displayCurrency: true,
             paymentRef: true,
+            paymentMethod: true,
           },
         });
 
         if (!freshOrder) {
           this.logger.warn(`[AFFILIATE] Order not found: ${order.id}`);
+          return;
+        }
+
+        // Skip commission for V-Cash payments
+        if (freshOrder.paymentMethod === 'vcash') {
+          this.logger.log(`[AFFILIATE] Skipping commission for order ${freshOrder.id} - V-Cash payment method`);
+          return;
+        }
+
+        // Check if commission already exists for this order to prevent duplicates
+        const existingCommission = await this.prisma.commission.findFirst({
+          where: {
+            orderId: freshOrder.id,
+            orderType: 'order',
+          },
+        });
+
+        if (existingCommission) {
+          this.logger.log(`[AFFILIATE] Commission already exists for order ${freshOrder.id}, skipping duplicate creation`);
           return;
         }
 
@@ -1365,14 +1386,16 @@ export class OrdersService {
           }
         }
 
-        // Add 10% commission based on the amount user actually paid
-        // Use displayAmountCents if available (what user actually paid), else fallback to amountCents (USD)
-        const commissionAmountCents = freshOrder.displayAmountCents || freshOrder.amountCents;
+        // Add 10% commission based on USD amount (base currency)
+        // IMPORTANT: Always use amountCents (USD) for commission calculation, not displayAmountCents
+        // displayAmountCents is in the user's local currency and would cause incorrect commissions
+        // Example: 100 PHP might be $2 USD - commission should be 10% of $2, not 10% of 100 PHP
+        const commissionAmountCents = freshOrder.amountCents;
         
         this.logger.log(
           `[AFFILIATE] Adding commission for order ${freshOrder.id}: ` +
-          `amount=${commissionAmountCents} cents ` +
-          `(display: ${freshOrder.displayAmountCents || 'N/A'}, USD: ${freshOrder.amountCents})`
+          `USD amount=${commissionAmountCents} cents (${(commissionAmountCents / 100).toFixed(2)} USD) ` +
+          `display=${freshOrder.displayAmountCents || 'N/A'} cents (${freshOrder.displayCurrency || 'USD'})`
         );
         
         // Use new commission service if available, otherwise fallback to old method

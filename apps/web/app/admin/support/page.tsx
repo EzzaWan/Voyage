@@ -2,10 +2,11 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminTable } from "@/components/admin/AdminTable";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Mail, Smartphone, ShoppingCart, Calendar } from "lucide-react";
+import { MessageSquare, Mail, Smartphone, ShoppingCart, Calendar, MessageCircle } from "lucide-react";
 import { safeFetch } from "@/lib/safe-fetch";
 import Link from "next/link";
 
@@ -17,10 +18,12 @@ interface SupportTicket {
   device: string | null;
   message: string;
   createdAt: string;
+  replyCount?: number;
 }
 
 export default function AdminSupportTicketsPage() {
   const { user } = useUser();
+  const router = useRouter();
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
@@ -109,11 +112,26 @@ export default function AdminSupportTicketsPage() {
       className: "w-[300px]",
     },
     {
+      header: "Replies",
+      accessor: (row: SupportTicket) => row.replyCount || 0,
+      render: (row: SupportTicket) => (
+        <div className="flex items-center gap-2">
+          <MessageCircle className="h-4 w-4 text-[var(--voyage-muted)]" />
+          <span className="text-sm">{row.replyCount || 0}</span>
+        </div>
+      ),
+      className: "w-[100px]",
+    },
+    {
       header: "Submitted",
       accessor: (row: SupportTicket) => new Date(row.createdAt).toLocaleString(),
       className: "w-[180px]",
     },
   ], []);
+
+  const handleRowClick = (row: SupportTicket) => {
+    router.push(`/admin/support/${row.id}`);
+  };
 
   if (loading) {
     return (
@@ -146,7 +164,7 @@ export default function AdminSupportTicketsPage() {
               <p className="text-[var(--voyage-muted)]">No support tickets found</p>
             </div>
           ) : (
-            <AdminTable data={tickets} columns={columns} />
+            <AdminTable data={tickets} columns={columns} onRowClick={handleRowClick} />
           )}
         </CardContent>
       </Card>

@@ -53,19 +53,54 @@ export default function ContactSupportPage() {
     setSuccess(false);
 
     try {
+      // Validate required fields
+      if (!formData.name.trim()) {
+        setError("Name is required");
+        setLoading(false);
+        return;
+      }
+      if (!formData.email.trim()) {
+        setError("Email is required");
+        setLoading(false);
+        return;
+      }
+      if (!formData.message.trim()) {
+        setError("Message is required");
+        setLoading(false);
+        return;
+      }
+      if (formData.message.trim().length < 10) {
+        setError("Message must be at least 10 characters long");
+        setLoading(false);
+        return;
+      }
+      if (formData.message.trim().length > 1000) {
+        setError("Message must be no more than 1000 characters long");
+        setLoading(false);
+        return;
+      }
+
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+      const payload: any = {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        message: formData.message.trim(),
+      };
+
+      // Only include optional fields if they have values
+      if (formData.orderId && formData.orderId.trim()) {
+        payload.orderId = formData.orderId.trim();
+      }
+      if (formData.device && formData.device.trim()) {
+        payload.device = formData.device.trim();
+      }
+
       await safeFetch(`${apiUrl}/support/contact`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          orderId: formData.orderId || undefined,
-          device: formData.device || undefined,
-          message: formData.message,
-        }),
+        body: JSON.stringify(payload),
         errorMessage: "Failed to send message. Please try again.",
       });
 

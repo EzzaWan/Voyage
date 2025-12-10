@@ -196,6 +196,71 @@ export default function AdminFraudDashboardPage() {
     }
   };
 
+  const formatFraudEventType = (type: string): string => {
+    return type
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
+  const formatFraudEventDetails = (metadata: any): string => {
+    if (!metadata || typeof metadata !== 'object') {
+      return 'No details available';
+    }
+
+    const details: string[] = [];
+    
+    if (metadata.deviceFingerprint) {
+      details.push(`Device: ${metadata.deviceFingerprint.substring(0, 8)}...`);
+    }
+    
+    if (metadata.ipAddress) {
+      details.push(`IP: ${metadata.ipAddress}`);
+    }
+    
+    if (metadata.otherAffiliateIds && Array.isArray(metadata.otherAffiliateIds)) {
+      details.push(`Other Affiliates: ${metadata.otherAffiliateIds.length}`);
+      if (metadata.otherAffiliateIds.length > 0) {
+        details.push(`IDs: ${metadata.otherAffiliateIds.slice(0, 2).join(', ')}${metadata.otherAffiliateIds.length > 2 ? '...' : ''}`);
+      }
+    }
+    
+    if (metadata.email) {
+      details.push(`Email: ${metadata.email}`);
+    }
+    
+    if (metadata.cardLast4) {
+      details.push(`Card: ****${metadata.cardLast4}`);
+    }
+    
+    if (metadata.country) {
+      details.push(`Country: ${metadata.country}`);
+    }
+    
+    if (metadata.reason) {
+      details.push(`Reason: ${metadata.reason}`);
+    }
+    
+    if (metadata.count !== undefined) {
+      details.push(`Count: ${metadata.count}`);
+    }
+    
+    if (metadata.threshold !== undefined) {
+      details.push(`Threshold: ${metadata.threshold}`);
+    }
+
+    // If we have other fields not covered above, include them
+    const coveredKeys = ['deviceFingerprint', 'ipAddress', 'otherAffiliateIds', 'email', 'cardLast4', 'country', 'reason', 'count', 'threshold'];
+    const otherKeys = Object.keys(metadata).filter(key => !coveredKeys.includes(key));
+    
+    if (otherKeys.length > 0 && details.length === 0) {
+      // If no standard fields found, show a simplified version of the object
+      return JSON.stringify(metadata, null, 2).substring(0, 150) + (JSON.stringify(metadata).length > 150 ? '...' : '');
+    }
+
+    return details.length > 0 ? details.join(' • ') : 'No details available';
+  };
+
   const columns = useMemo(() => [
     {
       header: "Email",
@@ -424,14 +489,14 @@ export default function AdminFraudDashboardPage() {
                             </td>
                             <td className="px-4 py-2 text-sm">
                               <Badge variant="outline" className="text-xs">
-                                {event.type}
+                                {formatFraudEventType(event.type)}
                               </Badge>
                             </td>
                             <td className="px-4 py-2 text-sm text-white font-medium">{event.score}</td>
-                            <td className="px-4 py-2 text-sm text-[var(--voyage-muted)]">
-                              <code className="text-xs">
-                                {JSON.stringify(event.metadata || {}, null, 2).substring(0, 100)}
-                              </code>
+                            <td className="px-4 py-2 text-sm text-[var(--voyage-muted)] max-w-md">
+                              <div className="text-xs whitespace-normal break-words">
+                                {formatFraudEventDetails(event.metadata)}
+                              </div>
                             </td>
                           </tr>
                         ))}

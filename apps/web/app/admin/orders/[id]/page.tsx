@@ -62,7 +62,12 @@ export default function AdminOrderDetailPage() {
 
         if (res.ok) {
           const data = await res.json();
-          setOrder(data);
+          // Ensure arrays are always present
+          setOrder({
+            ...data,
+            profiles: data.profiles || [],
+            webhookEvents: data.webhookEvents || [],
+          });
           
           // Fetch plan name
           if (data.planId) {
@@ -104,7 +109,12 @@ export default function AdminOrderDetailPage() {
         });
         if (res2.ok) {
           const data = await res2.json();
-          setOrder(data);
+          // Ensure arrays are always present
+          setOrder({
+            ...data,
+            profiles: data.profiles || [],
+            webhookEvents: data.webhookEvents || [],
+          });
           // Reload plan name too
           if (data.planId) {
             const name = await getPlanName(data.planId, apiUrl);
@@ -142,7 +152,12 @@ export default function AdminOrderDetailPage() {
         });
         if (res2.ok) {
           const data = await res2.json();
-          setOrder(data);
+          // Ensure arrays are always present
+          setOrder({
+            ...data,
+            profiles: data.profiles || [],
+            webhookEvents: data.webhookEvents || [],
+          });
         }
       }
     } catch (error) {

@@ -344,17 +344,33 @@ model SecurityEventLog {
 }
 
 model SupportTicket {
-  id        String   @id
+  id        String              @id
   name      String
   email     String
+  userId    String?             // Link to user account if authenticated
   orderId   String?
   device    String?
-  message   String   @db.VarChar(1000)
-  createdAt DateTime @default(now())
+  message   String              @db.VarChar(1000)
+  createdAt DateTime            @default(now())
+  SupportTicketReply SupportTicketReply[]
 
   @@index([createdAt])
   @@index([email])
   @@index([orderId])
+  @@index([userId])
+}
+
+model SupportTicketReply {
+  id           String        @id
+  ticketId     String
+  message      String        @db.VarChar(2000)
+  isAdmin      Boolean       @default(false) // true if admin reply, false if customer reply
+  adminEmail   String?       // Admin email if this is an admin reply
+  createdAt    DateTime      @default(now())
+  SupportTicket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([createdAt])
 }
 
 model TopUp {

@@ -5,7 +5,7 @@ import { useUser } from "@clerk/nextjs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { DollarSign, ArrowRight, Wallet } from "lucide-react";
+import { DollarSign, ArrowRight, Wallet, MessageSquare } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
 import { safeFetch } from "@/lib/safe-fetch";
@@ -104,6 +104,34 @@ export default function AccountPage() {
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           </Link>
+        </CardContent>
+      </Card>
+
+      {/* Support Tickets Card */}
+      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <MessageSquare className="h-6 w-6 text-[var(--voyage-accent)]" />
+            <CardTitle className="text-white">Support Tickets</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-[var(--voyage-muted)]">
+            View all your support tickets and responses from our support team.
+          </p>
+          <div className="flex gap-3">
+            <Link href="/account/support">
+              <Button variant="outline" className="border-[var(--voyage-border)]">
+                View My Tickets
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </Link>
+            <Link href="/support/contact">
+              <Button className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white">
+                Create New Ticket
+              </Button>
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>

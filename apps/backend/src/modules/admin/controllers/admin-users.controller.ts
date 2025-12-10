@@ -121,14 +121,26 @@ export class AdminUsersController {
 
     return {
       ...user,
-      orders: userWithRelations.orders?.map((order: any) => ({
-        ...order,
+      orders: (userWithRelations.Order || []).map((order: any) => ({
+        id: order.id,
+        planId: order.planId,
         amountCents: Number(order.amountCents),
-      })) || [],
-      topups: userWithRelations.topups?.map((topup: any) => ({
-        ...topup,
+        currency: order.currency,
+        status: order.status,
+        createdAt: order.createdAt.toISOString(),
+      })),
+      profiles: (userWithRelations.EsimProfile || []).map((profile: any) => ({
+        id: profile.id,
+        iccid: profile.iccid,
+        esimStatus: profile.esimStatus,
+      })),
+      topups: (userWithRelations.TopUp || []).map((topup: any) => ({
+        id: topup.id,
+        planCode: topup.planCode,
         amountCents: Number(topup.amountCents),
-      })) || [],
+        status: topup.status,
+        createdAt: topup.createdAt.toISOString(),
+      })),
     };
   }
 }

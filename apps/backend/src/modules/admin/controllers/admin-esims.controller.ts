@@ -91,10 +91,34 @@ export class AdminEsimsController {
       throw new NotFoundException(`eSIM profile ${id} not found`);
     }
 
+    const profileWithRelations = profile as any;
+
     return {
-      ...profile,
+      id: profile.id,
+      iccid: profile.iccid,
+      esimTranNo: profile.esimTranNo,
+      qrCodeUrl: profile.qrCodeUrl,
+      ac: profile.ac,
+      smdpStatus: profile.smdpStatus,
+      esimStatus: profile.esimStatus,
       totalVolume: profile.totalVolume ? profile.totalVolume.toString() : null,
       orderUsage: profile.orderUsage ? profile.orderUsage.toString() : null,
+      expiredTime: profile.expiredTime ? profile.expiredTime.toISOString() : null,
+      order: profileWithRelations.Order ? {
+        id: profileWithRelations.Order.id,
+        planId: profileWithRelations.Order.planId,
+        user: {
+          email: profileWithRelations.Order.User.email,
+          name: profileWithRelations.Order.User.name,
+        },
+      } : null,
+      topups: (profileWithRelations.TopUp || []).map((topup: any) => ({
+        id: topup.id,
+        planCode: topup.planCode,
+        amountCents: Number(topup.amountCents),
+        status: topup.status,
+        createdAt: topup.createdAt.toISOString(),
+      })),
     };
   }
 

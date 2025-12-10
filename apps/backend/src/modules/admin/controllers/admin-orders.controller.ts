@@ -109,10 +109,37 @@ export class AdminOrdersController {
       take: 50,
     });
 
+    const orderWithRelations = order as any;
+
     return {
-      ...order,
+      id: order.id,
+      planId: order.planId,
       amountCents: Number(order.amountCents),
-      webhookEvents,
+      currency: order.currency,
+      status: order.status,
+      paymentMethod: order.paymentMethod,
+      paymentRef: order.paymentRef,
+      esimOrderNo: order.esimOrderNo,
+      createdAt: order.createdAt.toISOString(),
+      user: {
+        id: orderWithRelations.User.id,
+        email: orderWithRelations.User.email,
+        name: orderWithRelations.User.name,
+      },
+      profiles: (orderWithRelations.EsimProfile || []).map((profile: any) => ({
+        id: profile.id,
+        iccid: profile.iccid,
+        esimTranNo: profile.esimTranNo,
+        esimStatus: profile.esimStatus,
+        smdpStatus: profile.smdpStatus,
+      })),
+      webhookEvents: (webhookEvents || []).map((event: any) => ({
+        id: event.id,
+        source: event.source,
+        payload: event.payload,
+        processed: event.processed,
+        createdAt: event.createdAt.toISOString(),
+      })),
     };
   }
 

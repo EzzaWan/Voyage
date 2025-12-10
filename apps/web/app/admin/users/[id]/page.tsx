@@ -57,11 +57,17 @@ export default function AdminUserDetailPage() {
 
         if (res.ok) {
           const data = await res.json();
-          setUserDetail(data);
+          // Ensure arrays are always present
+          setUserDetail({
+            ...data,
+            orders: data.orders || [],
+            profiles: data.profiles || [],
+            topups: data.topups || [],
+          });
           
           // Fetch plan names for orders and top-ups
-          const orderPlanIds = data.orders?.map((o: { planId: string }) => o.planId) || [];
-          const topupPlanCodes = data.topups?.map((t: { planCode: string }) => t.planCode) || [];
+          const orderPlanIds = (data.orders || []).map((o: { planId: string }) => o.planId);
+          const topupPlanCodes = (data.topups || []).map((t: { planCode: string }) => t.planCode);
           const allPlanIds = Array.from(new Set([...orderPlanIds, ...topupPlanCodes])) as string[];
           
           if (allPlanIds.length > 0) {
@@ -136,15 +142,15 @@ export default function AdminUserDetailPage() {
             <p className="text-sm text-[var(--voyage-muted)]">Statistics</p>
             <div className="flex gap-4 mt-2">
               <div>
-                <p className="text-white font-bold">{userDetail.orders.length}</p>
+                <p className="text-white font-bold">{userDetail.orders?.length || 0}</p>
                 <p className="text-xs text-[var(--voyage-muted)]">Orders</p>
               </div>
               <div>
-                <p className="text-white font-bold">{userDetail.profiles.length}</p>
+                <p className="text-white font-bold">{userDetail.profiles?.length || 0}</p>
                 <p className="text-xs text-[var(--voyage-muted)]">eSIMs</p>
               </div>
               <div>
-                <p className="text-white font-bold">{userDetail.topups.length}</p>
+                <p className="text-white font-bold">{userDetail.topups?.length || 0}</p>
                 <p className="text-xs text-[var(--voyage-muted)]">Top-ups</p>
               </div>
             </div>
@@ -152,7 +158,7 @@ export default function AdminUserDetailPage() {
         </CardContent>
       </Card>
 
-      {userDetail.orders.length > 0 && (
+      {userDetail.orders && userDetail.orders.length > 0 && (
         <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
           <CardHeader>
             <CardTitle className="text-white">Orders</CardTitle>
@@ -190,7 +196,7 @@ export default function AdminUserDetailPage() {
         </Card>
       )}
 
-      {userDetail.profiles.length > 0 && (
+      {userDetail.profiles && userDetail.profiles.length > 0 && (
         <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
           <CardHeader>
             <CardTitle className="text-white">eSIM Profiles</CardTitle>
@@ -219,7 +225,7 @@ export default function AdminUserDetailPage() {
         </Card>
       )}
 
-      {userDetail.topups.length > 0 && (
+      {userDetail.topups && userDetail.topups.length > 0 && (
         <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
           <CardHeader>
             <CardTitle className="text-white">Top-ups</CardTitle>

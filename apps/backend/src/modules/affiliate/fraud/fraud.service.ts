@@ -344,7 +344,7 @@ export class FraudService {
    * Get fraud summary with all relevant data
    */
   async getFraudSummary(affiliateId: string) {
-    const [affiliate, fraudScore, events, clicks, signups] = await Promise.all([
+    const [affiliate, fraudScore, events, allClicks, allSignups, clicksForDisplay, signupsForDisplay] = await Promise.all([
       this.prisma.affiliate.findUnique({
         where: { id: affiliateId },
           include: {
@@ -359,6 +359,26 @@ export class FraudService {
       }),
       this.getScore(affiliateId),
       this.getFraudEvents(affiliateId, 50),
+      // Get ALL clicks for statistics
+      this.prisma.affiliateClick.findMany({
+        where: { affiliateId },
+        select: {
+          ipAddress: true,
+          deviceFingerprint: true,
+          country: true,
+          createdAt: true,
+        },
+      }),
+      // Get ALL signups for statistics
+      this.prisma.affiliateSignup.findMany({
+        where: { affiliateId },
+        select: {
+          ipAddress: true,
+          deviceFingerprint: true,
+          country: true,
+        },
+      }),
+      // Get limited clicks for display
       this.prisma.affiliateClick.findMany({
         where: { affiliateId },
         select: {
@@ -370,6 +390,7 @@ export class FraudService {
         orderBy: { createdAt: 'desc' },
         take: 100,
       }),
+      // Get limited signups for display
       this.prisma.affiliateSignup.findMany({
         where: { affiliateId },
           include: {
@@ -385,17 +406,27 @@ export class FraudService {
       }),
     ]);
 
-    // Get unique IPs, devices, countries
-    const uniqueIPs = new Set(clicks.map((c) => c.ipAddress).filter(Boolean));
-    const uniqueDevices = new Set([
-      ...clicks.map((c) => c.deviceFingerprint).filter(Boolean),
-      ...signups.map((s) => s.deviceFingerprint).filter(Boolean),
+    // Get unique IPs from both clicks AND signups
+    const uniqueIPs = new Set([
+      ...allClicks.map((c) => c.ipAddress).filter(Boolean),
+      ...allSignups.map((s) => s.ipAddress).filter(Boolean),
     ]);
-    const uniqueCountries = new Set(clicks.map((c) => c.country).filter(Boolean));
+    
+    // Get unique devices from both clicks AND signups
+    const uniqueDevices = new Set([
+      ...allClicks.map((c) => c.deviceFingerprint).filter(Boolean),
+      ...allSignups.map((s) => s.deviceFingerprint).filter(Boolean),
+    ]);
+    
+    // Get unique countries from both clicks AND signups
+    const uniqueCountries = new Set([
+      ...allClicks.map((c) => c.country).filter(Boolean),
+      ...allSignups.map((s) => s.country).filter(Boolean),
+    ]);
 
-    // Device fingerprint counts
+    // Device fingerprint counts from all clicks and signups
     const deviceCounts = new Map<string, number>();
-    [...clicks, ...signups].forEach((item) => {
+    [...allClicks, ...allSignups].forEach((item) => {
       const fp = item.deviceFingerprint;
       if (fp) {
         deviceCounts.set(fp, (deviceCounts.get(fp) || 0) + 1);
@@ -407,8 +438,8 @@ export class FraudService {
       fraudScore,
       events,
       stats: {
-        totalClicks: clicks.length,
-        totalSignups: signups.length,
+        totalClicks: allClicks.length, // Actual total, not limited
+        totalSignups: allSignups.length, // Actual total, not limited
         uniqueIPs: uniqueIPs.size,
         uniqueDevices: uniqueDevices.size,
         uniqueCountries: uniqueCountries.size,
@@ -419,7 +450,7 @@ export class FraudService {
         ips: Array.from(uniqueIPs),
         countries: Array.from(uniqueCountries),
       },
-      signups: signups.map((s) => ({
+      signups: signupsForDisplay.map((s) => ({
         userId: s.userId,
         userEmail: s.User.email,
         ipAddress: s.ipAddress,

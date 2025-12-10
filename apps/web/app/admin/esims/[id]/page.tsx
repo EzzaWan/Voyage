@@ -64,7 +64,11 @@ export default function AdminEsimDetailPage() {
 
         if (res.ok) {
           const data = await res.json();
-          setEsim(data);
+          // Ensure arrays are always present
+          setEsim({
+            ...data,
+            topups: data.topups || [],
+          });
           
           // Fetch plan name
           if (data.order?.planId) {
@@ -126,7 +130,11 @@ export default function AdminEsimDetailPage() {
         });
         if (res2.ok) {
           const data = await res2.json();
-          setEsim(data);
+          // Ensure arrays are always present
+          setEsim({
+            ...data,
+            topups: data.topups || [],
+          });
         }
       }
     } catch (error) {
@@ -170,7 +178,11 @@ export default function AdminEsimDetailPage() {
         
         if (resEsim.ok) {
           const data = await resEsim.json();
-          setEsim(data);
+          // Ensure arrays are always present
+          setEsim({
+            ...data,
+            topups: data.topups || [],
+          });
         }
       } else {
         const error = await res.json().catch(() => ({ error: "Failed to sync usage" }));
@@ -341,7 +353,7 @@ export default function AdminEsimDetailPage() {
         </Card>
       </div>
 
-      {esim.topups && esim.topups.length > 0 && (
+              {esim.topups?.length > 0 && (
         <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
           <CardHeader>
             <CardTitle className="text-white">Top-up History</CardTitle>
@@ -510,7 +522,7 @@ export default function AdminEsimDetailPage() {
               <p className="text-sm text-red-400 mb-2">
                 ⚠️ Warning: This will permanently delete this eSIM profile.
               </p>
-              {esim.topups && esim.topups.length > 0 && (
+              {esim.topups?.length > 0 && (
                 <p className="text-xs text-[var(--voyage-muted)] mb-2">
                   This profile has {esim.topups.length} top-up(s) that will also be deleted.
                 </p>
