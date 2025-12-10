@@ -8,6 +8,7 @@ import {
 import { VCashService } from './vcash.service';
 import { PrismaService } from '../../prisma.service';
 import { ConfigService } from '@nestjs/config';
+import * as crypto from 'crypto';
 
 @Controller('vcash')
 export class VCashController {
@@ -27,13 +28,16 @@ export class VCashController {
       throw new NotFoundException('User email not found');
     }
 
-    const user = await this.prisma.user.findUnique({
+    // Auto-create user if they don't exist (e.g., just signed up via Clerk)
+    const user = await this.prisma.user.upsert({
       where: { email },
+      create: {
+        id: crypto.randomUUID(),
+        email,
+        name: null,
+      },
+      update: {},
     });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
 
     const balanceCents = await this.vcashService.getBalance(user.id);
     const defaultCurrency = this.config.get<string>('DEFAULT_CURRENCY') || 'USD';
@@ -58,13 +62,16 @@ export class VCashController {
       throw new NotFoundException('User email not found');
     }
 
-    const user = await this.prisma.user.findUnique({
+    // Auto-create user if they don't exist (e.g., just signed up via Clerk)
+    const user = await this.prisma.user.upsert({
       where: { email },
+      create: {
+        id: crypto.randomUUID(),
+        email,
+        name: null,
+      },
+      update: {},
     });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
 
     const pageNum = parseInt(page, 10) || 1;
     const pageSizeNum = parseInt(pageSize, 10) || 50;
