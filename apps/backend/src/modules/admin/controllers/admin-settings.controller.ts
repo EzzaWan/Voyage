@@ -61,23 +61,50 @@ export class AdminSettingsController {
     },
     @Req() req: any,
   ) {
+    // Get current settings to preserve existing adminEmails if not provided
+    const currentSettings = await this.prisma.adminSettings.findUnique({
+      where: { id: 'settings' },
+    });
+
+    // Normalize admin emails (lowercase, trim, remove duplicates)
+    let adminEmailsToSave: string[] = [];
+    if (body.adminEmails !== undefined) {
+      // If adminEmails is provided (even if empty array), use it
+      adminEmailsToSave = body.adminEmails
+        .map((e) => e.trim().toLowerCase())
+        .filter(Boolean);
+      
+      // Remove duplicates
+      adminEmailsToSave = [...new Set(adminEmailsToSave)];
+    } else {
+      // If adminEmails is not provided, keep existing ones
+      adminEmailsToSave = (currentSettings?.adminEmails || [])
+        .map((e: string) => e.trim().toLowerCase())
+        .filter(Boolean);
+    }
+
+    // Build update object with only provided fields
+    const updateData: any = {
+      adminEmails: adminEmailsToSave,
+      updatedAt: new Date(),
+    };
+
+    if (body.mockMode !== undefined) updateData.mockMode = body.mockMode;
+    if (body.defaultMarkupPercent !== undefined) updateData.defaultMarkupPercent = body.defaultMarkupPercent;
+    if (body.defaultCurrency !== undefined) updateData.defaultCurrency = body.defaultCurrency;
+    if (body.emailFrom !== undefined) updateData.emailFrom = body.emailFrom;
+    if (body.emailProvider !== undefined) updateData.emailProvider = body.emailProvider;
+    if (body.emailEnabled !== undefined) updateData.emailEnabled = body.emailEnabled;
+
     const updated = await this.prisma.adminSettings.upsert({
       where: { id: 'settings' },
-      update: {
-        mockMode: body.mockMode,
-        defaultMarkupPercent: body.defaultMarkupPercent,
-        defaultCurrency: body.defaultCurrency,
-        adminEmails: body.adminEmails || [],
-        emailFrom: body.emailFrom,
-        emailProvider: body.emailProvider,
-        emailEnabled: body.emailEnabled,
-      },
+      update: updateData,
       create: {
         id: 'settings',
         mockMode: body.mockMode ?? false,
         defaultMarkupPercent: body.defaultMarkupPercent ?? 0,
         defaultCurrency: body.defaultCurrency ?? 'USD',
-        adminEmails: body.adminEmails || [],
+        adminEmails: adminEmailsToSave,
         emailFrom: body.emailFrom,
         emailProvider: body.emailProvider,
         emailEnabled: body.emailEnabled ?? true,
