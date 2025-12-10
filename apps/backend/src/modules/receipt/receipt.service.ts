@@ -28,12 +28,19 @@ export class ReceiptService {
       throw new NotFoundException(`Order ${orderId} not found`);
     }
 
+    // Ensure User relation is loaded
+    if (!order.User) {
+      this.logger.error(`User relation not loaded for order ${orderId}`);
+      throw new NotFoundException(`User information not found for order ${orderId}`);
+    }
+
     // Fetch plan details for display
     let planDetails: any = null;
     try {
       planDetails = await this.esimService.getPlan(order.planId);
     } catch (err) {
       this.logger.warn(`Could not fetch plan details for ${order.planId}: ${err.message}`);
+      // Continue without plan details - not critical for receipt generation
     }
 
     // Generate PDF
@@ -66,9 +73,9 @@ export class ReceiptService {
         // Customer Information
         doc.fontSize(14).font('Helvetica-Bold').text('Customer Information', { underline: true });
         doc.fontSize(11).font('Helvetica');
-        doc.text(`Email: ${sanitize(order.user.email)}`);
-        if (order.user.name) {
-          doc.text(`Name: ${sanitize(order.user.name)}`);
+        doc.text(`Email: ${sanitize(order.User?.email || 'N/A')}`);
+        if (order.User?.name) {
+          doc.text(`Name: ${sanitize(order.User.name)}`);
         }
         doc.moveDown(1.5);
 
