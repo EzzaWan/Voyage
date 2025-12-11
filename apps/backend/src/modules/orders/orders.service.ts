@@ -11,6 +11,7 @@ import { AffiliateService } from '../affiliate/affiliate.service';
 import { AffiliateCommissionService } from '../affiliate/affiliate-commission.service';
 import { FraudDetectionService } from '../affiliate/fraud/fraud-detection.service';
 import { VCashService } from '../vcash/vcash.service';
+import { AdminSettingsService } from '../admin/admin-settings.service';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -29,6 +30,8 @@ export class OrdersService {
     private emailService?: EmailService,
     @Inject(forwardRef(() => FraudDetectionService))
     private fraudDetection?: FraudDetectionService,
+    @Inject(forwardRef(() => AdminSettingsService))
+    private adminSettingsService?: AdminSettingsService,
   ) {}
   private readonly logger = new Logger(OrdersService.name);
 
@@ -350,6 +353,41 @@ export class OrdersService {
     await this.performEsimOrderForOrder(order, user, planCode, session);
   }
 
+  /**
+   * Get the current provider price for a package code.
+   * This fetches the latest price from the provider API to handle price expiration.
+   * Falls back to reverse-calculating from marked-up order amount if fetch fails.
+   */
+  private async getProviderPriceInUnits(packageCode: string, fallbackMarkedUpCents: number): Promise<number> {
+    try {
+      // Fetch current provider price (handles price expiration)
+      const packageDetails = await this.esimService.getEsimAccess().packages.getPackageDetails(packageCode);
+      if (packageDetails.obj?.packageList?.[0]?.price) {
+        const providerPriceInUnits = packageDetails.obj.packageList[0].price;
+        this.logger.log(`[PRICE] Fetched current provider price for ${packageCode}: ${providerPriceInUnits} provider units`);
+        return providerPriceInUnits;
+      } else {
+        this.logger.warn(`[PRICE] Package ${packageCode} not found in provider response, using fallback calculation`);
+      }
+    } catch (err) {
+      this.logger.error(`[PRICE] Failed to fetch provider price for ${packageCode}, using fallback calculation:`, err);
+    }
+
+    // Fallback: reverse-calculate original price from marked-up amount
+    const markupPercent = this.adminSettingsService ? await this.adminSettingsService.getDefaultMarkupPercent() : 0;
+    if (markupPercent > 0) {
+      const originalCents = Math.round(fallbackMarkedUpCents / (1 + markupPercent / 100));
+      const providerPriceInUnits = originalCents * 100; // Convert to provider units (1/10000th)
+      this.logger.log(`[PRICE] Calculated provider price from marked-up amount (${fallbackMarkedUpCents} cents, ${markupPercent}% markup): ${providerPriceInUnits} provider units`);
+      return providerPriceInUnits;
+    } else {
+      // No markup, use the amount as-is
+      const providerPriceInUnits = fallbackMarkedUpCents * 100;
+      this.logger.log(`[PRICE] No markup configured, using order amount: ${providerPriceInUnits} provider units`);
+      return providerPriceInUnits;
+    }
+  }
+
   async performEsimOrderForOrder(order, user, planCode: string, session?: Stripe.Checkout.Session) {
     // provider requires transactionId < 50 chars
     // Use payment method prefix: stripe_ or vcash_
@@ -357,9 +395,10 @@ export class OrdersService {
     const transactionId = `${paymentPrefix}${order.id}`;  
     // "stripe_" or "vcash_" (7 chars) + UUID (36 chars) = 43 chars (valid)
     
-    // Convert Stripe cents to provider format (1/10000th units)
-    // Stripe: 25 cents = $0.25 → Provider: 2500 (1/10000th units) = $0.25
-    const amountInProviderUnits = (order.amountCents ?? 0) * 100;
+    // Get current provider price (NOT the marked-up customer price)
+    // order.amountCents contains the marked-up price that customer paid
+    // Provider expects their original cost price, not our selling price
+    const amountInProviderUnits = await this.getProviderPriceInUnits(planCode, order.amountCents ?? 0);
     
     const body = {
       transactionId,
@@ -586,10 +625,13 @@ export class OrdersService {
         this.logger.log(`[RETRY] Processing order ${order.id} (status: ${order.status})`);
 
         // Build the same transactionId format as original
-        const transactionId = `stripe_${order.id}`;
+        const paymentPrefix = order.paymentMethod === 'vcash' ? 'vcash_' : 'stripe_';
+        const transactionId = `${paymentPrefix}${order.id}`;
         
-        // Convert Stripe cents to provider format (1/10000th units)
-        const amountInProviderUnits = (order.amountCents ?? 0) * 100;
+        // Get current provider price (NOT the marked-up customer price)
+        // order.amountCents contains the marked-up price that customer paid
+        // Provider expects their original cost price, not our selling price
+        const amountInProviderUnits = await this.getProviderPriceInUnits(order.planId, order.amountCents ?? 0);
 
         const body = {
           transactionId,

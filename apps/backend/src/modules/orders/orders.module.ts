@@ -9,6 +9,7 @@ import { ReceiptModule } from '../receipt/receipt.module';
 import { CurrencyModule } from '../currency/currency.module';
 import { AffiliateModule } from '../affiliate/affiliate.module';
 import { VCashModule } from '../vcash/vcash.module';
+import { AdminModule } from '../admin/admin.module';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
@@ -21,6 +22,7 @@ import { ConfigModule } from '@nestjs/config';
     CurrencyModule,
     forwardRef(() => AffiliateModule),
     VCashModule,
+    forwardRef(() => AdminModule),
   ],
   controllers: [OrdersController],
   providers: [OrdersService, PrismaService],
