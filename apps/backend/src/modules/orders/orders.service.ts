@@ -44,11 +44,11 @@ export class OrdersService {
     referralCode?: string;
   }) {
     try {
-      // amount is in USD (base price)
+      // amount is in USD (final price after discounts, calculated by frontend)
       // currency is the target currency for Stripe checkout
       // displayCurrency is optional, same as currency for UI consistency
       
-      this.logger.log(`[CHECKOUT] Received from frontend: amount=${amount} USD, targetCurrency=${currency || 'USD'}`);
+      this.logger.log(`[CHECKOUT] Received from frontend: amount=${amount} USD (final price with discounts), targetCurrency=${currency || 'USD'}`);
       
       // Validate Stripe is configured
       if (!this.stripe?.stripe) {

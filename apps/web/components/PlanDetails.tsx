@@ -7,6 +7,8 @@ import { PriceTag } from "./PriceTag";
 import { FlagIcon } from "./FlagIcon";
 import { useCurrency } from "./providers/CurrencyProvider";
 import { getStoredReferralCode } from "@/lib/referral";
+import { getDiscount, fetchDiscounts } from "@/lib/admin-discounts";
+import { calculateGB, calculateFinalPrice } from "@/lib/plan-utils";
 import Link from "next/link";
 import { safeFetch } from "@/lib/safe-fetch";
 import { useUser } from "@clerk/nextjs";
@@ -27,10 +29,20 @@ export function PlanDetails({ plan }: { plan: any }) {
   const [loadingVCash, setLoadingVCash] = useState(false);
   const [processing, setProcessing] = useState(false);
   
-  // Convert USD price to selected currency
-  const priceUSD = plan.price || 0;
-  const convertedPrice = convert(priceUSD);
-  const priceUSDCents = Math.round(priceUSD * 100);
+  // Calculate discounted price
+  const planGB = calculateGB(plan.volume || 0);
+  const discountPercent = getDiscount(plan.packageCode, planGB);
+  const basePriceUSD = plan.price || 0;
+  const finalPriceUSD = calculateFinalPrice(basePriceUSD, discountPercent);
+  
+  // Convert final discounted price to selected currency
+  const convertedPrice = convert(finalPriceUSD);
+  const priceUSDCents = Math.round(finalPriceUSD * 100);
+
+  // Fetch discounts on mount
+  useEffect(() => {
+    fetchDiscounts().catch(console.error);
+  }, []);
 
   // Check device compatibility on mount and before checkout
   useEffect(() => {
@@ -136,7 +148,7 @@ export function PlanDetails({ plan }: { plan: any }) {
         planCode: plan.packageCode,
         currency: selectedCurrency,
         displayCurrency: selectedCurrency,
-        amount: priceUSD,  // Send original USD price
+        amount: finalPriceUSD,  // Send final discounted USD price
         planName: plan.name,
         referralCode: referralCode || undefined, // Only include if exists
         paymentMethod: paymentMethod,
@@ -289,9 +301,21 @@ export function PlanDetails({ plan }: { plan: any }) {
              <div className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-2xl p-6 shadow-2xl shadow-black/40">
                  <div className="flex justify-between items-center mb-6 pb-6 border-b border-[var(--voyage-border)]">
                      <span className="text-[var(--voyage-muted)]">Total Price</span>
-                     <span className="text-4xl text-white font-bold">
-                       {formatCurrency(convertedPrice)}
-                     </span>
+                    <div className="flex flex-col items-end">
+                      {discountPercent > 0 && (
+                        <span className="text-sm text-[var(--voyage-muted)] line-through mb-1">
+                          {formatCurrency(convert(basePriceUSD))}
+                        </span>
+                      )}
+                      <span className="text-4xl text-white font-bold">
+                        {formatCurrency(convertedPrice)}
+                      </span>
+                      {discountPercent > 0 && (
+                        <span className="text-sm text-[var(--voyage-accent)] mt-1">
+                          {discountPercent}% off
+                        </span>
+                      )}
+                    </div>
                  </div>
 
                  {/* V-Cash Balance Display (if signed in) */}

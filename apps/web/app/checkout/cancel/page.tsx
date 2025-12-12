@@ -12,7 +12,7 @@ export default function CancelPage() {
       <p className="text-[var(--voyage-muted)] text-lg max-w-md">
         Your payment was cancelled. You have not been charged. You can try again whenever you're ready.
       </p>
-      <Link href="/countries">
+      <Link href="/">
         <Button variant="outline" className="border-[var(--voyage-border)] text-white hover:bg-[var(--voyage-card)] px-8 py-6 text-lg rounded-full">
           Return to Store
         </Button>

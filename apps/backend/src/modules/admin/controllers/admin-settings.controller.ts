@@ -170,3 +170,47 @@ export class AdminCheckController {
   }
 }
 
+// Discounts controller (public GET, admin-only POST)
+@Controller('admin/discounts')
+export class AdminDiscountsController {
+  constructor(
+    private readonly adminSettingsService: AdminSettingsService,
+  ) {}
+
+  @Get()
+  async getDiscounts() {
+    // Public endpoint - anyone can read discounts
+    return await this.adminSettingsService.getDiscounts();
+  }
+
+  @Post()
+  @UseGuards(AdminGuard)
+  async setDiscounts(
+    @Body() body: { global?: Record<string, number>; individual?: Record<string, number> },
+    @Req() req: any,
+  ) {
+    // Admin-only endpoint - validate structure
+    if (body.global && typeof body.global !== 'object') {
+      throw new Error('Invalid global discounts format');
+    }
+    if (body.individual && typeof body.individual !== 'object') {
+      throw new Error('Invalid individual discounts format');
+    }
+
+    // Validate discount values (0-100)
+    const validateDiscounts = (discounts: Record<string, number>, type: string) => {
+      for (const [key, value] of Object.entries(discounts)) {
+        if (typeof value !== 'number' || value < 0 || value > 100) {
+          throw new Error(`Invalid ${type} discount for ${key}: must be 0-100`);
+        }
+      }
+    };
+
+    if (body.global) validateDiscounts(body.global, 'global');
+    if (body.individual) validateDiscounts(body.individual, 'individual');
+
+    await this.adminSettingsService.setDiscounts(body);
+    return { success: true };
+  }
+}
+

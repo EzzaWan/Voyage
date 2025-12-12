@@ -39,11 +39,11 @@ export default function RootLayout({
                 
                 <nav className="sticky top-0 z-50 bg-[var(--voyage-bg)]/80 backdrop-blur-md border-b border-[var(--voyage-border)]">
                    <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-                     <Link href="/countries" className="text-2xl font-bold tracking-tight text-[var(--voyage-accent)]">
+                     <Link href="/" className="text-2xl font-bold tracking-tight text-[var(--voyage-accent)]">
                        Voyage
                      </Link>
                      <div className="flex items-center gap-6 text-sm font-medium">
-                        <Link href="/countries" className="hover:text-[var(--voyage-accent)] transition-colors">Store</Link>
+                        <Link href="/" className="hover:text-[var(--voyage-accent)] transition-colors">Store</Link>
                         
                         <SignedOut>
                           <Link href="/support" className="hover:text-[var(--voyage-accent)] transition-colors">Support</Link>

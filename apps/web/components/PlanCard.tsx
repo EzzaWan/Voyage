@@ -5,11 +5,13 @@ import { PriceTag } from "./PriceTag";
 import { Button } from "@/components/ui/button";
 import { FlagIcon } from "./FlagIcon";
 import { useCurrency } from "./providers/CurrencyProvider";
+import { getDiscount } from "@/lib/admin-discounts";
+import { calculateFinalPrice } from "@/lib/plan-utils";
 
 export interface Plan {
   packageCode: string;
   name: string;
-  price: number; // Price amount (e.g. 0.25, 10.50)
+  price: number; // Price amount (e.g. 0.25, 10.50) - already in USD from backend
   currencyCode?: string; // ISO currency code (e.g. "USD", "PLN", "EUR")
   volume: number; // bytes
   duration: number;
@@ -25,13 +27,21 @@ interface PlanCardProps {
 
 export function PlanCard({ plan }: PlanCardProps) {
   const { convert, formatCurrency } = useCurrency();
-  const sizeGB = (plan.volume / 1024 / 1024 / 1024).toFixed(1);
+  const sizeGB = plan.volume / 1024 / 1024 / 1024;
+  const sizeGBRounded = sizeGB.toFixed(1);
   const isUnlimited = plan.volume === -1; // Assuming -1 or similar for unlimited if applicable
   const regionCount = plan.locationNetworkList?.length || 1;
   
-  // Convert USD price to selected currency
-  const priceUSD = plan.price || 0;
-  const convertedPrice = convert(priceUSD);
+  // Get discount (frontend-only) - check individual first, then global GB
+  const discountPercent = getDiscount(plan.packageCode, sizeGB);
+  
+  // Calculate final price with discount (frontend-only)
+  const basePriceUSD = plan.price || 0;
+  const finalPriceUSD = calculateFinalPrice(basePriceUSD, discountPercent);
+  const hasDiscount = discountPercent > 0;
+  
+  // Convert to selected currency for display
+  const convertedPrice = convert(finalPriceUSD);
 
   return (
     <Link href={`/plans/${plan.packageCode}`}>
@@ -44,7 +54,7 @@ export function PlanCard({ plan }: PlanCardProps) {
                  {plan.duration} {plan.durationUnit}s
               </Badge>
               <h3 className="text-2xl font-bold text-white group-hover:text-[var(--voyage-accent)] transition-colors">
-                 {isUnlimited ? "Unlimited" : `${sizeGB} GB`}
+                 {isUnlimited ? "Unlimited" : `${sizeGBRounded} GB`}
               </h3>
            </div>
            <div className="h-10 w-10 rounded-full bg-[var(--voyage-bg-light)] flex items-center justify-center text-[var(--voyage-accent-soft)] group-hover:bg-[var(--voyage-accent)] group-hover:text-white transition-colors">
@@ -86,9 +96,21 @@ export function PlanCard({ plan }: PlanCardProps) {
         <div className="mt-6 pt-4 border-t border-[var(--voyage-border)] flex items-center justify-between">
            <div className="flex flex-col">
               <span className="text-xs text-[var(--voyage-muted)] uppercase tracking-wider">Price</span>
-              <span className="text-xl text-white font-bold">
-                {formatCurrency(convertedPrice)}
-              </span>
+              <div className="flex items-baseline gap-2">
+                {hasDiscount && (
+                  <span className="text-sm text-[var(--voyage-muted)] line-through">
+                    {formatCurrency(convert(basePriceUSD))}
+                  </span>
+                )}
+                <span className="text-xl text-white font-bold">
+                  {formatCurrency(convertedPrice)}
+                </span>
+              </div>
+              {hasDiscount && (
+                <span className="text-xs text-[var(--voyage-accent)] mt-0.5">
+                  {discountPercent}% off
+                </span>
+              )}
            </div>
            <Button size="sm" className="bg-[var(--voyage-bg-light)] hover:bg-[var(--voyage-accent)] text-[var(--voyage-text)] hover:text-white border border-[var(--voyage-border)] group-hover:border-[var(--voyage-accent)] transition-all">
               Select <ArrowRight className="ml-2 h-4 w-4" />

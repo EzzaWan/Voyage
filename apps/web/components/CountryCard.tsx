@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { FlagIcon } from "./FlagIcon";
+import { getSlugFromCode } from "@/lib/country-slugs";
 
 interface Country {
   code: string;
@@ -9,8 +10,10 @@ interface Country {
 }
 
 export function CountryCard({ country }: { country: Country }) {
+  // Use slug-based URL if available, fallback to code
+  const slug = getSlugFromCode(country.code) || country.code.toLowerCase();
   return (
-    <Link href={`/countries/${country.code}`} className="h-full block">
+    <Link href={`/countries/${slug}`} className="h-full block">
       <div className="h-full group bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl p-5 shadow-sm hover:shadow-xl hover:bg-[var(--voyage-card-hover)] hover:border-[var(--voyage-accent)]/30 transition-all cursor-pointer flex items-center justify-between relative overflow-hidden">
         <div className="flex items-center gap-4 z-10">
            <FlagIcon logoUrl={country.locationLogo} alt={country.name} className="h-8 w-11 rounded-md border-2 border-[var(--voyage-border)] shadow-sm" />

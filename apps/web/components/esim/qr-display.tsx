@@ -334,7 +334,7 @@ export function QRDisplay({
               This eSIM QR code has expired and can no longer be used for installation.
             </p>
             <Button
-              onClick={() => window.location.href = "/countries"}
+              onClick={() => window.location.href = "/"}
               className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white"
             >
               Buy New Plan

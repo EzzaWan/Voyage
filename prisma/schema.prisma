@@ -28,6 +28,7 @@ model AdminSettings {
   emailEnabled         Boolean  @default(true)
   emailFrom            String?
   emailProvider        String?
+  discountsJson        Json?
 }
 
 model Affiliate {

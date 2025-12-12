@@ -72,5 +72,41 @@ export class AdminSettingsService {
     this.settingsCache = null;
     this.cacheTimestamp = 0;
   }
+
+  // Get discounts (global and individual)
+  async getDiscounts(): Promise<{ global: Record<string, number>; individual: Record<string, number> }> {
+    const settings = await this.getSettings();
+    if (!settings.discountsJson || typeof settings.discountsJson !== 'object') {
+      return { global: {}, individual: {} };
+    }
+    
+    const discounts = settings.discountsJson as any;
+    return {
+      global: discounts.global || {},
+      individual: discounts.individual || {},
+    };
+  }
+
+  // Set discounts (global and individual)
+  async setDiscounts(discounts: { global?: Record<string, number>; individual?: Record<string, number> }): Promise<void> {
+    const currentSettings = await this.getSettings();
+    const currentDiscounts = (currentSettings.discountsJson as any) || {};
+    
+    const updatedDiscounts = {
+      global: discounts.global !== undefined ? discounts.global : (currentDiscounts.global || {}),
+      individual: discounts.individual !== undefined ? discounts.individual : (currentDiscounts.individual || {}),
+    };
+
+    await this.prisma.adminSettings.update({
+      where: { id: 'settings' },
+      data: {
+        discountsJson: updatedDiscounts,
+        updatedAt: new Date(),
+      },
+    });
+
+    // Clear cache after update
+    this.clearCache();
+  }
 }
 

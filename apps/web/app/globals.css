@@ -46,6 +46,26 @@
   }
 }
 
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--voyage-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--voyage-border);
+  border-radius: 5px;
+  border: 2px solid var(--voyage-bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--voyage-accent);
+}
+
 /* Shimmer Animation */
 @keyframes shimmer {
   0% {

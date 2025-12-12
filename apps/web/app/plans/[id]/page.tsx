@@ -8,6 +8,7 @@ import { PlanDetails } from "@/components/PlanDetails";
 import { PlanDetailsSkeleton } from "@/components/skeletons";
 import { safeFetch } from "@/lib/safe-fetch";
 import { useParams } from "next/navigation";
+import { fetchDiscounts } from "@/lib/admin-discounts";
 
 export default function PlanPage() {
   const params = useParams();
@@ -15,6 +16,11 @@ export default function PlanPage() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
   const [plan, setPlan] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  // Fetch discounts on mount
+  useEffect(() => {
+    fetchDiscounts().catch(console.error);
+  }, []);
 
   useEffect(() => {
     if (!id) return;
