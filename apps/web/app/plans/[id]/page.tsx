@@ -7,11 +7,13 @@ import { Button } from "@/components/ui/button";
 import { PlanDetails } from "@/components/PlanDetails";
 import { PlanDetailsSkeleton } from "@/components/skeletons";
 import { safeFetch } from "@/lib/safe-fetch";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { fetchDiscounts } from "@/lib/admin-discounts";
+import { getSlugFromCode } from "@/lib/country-slugs";
 
 export default function PlanPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params?.id as string;
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
   const [plan, setPlan] = useState<any>(null);
@@ -59,13 +61,48 @@ export default function PlanPage() {
     );
   }
 
+  // Determine back URL: if location is multi-country (has comma), use router.back()
+  // Otherwise, convert single country code to slug
+  const getBackUrl = () => {
+    if (!plan.location) return '/';
+    
+    // If location contains comma, it's multi-country - use router.back()
+    if (plan.location.includes(',')) {
+      return null; // Will use router.back() instead
+    }
+    
+    // Single country - convert to slug
+    const slug = getSlugFromCode(plan.location);
+    return slug ? `/countries/${slug}` : '/';
+  };
+
+  const backUrl = getBackUrl();
+  const useBackNavigation = backUrl === null;
+
+  const handleBackClick = (e: React.MouseEvent) => {
+    if (useBackNavigation) {
+      e.preventDefault();
+      router.back();
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <Link href={`/countries/${plan.location || ''}`}>
+      {useBackNavigation ? (
+        <Button 
+          variant="ghost" 
+          className="pl-0 hover:pl-2 transition-all text-[var(--voyage-muted)] hover:text-white hover:bg-transparent"
+          onClick={handleBackClick}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Plans
+        </Button>
+      ) : (
+        <Link href={backUrl}>
           <Button variant="ghost" className="pl-0 hover:pl-2 transition-all text-[var(--voyage-muted)] hover:text-white hover:bg-transparent">
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Plans
           </Button>
-      </Link>
+        </Link>
+      )}
       
       <div className="text-sm text-[var(--voyage-muted)]">
         Not sure if your device supports eSIM? <Link href="/device-check" className="text-[var(--voyage-accent)] hover:underline">Check compatibility</Link>
