@@ -9,7 +9,8 @@ export type Region =
   | "north-america"
   | "south-america"
   | "africa"
-  | "australasia";
+  | "oceania"
+  | "global";
 
 export const REGION_NAMES: Record<Region, string> = {
   "asia": "Asia",
@@ -17,7 +18,8 @@ export const REGION_NAMES: Record<Region, string> = {
   "north-america": "North America",
   "south-america": "South America",
   "africa": "Africa",
-  "australasia": "Australasia",
+  "oceania": "Oceania",
+  "global": "Global",
 };
 
 /**
@@ -71,10 +73,13 @@ const COUNTRY_TO_REGION: Record<string, Region> = {
   ZA: "africa", SS: "africa", SD: "africa", TZ: "africa", TG: "africa",
   TN: "africa", UG: "africa", ZM: "africa", ZW: "africa",
   
-  // Australasia / Oceania
-  AU: "australasia", NZ: "australasia", FJ: "australasia", PG: "australasia",
-  NC: "australasia", PF: "australasia", WS: "australasia", SB: "australasia",
-  VU: "australasia",
+  // Oceania
+  AU: "oceania", NZ: "oceania", FJ: "oceania", PG: "oceania",
+  NC: "oceania", PF: "oceania", WS: "oceania", SB: "oceania",
+  VU: "oceania",
+
+  // Global
+  "GL-120": "global", "GL-139": "global",
 };
 
 /**

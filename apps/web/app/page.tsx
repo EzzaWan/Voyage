@@ -50,7 +50,8 @@ export default function Home() {
       "north-america": [],
       "south-america": [],
       "africa": [],
-      "australasia": [],
+      "oceania": [],
+      "global": [],
     };
 
     countries.forEach((country) => {
@@ -72,7 +73,7 @@ export default function Home() {
     }
   }, [search, countries]);
 
-  const regions: Region[] = ["asia", "europe", "north-america", "south-america", "africa", "australasia"];
+  const regions: Region[] = ["asia", "europe", "north-america", "south-america", "africa", "oceania", "global"];
 
   return (
     <div className="min-h-[80vh] flex flex-col space-y-8">
@@ -105,32 +106,44 @@ export default function Home() {
              <p className="text-sm text-[var(--voyage-muted)]">Explore eSIM plans by region</p>
            </div>
            
-           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-             {regions.map((region) => {
-               const regionCountries = countriesByRegion[region];
-               if (regionCountries.length === 0) return null;
-               
-               return (
-                 <Link
-                   key={region}
-                   href={`/regions/${region}`}
-                   className="group bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl p-6 hover:border-[var(--voyage-accent)] transition-all"
-                 >
-                   <div className="flex items-center justify-between">
-                     <div>
-                       <h3 className="text-xl font-bold text-white mb-1">
-                         {REGION_NAMES[region]}
-                       </h3>
-                       <p className="text-sm text-[var(--voyage-muted)]">
-                         {regionCountries.length} countries
-                       </p>
+           {loading ? (
+             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+               {[...Array(6)].map((_, i) => (
+                 <div key={i} className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl p-6 animate-pulse">
+                   <div className="h-6 bg-[var(--voyage-bg-light)] rounded mb-2 w-24"></div>
+                   <div className="h-4 bg-[var(--voyage-bg-light)] rounded w-32"></div>
+                 </div>
+               ))}
+             </div>
+           ) : (
+             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+               {regions.map((region) => {
+                 const regionCountries = countriesByRegion[region];
+                 // Always show Global region, even if empty
+                 if (region !== "global" && regionCountries.length === 0) return null;
+                 
+                 return (
+                   <Link
+                     key={region}
+                     href={`/regions/${region}`}
+                     className="group bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl p-6 hover:border-[var(--voyage-accent)] transition-all"
+                   >
+                     <div className="flex items-center justify-between">
+                       <div>
+                         <h3 className="text-xl font-bold text-white mb-1">
+                           {REGION_NAMES[region]}
+                         </h3>
+                         <p className="text-sm text-[var(--voyage-muted)]">
+                           {region === "global" ? "130+ countries" : `${regionCountries.length} countries`}
+                         </p>
+                       </div>
+                       <ArrowRight className="h-5 w-5 text-[var(--voyage-muted)] group-hover:text-[var(--voyage-accent)] transition-colors" />
                      </div>
-                     <ArrowRight className="h-5 w-5 text-[var(--voyage-muted)] group-hover:text-[var(--voyage-accent)] transition-colors" />
-                   </div>
-                 </Link>
-               );
-             })}
-           </div>
+                   </Link>
+                 );
+               })}
+             </div>
+           )}
          </div>
        )}
 

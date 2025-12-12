@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Check, Smartphone, Shield, Wifi, Globe, Download, AlertTriangle, X, ExternalLink, Wallet, CreditCard } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Check, Smartphone, Shield, Wifi, Globe, Download, AlertTriangle, X, ExternalLink, Wallet, CreditCard, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PriceTag } from "./PriceTag";
 import { FlagIcon } from "./FlagIcon";
@@ -14,6 +14,14 @@ import { safeFetch } from "@/lib/safe-fetch";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
+import { getCountryName } from "@/lib/country-slugs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export function PlanDetails({ plan }: { plan: any }) {
   console.log("PLAN DEBUG:", plan);
@@ -233,7 +241,41 @@ export function PlanDetails({ plan }: { plan: any }) {
                 <div className="flex flex-wrap gap-6 text-[var(--voyage-muted)]">
                    <div className="flex items-center gap-2">
                       <Globe className="h-5 w-5 text-[var(--voyage-accent)]" />
-                      <span>{plan.location} Region</span>
+                      {plan.location && plan.location.includes(',') ? (
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <button className="hover:text-white hover:underline focus:outline-none transition-colors text-left">
+                              {plan.location.split(',').length} Countries Region
+                            </button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-[var(--voyage-card)] border-[var(--voyage-border)] text-white">
+                            <DialogHeader>
+                              <DialogTitle>Covered Countries ({plan.location.split(',').length})</DialogTitle>
+                            </DialogHeader>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
+                              {plan.location.split(',').map((code: string) => {
+                                const cleanCode = code.trim();
+                                return (
+                                  <div key={cleanCode} className="flex items-center gap-2 p-2 rounded bg-[var(--voyage-bg-light)]">
+                                    <div className="h-5 w-5 rounded-full overflow-hidden relative flex-shrink-0">
+                                      <FlagIcon 
+                                        logoUrl={`https://flagcdn.com/w320/${cleanCode.toLowerCase().split('-')[0]}.png`} 
+                                        alt={cleanCode} 
+                                        className="h-full w-full object-cover" 
+                                      />
+                                    </div>
+                                    <span className="text-sm truncate" title={getCountryName(cleanCode)}>
+                                      {getCountryName(cleanCode)}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      ) : (
+                        <span>{getCountryName(plan.location)} Region</span>
+                      )}
                    </div>
                    <div className="flex items-center gap-2">
                       <Wifi className="h-5 w-5 text-[var(--voyage-accent)]" />
@@ -277,12 +319,16 @@ export function PlanDetails({ plan }: { plan: any }) {
                    {plan.locationNetworkList.map((net: any, i: number) => (
                        <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-[var(--voyage-bg-light)] border border-[var(--voyage-border)]">
                            <div className="flex items-center gap-3">
-                               <div className="h-8 w-8 rounded-full bg-[var(--voyage-bg)] flex items-center justify-center text-xs font-bold border border-[var(--voyage-border)]">
-                                   {net.locationCode}
+                               <div className="h-8 w-8 rounded-full overflow-hidden relative border border-[var(--voyage-border)] flex-shrink-0">
+                                   <FlagIcon 
+                                     logoUrl={`https://flagcdn.com/w320/${net.locationCode.toLowerCase().split('-')[0]}.png`} 
+                                     alt={net.locationCode} 
+                                     className="h-full w-full object-cover" 
+                                   />
                                </div>
-                               <span className="text-sm font-medium">{net.operatorName || "Best Available"}</span>
+                               <span className="text-sm font-medium text-white">{getCountryName(net.locationCode)}</span>
                            </div>
-                           <span className="text-xs text-[var(--voyage-muted)]">4G/LTE</span>
+                           <span className="text-xs font-medium px-2 py-1 rounded bg-[var(--voyage-card)] text-[var(--voyage-muted)] border border-[var(--voyage-border)]">4G/LTE</span>
                        </div>
                    ))}
                </div>
@@ -404,14 +450,6 @@ export function PlanDetails({ plan }: { plan: any }) {
                  >
                     {processing ? 'Processing...' : paymentMethod === 'vcash' ? 'Pay with V-Cash' : 'Buy Now'}
                  </Button>
-                 
-                 <div className="mt-4 flex justify-center">
-                     <div className="h-32 w-32 bg-white p-2 rounded-lg opacity-50 grayscale hover:grayscale-0 hover:opacity-100 transition-all cursor-help">
-                         {/* Placeholder QR */}
-                         <div className="h-full w-full bg-[url('https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Example')] bg-cover" />
-                     </div>
-                 </div>
-                 <p className="text-center text-xs text-[var(--voyage-muted)] mt-2">Scan to test compatibility</p>
              </div>
          </div>
       </div>

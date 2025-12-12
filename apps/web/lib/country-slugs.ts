@@ -46,6 +46,8 @@ export const COUNTRY_SLUGS: Record<string, CountrySlugInfo> = {
   NO: { slug: "norway-esim", name: "Norway" },
   DK: { slug: "denmark-esim", name: "Denmark" },
   FI: { slug: "finland-esim", name: "Finland" },
+  "GL-120": { slug: "global-120-esim", name: "Global (120 Countries)" },
+  "GL-139": { slug: "global-139-esim", name: "Global (139 Countries)" },
 };
 
 /**

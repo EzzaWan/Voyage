@@ -18,12 +18,12 @@ import {
 } from "@/lib/admin-discounts";
 import { safeFetch } from "@/lib/safe-fetch";
 import { Plan } from "@/components/PlanCard";
-import { AlertCircle, Download, Upload, Trash2, Save, Search, ArrowLeft } from "lucide-react";
+import { Download, Upload, Trash2, Save, Search, ArrowLeft } from "lucide-react";
 import { calculateGB, filterVisiblePlans } from "@/lib/plan-utils";
 
 /**
  * Admin Discounts Page
- * Client-side only - discounts stored in localStorage
+ * Manages discounts stored in backend (AdminSettings.discountsJson)
  * Loads countries first, then plans for selected country
  */
 interface Country {
@@ -287,20 +287,8 @@ export default function AdminDiscountsPage() {
       <div>
         <h1 className="text-3xl font-bold text-white mb-2">Admin Discounts</h1>
         <p className="text-[var(--voyage-muted)]">
-          Set discounts for plans. Select a country to view and edit discounts. Discounts are applied client-side only.
+          Set discounts for plans. Select a country to view and edit discounts. Discounts are stored in the backend and applied globally.
         </p>
-      </div>
-
-      {/* Warning Banner */}
-      <div className="bg-yellow-500/10 border border-yellow-500/50 rounded-lg p-4 flex items-start gap-3">
-        <AlertCircle className="h-5 w-5 text-yellow-500 mt-0.5" />
-        <div className="flex-1 text-sm">
-          <p className="font-semibold text-yellow-400 mb-1">Client-Side Only</p>
-          <p className="text-[var(--voyage-muted)]">
-            Discounts are stored in localStorage and applied frontend-only. They do NOT modify
-            backend prices, database, or affect commissions, payouts, or provider reconciliation.
-          </p>
-        </div>
       </div>
 
       {/* Global Discounts Section */}

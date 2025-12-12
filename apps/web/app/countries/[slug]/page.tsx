@@ -5,9 +5,7 @@ import { ArrowLeft, MapPin } from "lucide-react";
 import { PlanCard, Plan } from "@/components/PlanCard";
 import { Button } from "@/components/ui/button";
 import { FlagIcon } from "@/components/FlagIcon";
-import { DataSizeSelector } from "@/components/DataSizeSelector";
-import { DurationSelector } from "@/components/DurationSelector";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { safeFetch } from "@/lib/safe-fetch";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -15,9 +13,7 @@ import { Package } from "lucide-react";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
 import { getCodeFromSlug, getCountryName, getSlugFromCode } from "@/lib/country-slugs";
 import {
-  groupPlansByDataSize,
   filterVisiblePlans,
-  getDurationsForSize,
   calculateGB,
   getFinalPriceUSD,
 } from "@/lib/plan-utils";
@@ -37,9 +33,8 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
   
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedSize, setSelectedSize] = useState<number | null>(null);
-  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [redirecting, setRedirecting] = useState(isCode);
+  const [sortBy, setSortBy] = useState<"days" | "price" | "dataSize" | "name">("days");
   
   const { rates, convert, formatCurrency } = useCurrency();
   
@@ -92,36 +87,59 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
   // Filter plans to only visible ones (>= $3 USD and exclude 0.5GB/1.5GB/2GB)
   const visiblePlans = filterVisiblePlans(plans);
   
-  // Group by data size (this also filters out excluded GB sizes)
-  const plansBySize = groupPlansByDataSize(visiblePlans);
-  
-  // Get all plans that will actually be displayed (from the grouped sizes)
-  const displayedPlans: Plan[] = [];
-  plansBySize.forEach((plansForSize) => {
-    displayedPlans.push(...plansForSize);
-  });
-  
-  const availableSizes = Array.from(plansBySize.keys()).sort((a, b) => a - b);
-  
-  // Get durations for selected size
-  const durationsForSelectedSize = selectedSize
-    ? getDurationsForSize(visiblePlans, selectedSize)
-    : [];
-
-  // Handle plan selection - redirect to plan detail page
-  const handleSelectPlan = (plan: Plan) => {
-    setSelectedPlan(plan);
-    // Navigate to plan detail page
-    window.location.href = `/plans/${plan.packageCode}`;
-  };
+  // Sort plans based on selected sort option
+  const sortedPlans = useMemo(() => {
+    const sorted = [...visiblePlans];
+    
+    switch (sortBy) {
+      case "days":
+        // Sort by duration (days) ascending
+        sorted.sort((a, b) => {
+          const aDuration = a.duration || 0;
+          const bDuration = b.duration || 0;
+          return aDuration - bDuration;
+        });
+        break;
+      case "price":
+        // Sort by price (USD) ascending
+        sorted.sort((a, b) => {
+          const aGB = calculateGB(a.volume);
+          const bGB = calculateGB(b.volume);
+          const aDiscount = getDiscount(a.packageCode, aGB);
+          const bDiscount = getDiscount(b.packageCode, bGB);
+          const aPrice = getFinalPriceUSD(a, aDiscount);
+          const bPrice = getFinalPriceUSD(b, bDiscount);
+          return aPrice - bPrice;
+        });
+        break;
+      case "dataSize":
+        // Sort by data size (GB) ascending
+        sorted.sort((a, b) => {
+          const aGB = calculateGB(a.volume);
+          const bGB = calculateGB(b.volume);
+          return aGB - bGB;
+        });
+        break;
+      case "name":
+        // Sort by plan name alphabetically
+        sorted.sort((a, b) => {
+          const aName = a.name || "";
+          const bName = b.name || "";
+          return aName.localeCompare(bName);
+        });
+        break;
+    }
+    
+    return sorted;
+  }, [visiblePlans, sortBy]);
 
   // Construct flag URL
   const flagUrl = `https://flagcdn.com/w320/${countryCode.toLowerCase().split('-')[0]}.png`;
 
   // Calculate lowest price from the actual plans that will be displayed
   // This ensures the price matches what users will see
-  const lowestPriceUSD = displayedPlans.length > 0
-    ? Math.min(...displayedPlans.map(p => {
+  const lowestPriceUSD = sortedPlans.length > 0
+    ? Math.min(...sortedPlans.map(p => {
         const planGB = calculateGB(p.volume);
         const discountPercent = getDiscount(p.packageCode, planGB);
         return getFinalPriceUSD(p, discountPercent);
@@ -169,38 +187,51 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
         </div>
       </div>
 
-      {/* Two-Step Plan Selection */}
-      <div className="space-y-8">
+      {/* Plans Display */}
+      <div className="space-y-6">
         {redirecting ? (
           <div className="text-center py-20 text-[var(--voyage-muted)]">Redirecting...</div>
         ) : loading ? (
           <div className="text-center py-20 text-[var(--voyage-muted)]">Loading plans...</div>
-        ) : visiblePlans.length === 0 ? (
+        ) : sortedPlans.length === 0 ? (
           <EmptyState
             title="No plans available"
             description={`No eSIM plans are currently available for ${countryName}. Please check back later or browse other countries.`}
             icon={Package}
             action={{
               label: "Browse All Countries",
-              onClick: () => window.location.href = "/countries"
+              onClick: () => window.location.href = "/"
             }}
           />
-        ) : !selectedSize ? (
-          // Step 1: Select Data Size
-          <DataSizeSelector
-            sizes={availableSizes}
-            selectedSize={selectedSize}
-            onSelect={setSelectedSize}
-          />
         ) : (
-          // Step 2: Select Duration
-          <DurationSelector
-            durations={durationsForSelectedSize}
-            selectedPlan={selectedPlan}
-            onSelectPlan={handleSelectPlan}
-            onBack={() => setSelectedSize(null)}
-            selectedSize={selectedSize}
-          />
+          <>
+            {/* Sort Filter */}
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-[var(--voyage-muted)]">
+                {sortedPlans.length} plan{sortedPlans.length !== 1 ? 's' : ''} available
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-[var(--voyage-muted)]">Sort by:</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as "days" | "price" | "dataSize" | "name")}
+                  className="px-3 py-1.5 rounded-lg bg-[var(--voyage-card)] border border-[var(--voyage-border)] text-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--voyage-accent)]"
+                >
+                  <option value="days">Duration (Days)</option>
+                  <option value="price">Price (Low to High)</option>
+                  <option value="dataSize">Data Size</option>
+                  <option value="name">Plan Name</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Plans Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {sortedPlans.map((plan) => (
+                <PlanCard key={plan.packageCode} plan={plan} />
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>
