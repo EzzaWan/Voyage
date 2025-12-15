@@ -34,7 +34,7 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [redirecting, setRedirecting] = useState(isCode);
-  const [sortBy, setSortBy] = useState<"days" | "price" | "dataSize" | "name">("days");
+  const [sortBy, setSortBy] = useState<"days" | "price" | "dataSize" | "name">("price");
   
   const { rates, convert, formatCurrency } = useCurrency();
   
