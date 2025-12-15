@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
+import Script from "next/script";
 import {
   ClerkProvider,
   SignedIn,
@@ -35,6 +36,19 @@ export default function RootLayout({
           <ErrorToastProvider>
             <html lang="en">
               <body className={`${inter.className} bg-[var(--voyage-bg)] text-[var(--voyage-text)] min-h-screen antialiased selection:bg-[var(--voyage-accent)] selection:text-white`}>
+                {/* Google tag (gtag.js) */}
+                <Script
+                  src="https://www.googletagmanager.com/gtag/js?id=AW-17806579060"
+                  strategy="afterInteractive"
+                />
+                <Script id="google-ads" strategy="afterInteractive">
+                  {`
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag() {dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', 'AW-17806579060');
+                  `}
+                </Script>
                 <div className="fixed inset-0 bg-gradient-to-br from-[var(--voyage-bg)] via-[var(--voyage-bg)] to-[#051020] -z-10" />
                 
                 <nav className="sticky top-0 z-50 bg-[var(--voyage-bg)]/80 backdrop-blur-md border-b border-[var(--voyage-border)]">
