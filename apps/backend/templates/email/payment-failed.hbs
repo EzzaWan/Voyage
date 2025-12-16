@@ -4,45 +4,120 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Payment Failed</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: #E9F1FF;
+      background-color: #0A1A2F;
+      margin: 0;
+      padding: 0;
+    }
+    .wrapper {
+      width: 100%;
+      background-color: #0A1A2F;
+      padding: 40px 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #132742;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #1E3555;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .header {
+      background-color: #0F2540;
+      padding: 30px;
+      text-align: center;
+      border-bottom: 1px solid #1E3555;
+    }
+    .logo {
+      font-size: 26px;
+      font-weight: 800;
+      color: #1E90FF;
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+    .content {
+      padding: 40px 30px;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 24px;
+      font-weight: 700;
+      color: #FFFFFF;
+      text-align: center;
+    }
+    .subtitle {
+      text-align: center;
+      color: #A8B5C8;
+      font-size: 16px;
+      margin-bottom: 30px;
+    }
+    .action-button {
+      display: block;
+      width: 100%;
+      background-color: #EF4444;
+      color: #FFFFFF;
+      text-decoration: none;
+      padding: 16px 0;
+      border-radius: 8px;
+      font-weight: 600;
+      text-align: center;
+      margin: 30px 0;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+    .error-badge {
+      display: inline-block;
+      background-color: #EF4444;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+    .footer {
+      padding: 30px;
+      text-align: center;
+      border-top: 1px solid #1E3555;
+      color: #64748B;
+      font-size: 12px;
+    }
+  </style>
 </head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h1 style="color: white; margin: 0;">Payment Failed</h1>
-  </div>
-  
-  <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0;">
-    <p>Hi {{user.name}},</p>
-    
-    <p>We encountered an issue processing your payment for order <strong>{{order.id}}</strong>.</p>
-    
-    <div style="background: #fee2e2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ef4444;">
-      <h2 style="margin-top: 0; color: #dc2626;">Order Details</h2>
-      <p><strong>Order ID:</strong> {{order.id}}</p>
-      <p><strong>Plan:</strong> {{plan.name}}</p>
-      <p><strong>Amount:</strong> {{order.currency}} {{order.amount}}</p>
-      <p><strong>Status:</strong> Failed</p>
+<body>
+  <div class="wrapper">
+    <div class="container">
+      <div class="header">
+        <div class="logo">VOYAGE</div>
+      </div>
+      
+      <div class="content">
+        <div style="text-align: center;">
+          <span class="error-badge">Action Required</span>
+        </div>
+        <h1>Payment Failed</h1>
+        <p class="subtitle">We couldn't process your payment for order {{orderId}}.</p>
+        
+        <p style="text-align: center; margin-bottom: 24px; color: #E9F1FF;">
+          This can happen for a number of reasons, such as an expired card or insufficient funds. Don't worry, you haven't been charged.
+        </p>
+
+        <p style="text-align: center; margin-bottom: 24px; color: #A8B5C8;">
+           Please check your payment details and try again to activate your plan.
+        </p>
+
+        <a href="{{appUrl}}/checkout/retry/{{orderId}}" class="action-button">Try Payment Again</a>
+      </div>
+
+      <div class="footer">
+        <p style="margin: 0 0 10px;">This is an automated notification from Voyage.</p>
+        <p style="margin: 0;">&copy; 2024 Voyage. All rights reserved.</p>
+      </div>
     </div>
-    
-    <p>This could be due to:</p>
-    <ul>
-      <li>Insufficient funds</li>
-      <li>Card declined by your bank</li>
-      <li>Expired card</li>
-      <li>Incorrect card details</li>
-    </ul>
-    
-    <div style="text-align: center; margin: 30px 0;">
-      <a href="{{appUrl}}/plans/{{plan.id}}" style="display: inline-block; padding: 15px 30px; background: #1e90ff; color: white; text-decoration: none; border-radius: 5px;">Try Again</a>
-    </div>
-    
-    <p>If you continue to experience issues, please contact our support team.</p>
-    
-    <p>Best regards,<br>The Voyage Team</p>
-  </div>
-  
-  <div style="text-align: center; margin-top: 20px; color: #999; font-size: 12px;">
-    <p>This is an automated email. Please do not reply.</p>
   </div>
 </body>
 </html>
-

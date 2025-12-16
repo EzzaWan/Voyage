@@ -1,34 +1,163 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Commission Earned</title>
   <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { background: #4F46E5; color: white; padding: 20px; text-align: center; }
-    .content { background: #f9fafb; padding: 30px; }
-    .amount { font-size: 24px; font-weight: bold; color: #10B981; }
-    .button { display: inline-block; padding: 12px 24px; background: #4F46E5; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: #E9F1FF;
+      background-color: #0A1A2F;
+      margin: 0;
+      padding: 0;
+    }
+    .wrapper {
+      width: 100%;
+      background-color: #0A1A2F;
+      padding: 40px 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #132742;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #1E3555;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .header {
+      background-color: #0F2540;
+      padding: 30px;
+      text-align: center;
+      border-bottom: 1px solid #1E3555;
+    }
+    .logo {
+      font-size: 26px;
+      font-weight: 800;
+      color: #1E90FF;
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+    .content {
+      padding: 40px 30px;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 24px;
+      font-weight: 700;
+      color: #FFFFFF;
+      text-align: center;
+    }
+    .subtitle {
+      text-align: center;
+      color: #A8B5C8;
+      font-size: 16px;
+      margin-bottom: 30px;
+    }
+    .info-box {
+      background-color: #0A1A2F;
+      border: 1px solid #1E3555;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #1E3555;
+      padding-bottom: 12px;
+    }
+    .info-row:last-child {
+      margin-bottom: 0;
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .label {
+      color: #A8B5C8;
+      font-size: 14px;
+    }
+    .value {
+      color: #FFFFFF;
+      font-weight: 600;
+      font-size: 14px;
+      text-align: right;
+    }
+    .action-button {
+      display: block;
+      width: 100%;
+      background-color: #1E90FF;
+      color: #FFFFFF;
+      text-decoration: none;
+      padding: 16px 0;
+      border-radius: 8px;
+      font-weight: 600;
+      text-align: center;
+      margin: 30px 0;
+      box-shadow: 0 4px 12px rgba(30, 144, 255, 0.3);
+    }
+    .status-badge {
+      display: inline-block;
+      background-color: #10B981;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+    .footer {
+      padding: 30px;
+      text-align: center;
+      border-top: 1px solid #1E3555;
+      color: #64748B;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>Commission Earned!</h1>
-    </div>
-    <div class="content">
-      <p>Hi there,</p>
-      <p>Great news! You've earned a new commission from your referral program.</p>
-      <p><strong>Commission Amount:</strong> <span class="amount">${{formatCurrency commission.amountCents}}</span></p>
-      <p><strong>Order Type:</strong> {{commission.orderType}}</p>
-      <p><strong>Order ID:</strong> {{commission.orderId}}</p>
-      <p>This commission is currently pending and will be available for withdrawal after the 7-day holding period.</p>
-      <a href="{{dashboardUrl}}" class="button">View Dashboard</a>
-      <p>Keep referring to earn more!</p>
-      <p>Best regards,<br>The Voyage Team</p>
+  <div class="wrapper">
+    <div class="container">
+      <div class="header">
+        <div class="logo">VOYAGE</div>
+      </div>
+      
+      <div class="content">
+        <div style="text-align: center;">
+          <span class="status-badge">Commission Earned</span>
+        </div>
+        <h1>New Commission!</h1>
+        <p class="subtitle">You've earned a new commission from your referral.</p>
+        
+        <div class="info-box">
+          <div class="info-row">
+            <span class="label">Amount</span>
+            <span class="value" style="color: #10B981;">${{formatCurrency commission.amountCents}}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Order Type</span>
+            <span class="value" style="text-transform: capitalize;">{{commission.orderType}}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Order ID</span>
+            <span class="value">{{commission.orderId}}</span>
+          </div>
+        </div>
+
+        <p style="text-align: center; font-size: 14px; color: #A8B5C8; margin-bottom: 24px;">
+            This commission is currently pending and will be available for withdrawal after the 7-day holding period.
+        </p>
+
+        <a href="{{dashboardUrl}}" class="action-button">View Dashboard</a>
+      </div>
+
+      <div class="footer">
+        <p style="margin: 0 0 10px;">This is an automated notification from Voyage.</p>
+        <p style="margin: 0;">&copy; 2024 Voyage. All rights reserved.</p>
+      </div>
     </div>
   </div>
 </body>
 </html>
-
-

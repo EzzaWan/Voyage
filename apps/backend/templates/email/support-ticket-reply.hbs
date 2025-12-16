@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Commission Converted</title>
+  <title>Support Ticket Reply</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -85,28 +85,33 @@
       font-size: 14px;
       text-align: right;
     }
-    .action-button {
-      display: block;
-      width: 100%;
-      background-color: #1E90FF;
-      color: #FFFFFF;
-      text-decoration: none;
-      padding: 16px 0;
-      border-radius: 8px;
-      font-weight: 600;
-      text-align: center;
-      margin: 30px 0;
-      box-shadow: 0 4px 12px rgba(30, 144, 255, 0.3);
-    }
-    .status-badge {
-      display: inline-block;
-      background-color: #10B981;
-      color: white;
-      padding: 4px 12px;
-      border-radius: 20px;
+    .section-label {
+      color: #A8B5C8;
       font-size: 12px;
-      font-weight: 600;
-      margin-bottom: 15px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+    .message-bubble {
+      background-color: #0F2540;
+      border: 1px solid #1E3555;
+      border-radius: 8px;
+      padding: 20px;
+      color: #A8B5C8;
+      font-size: 14px;
+      white-space: pre-wrap;
+      margin-bottom: 24px;
+    }
+    .reply-bubble {
+      background-color: rgba(30, 144, 255, 0.1);
+      border: 1px solid #1E90FF;
+      border-radius: 8px;
+      padding: 20px;
+      color: #E9F1FF;
+      font-size: 15px;
+      white-space: pre-wrap;
+      box-shadow: 0 2px 8px rgba(30, 144, 255, 0.1);
     }
     .footer {
       padding: 30px;
@@ -114,6 +119,13 @@
       border-top: 1px solid #1E3555;
       color: #64748B;
       font-size: 12px;
+    }
+    .ticket-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #1E90FF;
+      text-decoration: none;
+      font-weight: 600;
     }
   </style>
 </head>
@@ -125,33 +137,50 @@
       </div>
       
       <div class="content">
-        <div style="text-align: center;">
-          <span class="status-badge">Converted</span>
-        </div>
-        <h1>Converted to V-Cash</h1>
-        <p class="subtitle">Your commission is now available as V-Cash.</p>
+        {{#if adminReply}}
+          <h1>Support Team Reply</h1>
+          <p class="subtitle">Our team has responded to your ticket.</p>
+        {{else}}
+          <h1>Customer Reply</h1>
+          <p class="subtitle">A customer has replied to a ticket.</p>
+        {{/if}}
         
         <div class="info-box">
           <div class="info-row">
-            <span class="label">Amount Converted</span>
-            <span class="value" style="color: #10B981;">{{amountFormatted}}</span>
+            <span class="label">Ticket ID</span>
+            <span class="value">{{ticketId}}</span>
           </div>
           <div class="info-row">
-            <span class="label">New V-Cash Balance</span>
-            <span class="value">{{vcashBalanceFormatted}}</span>
+            <span class="label">Customer</span>
+            <span class="value">{{customerName}}</span>
           </div>
+          {{#if customerEmail}}
+          <div class="info-row">
+            <span class="label">Email</span>
+            <span class="value">{{customerEmail}}</span>
+          </div>
+          {{/if}}
         </div>
 
-        <p style="text-align: center; font-size: 14px; color: #A8B5C8; margin-bottom: 24px;">
-            Your V-Cash is available immediately and can be used for any future Voyage purchases.
-        </p>
+        <div class="section-label">Original Message</div>
+        <div class="message-bubble">{{ticketMessage}}</div>
 
-        <a href="{{dashboardUrl}}" class="action-button">View V-Cash Balance</a>
+        {{#if adminReply}}
+          <div class="section-label" style="color: #1E90FF;">Voyage Support Response</div>
+          <div class="reply-bubble">{{adminReply}}</div>
+        {{else}}
+          <div class="section-label" style="color: #1E90FF;">Customer Response</div>
+          <div class="reply-bubble">{{customerReply}}</div>
+        {{/if}}
       </div>
 
       <div class="footer">
-        <p style="margin: 0 0 10px;">This is an automated notification from Voyage.</p>
-        <p style="margin: 0;">&copy; 2024 Voyage. All rights reserved.</p>
+        <p style="margin: 0 0 10px;">This is an automated notification from the Voyage Support System.</p>
+        {{#if customerEmail}}
+          <p style="margin: 0;">Please respond to the customer at: <a href="mailto:{{customerEmail}}" style="color: #1E90FF; text-decoration: none;">{{customerEmail}}</a></p>
+        {{else}}
+           <p style="margin: 0;">You can view and reply to this ticket in your dashboard.</p>
+        {{/if}}
       </div>
     </div>
   </div>
