@@ -384,5 +384,58 @@ export class AdminOrdersController {
       }
     }
   }
+
+  @Post(':id/resend-receipt')
+  async resendReceipt(@Param('id') id: string, @Req() req: any) {
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+      include: {
+        User: true,
+        EsimProfile: {
+          take: 1, // Just get the first profile if it exists
+          orderBy: { id: 'asc' },
+        },
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Order ${id} not found`);
+    }
+
+    try {
+      // If eSIM profile exists, send combined eSIM ready + receipt email (same as original)
+      // Otherwise, send receipt-only email
+      if (order.EsimProfile && order.EsimProfile.length > 0) {
+        const profile = order.EsimProfile[0];
+        await this.ordersService.sendEsimReadyEmail(order, order.User, order.planId, profile);
+        
+        // Log admin action
+        await this.adminService.logAction(
+          req.adminEmail,
+          'resend_receipt',
+          'order',
+          id,
+          { orderId: id, emailType: 'esim_ready_with_receipt' },
+        );
+
+        return { success: true, message: 'eSIM ready and receipt email sent' };
+      } else {
+        await this.ordersService.sendReceiptEmail(order, order.User, order.planId);
+        
+        // Log admin action
+        await this.adminService.logAction(
+          req.adminEmail,
+          'resend_receipt',
+          'order',
+          id,
+          { orderId: id, emailType: 'receipt_only' },
+        );
+
+        return { success: true, message: 'Receipt email sent' };
+      }
+    } catch (error: any) {
+      throw new BadRequestException(`Failed to resend receipt: ${error.message}`);
+    }
+  }
 }
 

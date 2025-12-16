@@ -171,8 +171,11 @@ export default function AdminOrderDetailPage() {
   const handleResendReceipt = async () => {
     setActionLoading("resend");
     try {
-      const res = await fetch(`${apiUrl}/orders/${params.id}/resend-receipt`, {
+      const res = await fetch(`${apiUrl}/admin/orders/${params.id}/resend-receipt`, {
         method: "POST",
+        headers: {
+          "x-admin-email": user?.primaryEmailAddress?.emailAddress || "",
+        },
       });
 
       if (res.ok) {
