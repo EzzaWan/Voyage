@@ -12,6 +12,8 @@ import { useCurrency } from "@/components/providers/CurrencyProvider";
 import { safeFetch } from "@/lib/safe-fetch";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Package } from "lucide-react";
+import { getPlanFlagLabels } from "@/lib/plan-flags";
+import { PlanFlags } from "@/components/PlanFlags";
 
 interface TopUpOption {
   packageCode: string;
@@ -139,6 +141,10 @@ export default function TopUpSelectionPage() {
             const priceUSD = plan.price || 0;
             const convertedPrice = convert(priceUSD);
             
+            // Extract flags and get cleaned name
+            const flagInfo = getPlanFlagLabels(plan);
+            const displayName = flagInfo.cleanedName || plan.name;
+            
             return (
               <div key={plan.packageCode} className="group h-full flex flex-col bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl p-6 shadow-lg hover:shadow-[var(--voyage-accent)]/20 hover:border-[var(--voyage-accent)] transition-all duration-300 cursor-pointer relative overflow-hidden">
                 
@@ -160,8 +166,11 @@ export default function TopUpSelectionPage() {
                 {/* Content */}
                 <div className="flex-grow space-y-4">
                    <div className="text-sm text-[var(--voyage-muted)] line-clamp-2 min-h-[2.5rem]">
-                      {plan.name}
+                      {displayName}
                    </div>
+                   
+                   {/* Plan Flags (IP type, FUP, etc.) - neutral variant for list page */}
+                   <PlanFlags plan={plan} variant="neutral" />
                    
                    <div className="flex items-center gap-2 text-xs text-[var(--voyage-muted)]">
                       <Globe className="h-3 w-3 text-[var(--voyage-accent-soft)]" />

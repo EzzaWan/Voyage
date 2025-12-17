@@ -16,8 +16,12 @@ export function InstallGuides() {
     setTimeout(() => setCopied(null), 2000);
   };
 
-  const exampleSmdp = "LPA:1$rsp-eu.redteamobile.com$451F9802E6";
-  const exampleAc = "LPA:1$rsp-eu.redteamobile.com$451F9802E6";
+  // Example activation code format: LPA:1$SMDP_ADDRESS$ACTIVATION_CODE
+  const exampleFullAc = "LPA:1$rsp-eu.redteamobile.com$451F9802E6";
+  // Extract SM-DP+ Address (everything up to the last $)
+  const exampleSmdp = exampleFullAc.substring(0, exampleFullAc.lastIndexOf('$'));
+  // Extract Activation Code (everything after the last $)
+  const exampleAc = exampleFullAc.substring(exampleFullAc.lastIndexOf('$') + 1);
 
   return (
     <div className="space-y-6">
@@ -157,7 +161,7 @@ export function InstallGuides() {
                           <div>
                             <span className="text-xs text-[var(--voyage-muted)] block mb-1">SM-DP+ Address</span>
                             <div className="bg-[var(--voyage-bg)] border border-[var(--voyage-border)] rounded-lg p-3 flex items-center justify-between">
-                              <code className="text-sm text-[var(--voyage-muted)] font-mono truncate mr-2">
+                              <code className="text-sm text-white font-mono truncate mr-2">
                                 {exampleSmdp}
                               </code>
                               <Button
@@ -174,7 +178,7 @@ export function InstallGuides() {
                           <div>
                             <span className="text-xs text-[var(--voyage-muted)] block mb-1">Activation Code</span>
                             <div className="bg-[var(--voyage-bg)] border border-[var(--voyage-border)] rounded-lg p-3 flex items-center justify-between">
-                              <code className="text-sm text-[var(--voyage-muted)] font-mono truncate mr-2">
+                              <code className="text-sm text-white font-mono truncate mr-2">
                                 {exampleAc}
                               </code>
                               <Button
@@ -206,7 +210,7 @@ export function InstallGuides() {
 
                 <div className="pt-4 border-t border-[var(--voyage-border)]">
                   <Link href="/support?tab=troubleshooting">
-                    <Button variant="outline" className="border-[var(--voyage-border)] text-white hover:bg-[var(--voyage-bg-light)]">
+                    <Button variant="outline" className="border-[var(--voyage-border)] bg-[var(--voyage-bg-light)] text-white hover:bg-[var(--voyage-card)] hover:border-[var(--voyage-accent)] hover:text-white">
                       Having issues? Check Troubleshooting →
                     </Button>
                   </Link>
@@ -321,7 +325,7 @@ export function InstallGuides() {
 
                 <div className="pt-4 border-t border-[var(--voyage-border)]">
                   <Link href="/support?tab=troubleshooting">
-                    <Button variant="outline" className="border-[var(--voyage-border)] text-white hover:bg-[var(--voyage-bg-light)]">
+                    <Button variant="outline" className="border-[var(--voyage-border)] bg-[var(--voyage-bg-light)] text-white hover:bg-[var(--voyage-card)] hover:border-[var(--voyage-accent)] hover:text-white">
                       Having issues? Check Troubleshooting →
                     </Button>
                   </Link>

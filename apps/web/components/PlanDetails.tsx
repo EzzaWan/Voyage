@@ -22,6 +22,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { getPlanFlagLabels } from "@/lib/plan-flags";
+import { PlanFlags } from "./PlanFlags";
 
 export function PlanDetails({ plan }: { plan: any }) {
   console.log("PLAN DEBUG:", plan);
@@ -46,6 +48,10 @@ export function PlanDetails({ plan }: { plan: any }) {
   // Convert final discounted price to selected currency
   const convertedPrice = convert(finalPriceUSD);
   const priceUSDCents = Math.round(finalPriceUSD * 100);
+
+  // Extract flags and get cleaned name
+  const flagInfo = getPlanFlagLabels(plan);
+  const displayName = flagInfo.cleanedName || plan.name;
 
   // Fetch discounts on mount
   useEffect(() => {
@@ -157,14 +163,14 @@ export function PlanDetails({ plan }: { plan: any }) {
         currency: selectedCurrency,
         displayCurrency: selectedCurrency,
         amount: finalPriceUSD,  // Send final discounted USD price
-        planName: plan.name,
+        planName: displayName, // Use cleaned name without flags
         referralCode: referralCode || undefined, // Only include if exists
         paymentMethod: paymentMethod,
       };
 
       // Debug logging
       console.log('[CHECKOUT] Request body:', requestBody);
-      console.log('[CHECKOUT] Plan object:', { packageCode: plan.packageCode, name: plan.name, price: plan.price });
+      console.log('[CHECKOUT] Plan object:', { packageCode: plan.packageCode, name: displayName, price: plan.price });
 
       const data = await safeFetch<{ url?: string; success?: boolean; orderId?: string; message?: string }>(
         `${apiUrl}/orders`,
@@ -238,7 +244,12 @@ export function PlanDetails({ plan }: { plan: any }) {
                     </span>
                 </div>
                 
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight">{plan.name}</h1>
+                <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">{displayName}</h1>
+                
+                {/* Plan Flags (IP type, FUP, etc.) */}
+                <div className="mb-6">
+                  <PlanFlags plan={plan} />
+                </div>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-[var(--voyage-muted)]">
                    <div className="flex items-center gap-3 p-3 rounded-lg bg-[var(--voyage-bg)]/50 border border-[var(--voyage-border)]/50">

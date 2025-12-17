@@ -15,6 +15,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ExpiryCountdown } from "@/components/esim/expiry-countdown";
 import { getTimeRemaining, getUrgencyLevel } from "@/lib/format-expiry";
 import { AlertCircle } from "lucide-react";
+import { getPlanFlagLabels } from "@/lib/plan-flags";
 
 interface PlanDetails {
   name?: string;
@@ -95,7 +96,9 @@ function formatBytes(bytes: string | number | null | undefined): string {
 // Helper function to format plan display name
 function formatPlanName(planDetails: PlanDetails | undefined, planId?: string): string {
   if (planDetails?.name) {
-    return planDetails.name;
+    // Clean flags from plan name for display
+    const flagInfo = getPlanFlagLabels({ name: planDetails.name });
+    return flagInfo.cleanedName || planDetails.name;
   }
   
   if (planDetails) {
