@@ -13,6 +13,7 @@ import { CurrencyProvider } from "@/components/providers/CurrencyProvider";
 import { CurrencySelector } from "@/components/CurrencySelector";
 import { ReferralTracker } from "@/components/ReferralTracker";
 import { SignupTracker } from "@/components/SignupTracker";
+import { LiveChat } from "@/components/LiveChat";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { ErrorToastProvider } from "@/components/ui/error-toast-provider";
 import { Toaster } from "@/components/ui/toaster";
@@ -91,6 +92,7 @@ export default function RootLayout({
                    {children}
                 </div>
                 <Toaster />
+                <LiveChat />
               </body>
             </html>
           </ErrorToastProvider>

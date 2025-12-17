@@ -10,3 +10,5 @@ SET "discountsJson" = '{"global": {}, "individual": {}}'::jsonb
 WHERE "discountsJson" IS NULL;
 
 
+
+
