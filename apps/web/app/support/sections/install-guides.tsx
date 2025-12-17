@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -73,6 +74,16 @@ export function InstallGuides() {
                         <p className="text-[var(--voyage-muted)] mb-2">
                           Open <strong className="text-white">Settings</strong> &gt; <strong className="text-white">Cellular</strong> (or <strong className="text-white">Mobile Data</strong>) &gt; <strong className="text-white">Add eSIM</strong>.
                         </p>
+                        {/* Add your image here - replace 'iphone-step1-cellular-add-esim.webp' with your actual image filename */}
+                        <div className="mt-3 rounded-lg overflow-hidden border border-[var(--voyage-border)] max-w-sm">
+                          <Image
+                            src="/install-guides/iphone-step1-cellular-add-esim.webp"
+                            alt="iPhone Settings - Cellular - Add eSIM"
+                            width={400}
+                            height={800}
+                            className="w-full h-auto"
+                          />
+                        </div>
                       </div>
                     </div>
 
@@ -84,6 +95,27 @@ export function InstallGuides() {
                         <p className="text-[var(--voyage-muted)] mb-2">
                           Select <strong className="text-white">Use QR Code</strong> and scan the code provided in your Voyage account.
                         </p>
+                        {/* Add your images here - replace filenames with your actual image files */}
+                        <div className="mt-3 space-y-3">
+                          <div className="rounded-lg overflow-hidden border border-[var(--voyage-border)] max-w-sm">
+                            <Image
+                              src="/install-guides/iphone-step2-setup-cellular-qr.webp"
+                              alt="iPhone Set Up Cellular - Use QR Code option"
+                              width={400}
+                              height={800}
+                              className="w-full h-auto"
+                            />
+                          </div>
+                          <div className="rounded-lg overflow-hidden border border-[var(--voyage-border)] max-w-sm">
+                            <Image
+                              src="/install-guides/iphone-step2-scan-qr-code.webp"
+                              alt="iPhone Scan QR Code screen"
+                              width={400}
+                              height={800}
+                              className="w-full h-auto"
+                            />
+                          </div>
+                        </div>
                       </div>
                     </div>
 
@@ -109,6 +141,16 @@ export function InstallGuides() {
                             <li><strong className="text-white">Cellular Data:</strong> Select your new eSIM</li>
                           </ul>
                         </p>
+                        {/* Add your image here - replace filename with your actual image file */}
+                        <div className="mt-3 rounded-lg overflow-hidden border border-[var(--voyage-border)] max-w-sm">
+                          <Image
+                            src="/install-guides/iphone-step4-cellular-data-selection.webp"
+                            alt="iPhone Cellular Data - Select Travel eSIM"
+                            width={400}
+                            height={800}
+                            className="w-full h-auto"
+                          />
+                        </div>
                       </div>
                     </div>
 
@@ -125,6 +167,16 @@ export function InstallGuides() {
                           <li>Ensure <strong className="text-white">Network Selection</strong> is set to Automatic.</li>
                           <li>In <strong className="text-white">Voice & Data</strong>, select LTE or 5G.</li>
                         </ul>
+                        {/* Add your image here - replace filename with your actual image file */}
+                        <div className="mt-3 rounded-lg overflow-hidden border border-[var(--voyage-border)] max-w-sm">
+                          <Image
+                            src="/install-guides/iphone-step5-data-roaming-settings.webp"
+                            alt="iPhone eSIM Settings - Data Roaming toggle"
+                            width={400}
+                            height={800}
+                            className="w-full h-auto"
+                          />
+                        </div>
                       </div>
                     </div>
 
