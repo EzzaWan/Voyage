@@ -62,14 +62,14 @@ export class EsimController {
       throw new NotFoundException('Profile not found');
     }
 
-    // 2. Get original plan details to find location
+    // 2. Get original plan details to find location (optional but helps filter)
     const planId = profile.Order.planId;
     const planDetails = await this.esimService.getPlan(planId);
     const locationCode = planDetails.location; // e.g. 'US'
 
-    // 3. Fetch packages for that location
-    // Usually top-ups are just standard packages for the region
-    const packages = await this.esimService.getPackages(locationCode);
+    // 3. Fetch topup plans specifically for this ICCID (and location for filtering)
+    // This ensures we only get compatible top-up packages for this eSIM
+    const packages = await this.esimService.getTopupPlans(iccid, locationCode);
     return packages.packageList;
   }
 

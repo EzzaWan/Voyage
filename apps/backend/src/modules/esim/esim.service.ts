@@ -219,6 +219,63 @@ export class EsimService {
     };
   }
 
+  // ---- 2B. GET TOPUP PLANS FOR AN ESIM ----
+  async getTopupPlans(iccid: string, locationCode?: string) {
+    const params: { iccid: string; locationCode?: string } = { iccid };
+    if (locationCode) {
+      params.locationCode = locationCode;
+    }
+    const result = await this.esimAccess.packages.getTopupPlans(params);
+    const isMock = await this.mockEnabled();
+
+    // Convert prices from provider format (1/10000th units) to dollars
+    // Same conversion logic as getPackages
+    const packageList = await Promise.all((result?.obj?.packageList || []).map(async (pkg: any) => {
+      const priceFromProvider = pkg.price; // Provider price in 1/10000th units
+      
+      // Convert to cents: provider units / 10000 * 100 = cents
+      // Example: 2500 units / 10000 * 100 = 25 cents
+      const providerPriceCents = priceFromProvider ? Math.round((priceFromProvider / 10000) * 100) : 0;
+      
+      // Apply markup
+      const finalPriceCents = await this.applyMarkup(providerPriceCents);
+      
+      // Convert to dollars for frontend
+      const priceInDollars = finalPriceCents / 100;
+      
+      // Handle currency - always use defaultCurrency setting (overrides provider currencyCode)
+      // Provider prices are always in USD, but we display in defaultCurrency
+      const defaultCurrency = await this.adminSettingsService.getDefaultCurrency();
+      // Use defaultCurrency setting (which defaults to 'USD' if not configured)
+      const currency = defaultCurrency || 'USD';
+      
+      // Convert currency if target is not USD (provider prices are always in USD)
+      let finalPrice = priceInDollars;
+      if (currency && currency.toUpperCase() !== 'USD') {
+        this.logger.log(`[CURRENCY] Converting topup ${pkg.packageCode} from USD to ${currency}: ${priceInDollars} USD`);
+        const convertedCents = await this.currencyConverter.convertCurrency(finalPriceCents, 'USD', currency.toUpperCase());
+        finalPrice = convertedCents / 100;
+        this.logger.log(`[CURRENCY] Converted to ${finalPrice} ${currency}`);
+      } else {
+        this.logger.log(`[CURRENCY] Using USD for topup ${pkg.packageCode}: ${priceInDollars} USD`);
+      }
+      
+      if (!isMock) {
+        this.logger.log(`[ESIM] Topup Package ${pkg.packageCode}: ${priceFromProvider} provider units → ${priceInDollars} dollars (with markup)`);
+      }
+      
+      return {
+        ...pkg,
+        price: finalPrice,
+        currencyCode: currency,
+      };
+    }));
+
+    return {
+      packageList,
+    };
+  }
+
   // ---- 3. GET SINGLE PLAN ----
   async getPlan(packageCode: string) {
     const result = await this.esimAccess.packages.getPackageDetails(packageCode);
