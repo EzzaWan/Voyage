@@ -12,3 +12,5 @@ WHERE "discountsJson" IS NULL;
 
 
 
+
+

@@ -3,6 +3,7 @@ import { OrdersService } from './orders.service';
 import { PrismaService } from '../../prisma.service';
 import { ReceiptService } from '../receipt/receipt.service';
 import { ConfigService } from '@nestjs/config';
+import { StripeService } from '../stripe/stripe.service';
 import { Response } from 'express';
 import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
 import { CsrfGuard } from '../../common/guards/csrf.guard';
@@ -16,6 +17,7 @@ export class OrdersController {
     private readonly prisma: PrismaService,
     private readonly receiptService: ReceiptService,
     private readonly configService: ConfigService,
+    private readonly stripeService: StripeService,
   ) {}
 
   @Post()
@@ -175,6 +177,68 @@ export class OrdersController {
     }
 
     return allowedEmails.includes(normalizedEmail);
+  }
+
+  @Get('by-session/:sessionId')
+  @RateLimit({ limit: 10, window: 60 })
+  async getOrderBySession(@Param('sessionId') sessionId: string) {
+    // paymentRef stores payment_intent ID (not session ID), so we need to:
+    // 1. First try to find by session ID directly (in case payment_intent wasn't available)
+    // 2. If not found, get payment_intent from Stripe session and search by that
+    
+    let order = await this.prisma.order.findFirst({
+      where: {
+        OR: [
+          { paymentRef: sessionId }, // Try session ID directly first
+          { esimOrderNo: `PENDING-${sessionId}` }, // Fallback: check esimOrderNo format
+        ],
+      },
+      select: {
+        id: true,
+        amountCents: true,
+        currency: true,
+        displayCurrency: true,
+        displayAmountCents: true,
+        status: true,
+        paymentMethod: true,
+      },
+    });
+
+    // If not found, try to get payment_intent from Stripe session
+    if (!order && this.stripeService?.stripe) {
+      try {
+        const session = await this.stripeService.stripe.checkout.sessions.retrieve(sessionId);
+        const paymentIntentId = session.payment_intent as string;
+        
+        if (paymentIntentId) {
+          order = await this.prisma.order.findUnique({
+            where: { paymentRef: paymentIntentId },
+            select: {
+              id: true,
+              amountCents: true,
+              currency: true,
+              displayCurrency: true,
+              displayAmountCents: true,
+              status: true,
+              paymentMethod: true,
+            },
+          });
+        }
+      } catch (error) {
+        // Stripe lookup failed, continue with not found
+      }
+    }
+
+    if (!order) {
+      throw new NotFoundException(`Order not found for session ${sessionId}`);
+    }
+
+    return {
+      id: order.id,
+      amountCents: order.displayAmountCents || order.amountCents,
+      currency: order.displayCurrency || order.currency,
+      status: order.status,
+    };
   }
 
   // ============================================

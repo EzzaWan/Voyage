@@ -78,24 +78,36 @@ export default function Home() {
   return (
     <div className="min-h-[80vh] flex flex-col space-y-8">
        <div className="flex flex-col items-center text-center max-w-2xl mx-auto mb-6 space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="inline-flex items-center justify-center p-2 rounded-full bg-[var(--voyage-bg-light)] border border-[var(--voyage-border)] mb-2">
-             <Globe className="h-6 w-6 text-[var(--voyage-accent)]" />
+          <div className="inline-flex items-center justify-center p-2 rounded-full bg-[var(--voyage-bg-light)] border border-[var(--voyage-border)] mb-4">
+             <span className="flex items-center gap-2 text-sm font-medium text-[var(--voyage-text)] px-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+                Active in 190+ Countries
+             </span>
           </div>
-          <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white">
-             Where are you <br />
-             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--voyage-accent)] to-purple-400">traveling next?</span>
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white mb-6 leading-tight">
+             Connectivity without <br />
+             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--voyage-accent)] to-purple-400">boundaries.</span>
           </h1>
-          <p className="text-lg text-[var(--voyage-muted)]">
-             Stay connected in 200+ countries with instant eSIM delivery. No hidden fees. No roaming charges.
+          <p className="text-xl text-[var(--voyage-muted)] max-w-2xl mx-auto leading-relaxed">
+             Instant eSIM delivery for global travelers. Connect in seconds, avoid roaming fees, and travel with confidence.
           </p>
           
-          <div className="pt-2 flex justify-center w-full">
-             <SearchBar value={search} onChange={setSearch} />
+          <div className="pt-8 flex justify-center w-full">
+             <div className="w-full max-w-xl">
+               <SearchBar value={search} onChange={setSearch} />
+             </div>
           </div>
           
-          <Link href="/device-check" className="text-sm text-[var(--voyage-accent)] hover:underline transition-colors">
-            Check if your phone supports eSIM
-          </Link>
+          <div className="flex gap-4 pt-4 text-sm font-medium">
+             <Link href="/regions/europe" className="text-[var(--voyage-muted)] hover:text-white transition-colors">Popular: Europe</Link>
+             <span className="text-[var(--voyage-border)]">•</span>
+             <Link href="/regions/asia" className="text-[var(--voyage-muted)] hover:text-white transition-colors">Asia</Link>
+             <span className="text-[var(--voyage-border)]">•</span>
+             <Link href="/regions/global" className="text-[var(--voyage-muted)] hover:text-white transition-colors">Global</Link>
+          </div>
        </div>
 
        {/* Region Sections */}
