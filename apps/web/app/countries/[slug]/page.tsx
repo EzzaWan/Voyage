@@ -74,7 +74,16 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
       try {
         // Backend still uses country code
         const data = await safeFetch<Plan[]>(`${apiUrl}/countries/${countryCode}/plans`, { showToast: false });
-        setPlans(data || []);
+        
+        // Filter to only show country-specific plans (exclude multi-country/regional plans)
+        // Multi-country plans have comma-separated location codes, single-country plans match exactly
+        const countrySpecificPlans = (data || []).filter((plan: Plan) => {
+          // Only include plans where location exactly matches the country code (single country)
+          // Exclude plans with commas (multi-country regions)
+          return plan.location && !plan.location.includes(',') && plan.location.trim().toUpperCase() === countryCode.toUpperCase();
+        });
+        
+        setPlans(countrySpecificPlans);
       } catch (e) {
         console.error(e);
       } finally {
