@@ -59,7 +59,7 @@ export default clerkMiddleware(async (auth, req) => {
       "style-src 'self' 'unsafe-inline' https://embed.tawk.to https://*.tawk.to",
       "img-src 'self' data: https: blob:",
       "font-src 'self' data: https://embed.tawk.to https://*.tawk.to",
-      "connect-src 'self' https://*.clerk.com https://clerk.voyage-data.com https://api.stripe.com https://*.upstash.io https://voyage-production-881a.up.railway.app https://*.up.railway.app https://ipapi.co https://hcaptcha.com https://*.hcaptcha.com https://challenges.cloudflare.com https://*.cloudflare.com https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://www.google.com https://*.google.com https://*.tawk.to wss://*.tawk.to",
+      "connect-src 'self' https://*.clerk.com https://clerk.voyage-data.com https://api.stripe.com https://*.upstash.io https://voyage-production-881a.up.railway.app https://*.up.railway.app https://ipapi.co https://hcaptcha.com https://*.hcaptcha.com https://challenges.cloudflare.com https://*.cloudflare.com https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://www.google.com https://*.google.com https://*.tawk.to https://va.tawk.to wss://*.tawk.to",
       "frame-src 'self' https://*.clerk.com https://clerk.voyage-data.com https://js.stripe.com https://hcaptcha.com https://*.hcaptcha.com https://challenges.cloudflare.com https://*.cloudflare.com https://www.googletagmanager.com https://*.googletagmanager.com https://*.tawk.to",
       "object-src 'none'",
       "base-uri 'self'",
