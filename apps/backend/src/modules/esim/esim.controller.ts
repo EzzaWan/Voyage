@@ -40,6 +40,30 @@ export class EsimController {
     return this.esimService.getPlan(id);
   }
 
+  @Get('plans/:id/topup-available')
+  async checkPlanTopupAvailable(@Param('id') id: string) {
+    const plan = await this.esimService.getPlan(id);
+    const locationCode = plan.location;
+    
+    // Check supportTopUpType field - this is the primary indicator
+    // 1 = Non-reloadable (NOT top-upable)
+    // 2 = Reloadable (top-upable)
+    const supportTopUpType = plan.supportTopUpType ?? 0;
+    const hasTopupSupport = supportTopUpType === 2;
+    
+    // Note: To definitively check if TOPUP packages exist, we would need an actual ICCID
+    // The API typically requires iccid when querying TOPUP packages
+    // For now, we rely on the supportTopUpType field as the indicator
+    
+    return {
+      packageCode: id,
+      locationCode,
+      supportTopUpType,
+      hasTopup: hasTopupSupport,
+      note: 'Top-up availability is determined by supportTopUpType. To check actual available top-up packages, an ICCID is required.',
+    };
+  }
+
   @Post('esims/:id/topup')
   @RateLimit({ limit: 10, window: 60 })
   async topUp(

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Check, Smartphone, Shield, Wifi, Globe, Download, AlertTriangle, X, ExternalLink, Wallet, CreditCard, ChevronRight } from "lucide-react";
+import { Check, Smartphone, Shield, Wifi, Globe, Download, AlertTriangle, X, ExternalLink, Wallet, CreditCard, ChevronRight, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PriceTag } from "./PriceTag";
 import { FlagIcon } from "./FlagIcon";
@@ -52,6 +52,79 @@ export function PlanDetails({ plan }: { plan: any }) {
   // Extract flags and get cleaned name
   const flagInfo = getPlanFlagLabels(plan);
   const displayName = flagInfo.cleanedName || plan.name;
+
+  // Format plan title nicely - parse components and structure them better
+  const formatPlanTitle = (name: string) => {
+    // Try multiple patterns to extract country, data, and duration
+    // Pattern 1: "Malaysia 3GB 15Days" or "Malaysia 3GB/Day"
+    let match = name.match(/^(.+?)\s+(\d+(?:\.\d+)?)\s*(GB|MB)\s*\/?\s*(\d+)\s*(Days?|Day)?/i);
+    
+    if (match) {
+      const country = match[1].trim();
+      const data = `${match[2]} ${match[3].toUpperCase()}`;
+      const duration = match[4] ? `${match[4]} ${match[5] ? match[5] : 'Days'}` : '';
+      
+      return {
+        country,
+        data,
+        duration,
+        full: name,
+      };
+    }
+    
+    // Pattern 2: "Malaysia 3GB/Day" (with slash)
+    match = name.match(/^(.+?)\s+(\d+(?:\.\d+)?)\s*(GB|MB)\/(Days?|Day)/i);
+    if (match) {
+      const country = match[1].trim();
+      const data = `${match[2]} ${match[3].toUpperCase()}`;
+      return {
+        country,
+        data,
+        duration: `Per ${match[4]}`,
+        full: name,
+      };
+    }
+    
+    // Pattern 3: "Malaysia 3GB 15 Days" (with space before Days)
+    match = name.match(/^(.+?)\s+(\d+(?:\.\d+)?)\s*(GB|MB)\s+(\d+)\s+(Days?|Day)/i);
+    if (match) {
+      const country = match[1].trim();
+      const data = `${match[2]} ${match[3].toUpperCase()}`;
+      const duration = `${match[4]} ${match[5]}`;
+      return {
+        country,
+        data,
+        duration,
+        full: name,
+      };
+    }
+    
+    // Pattern 4: Just country and data "Malaysia 3GB"
+    match = name.match(/^(.+?)\s+(\d+(?:\.\d+)?)\s*(GB|MB)$/i);
+    if (match) {
+      const country = match[1].trim();
+      const data = `${match[2]} ${match[3].toUpperCase()}`;
+      return {
+        country,
+        data,
+        duration: '',
+        full: name,
+      };
+    }
+    
+    // Fallback: return country name as-is, show rest below
+    const parts = name.split(/\s+/);
+    if (parts.length > 1) {
+      const country = parts[0];
+      const rest = parts.slice(1).join(' ');
+      return { country, data: rest, duration: '', full: name };
+    }
+    
+    // Final fallback
+    return { country: name, data: '', duration: '', full: name };
+  };
+
+  const titleParts = formatPlanTitle(displayName);
 
   // Fetch discounts on mount
   useEffect(() => {
@@ -235,21 +308,56 @@ export function PlanDetails({ plan }: { plan: any }) {
             </div>
             
             <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-4">
-                    <span className="px-3 py-1 rounded-full bg-[var(--voyage-accent)]/10 text-[var(--voyage-accent)] text-xs font-bold uppercase tracking-wider border border-[var(--voyage-accent)]/20">
+                <div className="flex items-center flex-wrap gap-3 mb-4">
+                    <span className="px-3 py-1 rounded-full bg-[var(--voyage-accent)]/10 text-[var(--voyage-accent)] text-xs font-semibold tracking-normal border border-[var(--voyage-accent)]/20">
                         Data Only
                     </span>
-                    <span className="px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 text-xs font-bold uppercase tracking-wider border border-purple-500/20">
+                    <span className="px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 text-xs font-semibold tracking-normal border border-purple-500/20">
                         Instant eSIM
                     </span>
+                    {/* IP Location Badge - moved to top */}
+                    {flagInfo.ipType && (
+                      <span className="px-3 py-1 rounded-full bg-purple-500/10 text-purple-300 text-xs font-semibold tracking-normal border border-purple-500/30 hover:bg-purple-500/20">
+                        {flagInfo.ipType.label}
+                      </span>
+                    )}
                 </div>
                 
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">{displayName}</h1>
-                
-                {/* Plan Flags (IP type, FUP, etc.) */}
-                <div className="mb-6">
-                  <PlanFlags plan={plan} />
+                {/* Formatted Plan Title */}
+                <div className="mb-4">
+                  <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight mb-2">
+                    {titleParts.country}
+                  </h1>
+                  {(titleParts.data || titleParts.duration) && (
+                    <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 mt-1">
+                      {titleParts.data && (
+                        <span className="text-xl md:text-2xl font-semibold text-[var(--voyage-accent)]">
+                          {titleParts.data}
+                        </span>
+                      )}
+                      {titleParts.duration && (
+                        <span className="text-lg md:text-xl font-medium text-[var(--voyage-muted)]">
+                          • {titleParts.duration}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {!titleParts.data && !titleParts.duration && titleParts.full !== titleParts.country && (
+                    <div className="text-lg md:text-xl font-medium text-[var(--voyage-muted)] mt-1">
+                      {titleParts.full.replace(titleParts.country, '').trim()}
+                    </div>
+                  )}
                 </div>
+                
+                {/* FUP Badge only (IP location moved to top) */}
+                {flagInfo.fup && (
+                  <div className="mb-6">
+                    <PlanFlags 
+                      plan={plan} 
+                      showIP={false} 
+                    />
+                  </div>
+                )}
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-[var(--voyage-muted)]">
                    <div className="flex items-center gap-3 p-3 rounded-lg bg-[var(--voyage-bg)]/50 border border-[var(--voyage-border)]/50">
@@ -349,7 +457,7 @@ export function PlanDetails({ plan }: { plan: any }) {
                    {plan.locationNetworkList.map((net: any, i: number) => (
                        <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-[var(--voyage-bg-light)] border border-[var(--voyage-border)] hover:border-[var(--voyage-accent)]/30 transition-colors">
                            <div className="flex items-center gap-3">
-                               <div className="h-10 w-10 rounded-full overflow-hidden relative border-2 border-[var(--voyage-bg)] shadow-md flex-shrink-0">
+                               <div className="h-10 w-10 rounded-lg overflow-hidden relative border-2 border-[var(--voyage-border)] shadow-md flex-shrink-0">
                                    <FlagIcon 
                                      logoUrl={`https://flagcdn.com/w320/${net.locationCode.toLowerCase().split('-')[0]}.png`} 
                                      alt={net.locationCode} 
@@ -477,10 +585,19 @@ export function PlanDetails({ plan }: { plan: any }) {
                          <Check className="h-4 w-4 text-green-500" />
                          <span>Quick QR code installation</span>
                      </div>
-                     <div className="flex items-center gap-3 text-sm text-[var(--voyage-muted)]">
-                         <Check className="h-4 w-4 text-green-500" />
-                         <span>Top-up available anytime</span>
-                     </div>
+                     {/* Show top-up availability based on supportTopUpType */}
+                     {/* supportTopUpType: 1 = Non-reloadable, 2 = Reloadable (top-upable) */}
+                     {plan.supportTopUpType === 2 ? (
+                         <div className="flex items-center gap-3 text-sm text-[var(--voyage-muted)]">
+                             <Check className="h-4 w-4 text-green-500" />
+                             <span>Top-up available anytime</span>
+                         </div>
+                     ) : plan.supportTopUpType === 1 ? (
+                         <div className="flex items-center gap-3 text-sm text-[var(--voyage-muted)]">
+                             <XCircle className="h-4 w-4 text-red-500" />
+                             <span>Top-up not available</span>
+                         </div>
+                     ) : null}
                  </div>
 
                  <Button 

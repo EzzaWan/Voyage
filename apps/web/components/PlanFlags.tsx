@@ -14,13 +14,15 @@ interface PlanFlagsProps {
   plan: any;
   className?: string;
   variant?: 'colored' | 'neutral'; // 'neutral' removes color coding for list pages
+  showIP?: boolean; // Whether to show IP location badge (default: true)
 }
 
-export function PlanFlags({ plan, className = "", variant = 'colored' }: PlanFlagsProps) {
+export function PlanFlags({ plan, className = "", variant = 'colored', showIP = true }: PlanFlagsProps) {
   const flagInfo = getPlanFlagLabels(plan);
 
-  // Don't render anything if there are no flags
-  if (flagInfo.rawFlags.length === 0) {
+  // Don't render anything if there are no flags to show
+  const hasFlagsToShow = (showIP && flagInfo.ipType) || flagInfo.fup;
+  if (!hasFlagsToShow || flagInfo.rawFlags.length === 0) {
     return null;
   }
 
@@ -38,8 +40,8 @@ export function PlanFlags({ plan, className = "", variant = 'colored' }: PlanFla
   return (
     <TooltipProvider delayDuration={200} skipDelayDuration={0}>
       <div className={`flex flex-wrap gap-2 ${className}`}>
-        {/* IP Type Badge */}
-        {flagInfo.ipType && (
+        {/* IP Type Badge - only show if showIP is true */}
+        {showIP && flagInfo.ipType && (
           <Badge
             variant="outline"
             className={ipBadgeClass}

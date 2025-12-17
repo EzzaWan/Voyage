@@ -75,15 +75,26 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
         // Backend still uses country code
         const data = await safeFetch<Plan[]>(`${apiUrl}/countries/${countryCode}/plans`, { showToast: false });
         
-        // Filter to only show country-specific plans (exclude multi-country/regional plans)
-        // Multi-country plans have comma-separated location codes, single-country plans match exactly
-        const countrySpecificPlans = (data || []).filter((plan: Plan) => {
-          // Only include plans where location exactly matches the country code (single country)
-          // Exclude plans with commas (multi-country regions)
-          return plan.location && !plan.location.includes(',') && plan.location.trim().toUpperCase() === countryCode.toUpperCase();
-        });
+        // Check if this is a valid country code (2 letters) vs a region/plan code (like "as-12")
+        const isValidCountryCode = /^[A-Z]{2}$/.test(countryCode);
         
-        setPlans(countrySpecificPlans);
+        // Filter plans based on whether this is a single country page or a multi-region plan page
+        let filteredPlans: Plan[];
+        if (isValidCountryCode) {
+          // For actual country pages: only show country-specific plans (exclude multi-country/regional plans)
+          // Multi-country plans have comma-separated location codes, single-country plans match exactly
+          filteredPlans = (data || []).filter((plan: Plan) => {
+            // Only include plans where location exactly matches the country code (single country)
+            // Exclude plans with commas (multi-country regions)
+            return plan.location && !plan.location.includes(',') && plan.location.trim().toUpperCase() === countryCode.toUpperCase();
+          });
+        } else {
+          // For region/plan codes (like "as-12"): show all plans including multi-region ones
+          // The backend should already filter by the region code, so we just return all plans
+          filteredPlans = data || [];
+        }
+        
+        setPlans(filteredPlans);
       } catch (e) {
         console.error(e);
       } finally {
