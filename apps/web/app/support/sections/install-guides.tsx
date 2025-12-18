@@ -27,11 +27,11 @@ export function InstallGuides() {
   return (
     <div className="space-y-6">
       <div className="mb-6">
-        <p className="text-[var(--voyage-muted)]">
+        <p className="text-sm md:text-base text-[var(--voyage-muted)]">
           Follow these step-by-step guides to install your eSIM on your device. Installation usually takes less than 5 minutes.
         </p>
         <Link href="/support/device-check" className="inline-block mt-4">
-          <Button className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white">
+          <Button className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white w-full sm:w-auto">
             <Smartphone className="h-4 w-4 mr-2" />
             Check if your device supports eSIM
           </Button>
@@ -41,15 +41,15 @@ export function InstallGuides() {
       <Accordion type="single" collapsible className="w-full">
         {/* iPhone Installation */}
         <AccordionItem value="iphone">
-          <AccordionTrigger className="text-white text-xl font-semibold">
-            <div className="flex items-center gap-3">
-              <Smartphone className="h-5 w-5" />
-              iPhone Installation Guide
+          <AccordionTrigger className="text-white text-lg md:text-xl font-semibold px-2 sm:px-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Smartphone className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+              <span className="text-left">iPhone Installation Guide</span>
             </div>
           </AccordionTrigger>
           <AccordionContent>
             <Card className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] mt-4">
-              <CardContent className="p-6 space-y-8">
+              <CardContent className="p-4 sm:p-6 space-y-6 md:space-y-8">
                 
                 {/* Before You Begin */}
                 <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
@@ -67,15 +67,15 @@ export function InstallGuides() {
                   <div className="space-y-6">
                     
                     {/* Step 1 */}
-                    <div className="flex gap-4">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold">1</div>
-                      <div className="flex-1">
+                    <div className="flex gap-3 sm:gap-4">
+                      <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold text-sm sm:text-base">1</div>
+                      <div className="flex-1 min-w-0">
                         <h4 className="text-white font-semibold mb-1">Access Cellular Settings</h4>
                         <p className="text-[var(--voyage-muted)] mb-2">
                           Open <strong className="text-white">Settings</strong> &gt; <strong className="text-white">Cellular</strong> (or <strong className="text-white">Mobile Data</strong>) &gt; <strong className="text-white">Add eSIM</strong>.
                         </p>
                         {/* Add your image here - replace 'iphone-step1-cellular-add-esim.webp' with your actual image filename */}
-                        <div className="mt-3 rounded-lg overflow-hidden border border-[var(--voyage-border)] max-w-sm">
+                        <div className="mt-3 rounded-lg overflow-hidden border border-[var(--voyage-border)] w-full max-w-sm">
                           <Image
                             src="/install-guides/iphone-step1-cellular-add-esim.webp"
                             alt="iPhone Settings - Cellular - Add eSIM"
@@ -88,16 +88,16 @@ export function InstallGuides() {
                     </div>
 
                     {/* Step 2 */}
-                    <div className="flex gap-4">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold">2</div>
-                      <div className="flex-1">
+                    <div className="flex gap-3 sm:gap-4">
+                      <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold text-sm sm:text-base">2</div>
+                      <div className="flex-1 min-w-0">
                         <h4 className="text-white font-semibold mb-1">Scan QR Code</h4>
                         <p className="text-[var(--voyage-muted)] mb-2">
                           Select <strong className="text-white">Use QR Code</strong> and scan the code provided in your Voyage account.
                         </p>
                         {/* Add your images here - replace filenames with your actual image files */}
                         <div className="mt-3 space-y-3">
-                          <div className="rounded-lg overflow-hidden border border-[var(--voyage-border)] max-w-sm">
+                          <div className="rounded-lg overflow-hidden border border-[var(--voyage-border)] w-full max-w-sm">
                             <Image
                               src="/install-guides/iphone-step2-setup-cellular-qr.webp"
                               alt="iPhone Set Up Cellular - Use QR Code option"
@@ -120,9 +120,9 @@ export function InstallGuides() {
                     </div>
 
                     {/* Step 3 */}
-                    <div className="flex gap-4">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold">3</div>
-                      <div className="flex-1">
+                    <div className="flex gap-3 sm:gap-4">
+                      <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold text-sm sm:text-base">3</div>
+                      <div className="flex-1 min-w-0">
                         <h4 className="text-white font-semibold mb-1">Label Your eSIM</h4>
                         <p className="text-[var(--voyage-muted)] mb-2">
                           Give your new eSIM a name like "Travel" or "Voyage" to identify it easily.
@@ -131,9 +131,9 @@ export function InstallGuides() {
                     </div>
 
                     {/* Step 4 */}
-                    <div className="flex gap-4">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold">4</div>
-                      <div className="flex-1">
+                    <div className="flex gap-3 sm:gap-4">
+                      <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold text-sm sm:text-base">4</div>
+                      <div className="flex-1 min-w-0">
                         <h4 className="text-white font-semibold mb-1">Set Default Line Preferences</h4>
                         <p className="text-[var(--voyage-muted)] mb-2">
                           <ul className="list-disc list-inside space-y-1 ml-1">
@@ -142,7 +142,7 @@ export function InstallGuides() {
                           </ul>
                         </p>
                         {/* Add your image here - replace filename with your actual image file */}
-                        <div className="mt-3 rounded-lg overflow-hidden border border-[var(--voyage-border)] max-w-sm">
+                        <div className="mt-3 rounded-lg overflow-hidden border border-[var(--voyage-border)] w-full max-w-sm">
                           <Image
                             src="/install-guides/iphone-step4-cellular-data-selection.webp"
                             alt="iPhone Cellular Data - Select Travel eSIM"
@@ -155,9 +155,9 @@ export function InstallGuides() {
                     </div>
 
                     {/* Step 5 */}
-                    <div className="flex gap-4">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold">5</div>
-                      <div className="flex-1">
+                    <div className="flex gap-3 sm:gap-4">
+                      <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold text-sm sm:text-base">5</div>
+                      <div className="flex-1 min-w-0">
                         <h4 className="text-white font-semibold mb-1">Configure Network Settings</h4>
                         <p className="text-[var(--voyage-muted)] mb-2">
                           Go to <strong className="text-white">Settings</strong> &gt; <strong className="text-white">Cellular</strong> &gt; Select your new eSIM:
@@ -168,7 +168,7 @@ export function InstallGuides() {
                           <li>In <strong className="text-white">Voice & Data</strong>, select LTE or 5G.</li>
                         </ul>
                         {/* Add your image here - replace filename with your actual image file */}
-                        <div className="mt-3 rounded-lg overflow-hidden border border-[var(--voyage-border)] max-w-sm">
+                        <div className="mt-3 rounded-lg overflow-hidden border border-[var(--voyage-border)] w-full max-w-sm">
                           <Image
                             src="/install-guides/iphone-step5-data-roaming-settings.webp"
                             alt="iPhone eSIM Settings - Data Roaming toggle"
@@ -191,9 +191,9 @@ export function InstallGuides() {
                   <div className="space-y-6">
                     <p className="text-[var(--voyage-muted)]">If you cannot scan the QR code, enter details manually.</p>
                     
-                    <div className="flex gap-4">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold">1</div>
-                      <div className="flex-1">
+                    <div className="flex gap-3 sm:gap-4">
+                      <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold text-sm sm:text-base">1</div>
+                      <div className="flex-1 min-w-0">
                         <h4 className="text-white font-semibold mb-1">Enter Details Manually</h4>
                         <p className="text-[var(--voyage-muted)] mb-2">
                           Go to <strong className="text-white">Settings</strong> &gt; <strong className="text-white">Cellular</strong> &gt; <strong className="text-white">Add eSIM</strong> &gt; <strong className="text-white">Enter Details Manually</strong>.
@@ -201,9 +201,9 @@ export function InstallGuides() {
                       </div>
                     </div>
 
-                    <div className="flex gap-4">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold">2</div>
-                      <div className="flex-1">
+                    <div className="flex gap-3 sm:gap-4">
+                      <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold text-sm sm:text-base">2</div>
+                      <div className="flex-1 min-w-0">
                         <h4 className="text-white font-semibold mb-1">Copy & Paste Info</h4>
                         <p className="text-[var(--voyage-muted)] mb-3">
                           Copy the SM-DP+ Address and Activation Code from your Voyage account:
@@ -247,9 +247,9 @@ export function InstallGuides() {
                       </div>
                     </div>
 
-                    <div className="flex gap-4">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold">3</div>
-                      <div className="flex-1">
+                    <div className="flex gap-3 sm:gap-4">
+                      <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold text-sm sm:text-base">3</div>
+                      <div className="flex-1 min-w-0">
                         <h4 className="text-white font-semibold mb-1">Finish Setup</h4>
                         <p className="text-[var(--voyage-muted)]">
                           Follow the prompts to label your plan and configure network settings as shown in Method 1 (Steps 3-5).
@@ -274,21 +274,21 @@ export function InstallGuides() {
 
         {/* Android Installation */}
         <AccordionItem value="android">
-          <AccordionTrigger className="text-white text-xl font-semibold">
-            <div className="flex items-center gap-3">
-              <Smartphone className="h-5 w-5" />
-              Android Installation Guide (Samsung, Google Pixel, etc.)
+          <AccordionTrigger className="text-white text-lg md:text-xl font-semibold px-2 sm:px-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Smartphone className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+              <span className="text-left">Android Installation Guide <span className="hidden sm:inline">(Samsung, Google Pixel, etc.)</span></span>
             </div>
           </AccordionTrigger>
           <AccordionContent>
             <Card className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] mt-4">
-              <CardContent className="p-6 space-y-6">
+              <CardContent className="p-4 sm:p-6 space-y-6">
                 <div className="space-y-4">
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold">
+                  <div className="flex gap-3 sm:gap-4">
+                    <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold text-sm sm:text-base">
                       1
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <h3 className="text-white font-semibold mb-2">Scan QR Code</h3>
                       <p className="text-[var(--voyage-muted)] mb-3">
                         For most Android devices with eSIM support:

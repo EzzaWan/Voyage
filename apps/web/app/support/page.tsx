@@ -24,45 +24,55 @@ function SupportContent() {
 
   return (
     <div className="min-h-screen py-10">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Help Center</h1>
-          <p className="text-[var(--voyage-muted)]">
+      <div className="max-w-6xl mx-auto px-4 md:px-6">
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Help Center</h1>
+          <p className="text-sm md:text-base text-[var(--voyage-muted)]">
             Find answers, installation guides, and get support
           </p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-7 mb-6">
-            <TabsTrigger value="install" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              <span className="hidden md:inline">Install Guides</span>
-            </TabsTrigger>
-            <TabsTrigger value="troubleshooting" className="flex items-center gap-2">
-              <Wrench className="h-4 w-4" />
-              <span className="hidden md:inline">Troubleshooting</span>
-            </TabsTrigger>
-            <TabsTrigger value="device" className="flex items-center gap-2">
-              <Smartphone className="h-4 w-4" />
-              <span className="hidden md:inline">Device Check</span>
-            </TabsTrigger>
-            <TabsTrigger value="refund" className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
-              <span className="hidden md:inline">Refund Policy</span>
-            </TabsTrigger>
-            <TabsTrigger value="terms" className="flex items-center gap-2">
-              <Scale className="h-4 w-4" />
-              <span className="hidden md:inline">Terms</span>
-            </TabsTrigger>
-            <TabsTrigger value="affiliate-terms" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              <span className="hidden md:inline">Affiliate Terms</span>
-            </TabsTrigger>
-            <TabsTrigger value="contact" className="flex items-center gap-2">
-              <Mail className="h-4 w-4" />
-              <span className="hidden md:inline">Contact</span>
-            </TabsTrigger>
-          </TabsList>
+          <div className="mb-6 overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+            <TabsList className="inline-flex w-auto min-w-full md:grid md:w-full md:grid-cols-4 lg:grid-cols-7 gap-1 md:gap-2">
+              <TabsTrigger value="install" className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm whitespace-nowrap px-3 sm:px-4 py-2 h-auto">
+                <FileText className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Install Guides</span>
+                <span className="sm:hidden">Install</span>
+              </TabsTrigger>
+              <TabsTrigger value="troubleshooting" className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm whitespace-nowrap px-3 sm:px-4 py-2 h-auto">
+                <Wrench className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Troubleshooting</span>
+                <span className="sm:hidden">Help</span>
+              </TabsTrigger>
+              <TabsTrigger value="device" className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm whitespace-nowrap px-3 sm:px-4 py-2 h-auto">
+                <Smartphone className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Device Check</span>
+                <span className="sm:hidden">Device</span>
+              </TabsTrigger>
+              <TabsTrigger value="refund" className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm whitespace-nowrap px-3 sm:px-4 py-2 h-auto">
+                <DollarSign className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Refund Policy</span>
+                <span className="sm:hidden">Refund</span>
+              </TabsTrigger>
+              <TabsTrigger value="terms" className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm whitespace-nowrap px-3 sm:px-4 py-2 h-auto">
+                <Scale className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Terms</span>
+                <span className="sm:hidden">Terms</span>
+              </TabsTrigger>
+              <TabsTrigger value="affiliate-terms" className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm whitespace-nowrap px-3 sm:px-4 py-2 h-auto">
+                <Users className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden lg:inline">Affiliate Terms</span>
+                <span className="hidden sm:inline lg:hidden">Affiliate</span>
+                <span className="sm:hidden">Affiliate</span>
+              </TabsTrigger>
+              <TabsTrigger value="contact" className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm whitespace-nowrap px-3 sm:px-4 py-2 h-auto">
+                <Mail className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Contact</span>
+                <span className="sm:hidden">Contact</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="install">
             <InstallGuides />
@@ -151,11 +161,11 @@ function SupportContent() {
 export default function SupportPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen py-10">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2">Help Center</h1>
-            <p className="text-[var(--voyage-muted)]">
+      <div className="min-h-screen py-6 md:py-10">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
+          <div className="mb-6 md:mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Help Center</h1>
+            <p className="text-sm md:text-base text-[var(--voyage-muted)]">
               Find answers, installation guides, and get support
             </p>
           </div>

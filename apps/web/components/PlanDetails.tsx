@@ -360,7 +360,7 @@ export function PlanDetails({ plan }: { plan: any }) {
                 )}
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-[var(--voyage-muted)]">
-                   <div className="flex items-center gap-3 p-3 rounded-lg bg-[var(--voyage-bg)]/50 border border-[var(--voyage-border)]/50">
+                   <div className="flex items-center gap-3 p-3 rounded-lg bg-[var(--voyage-bg)]/50 border" style={{ borderColor: 'hsl(214.91deg 47.83% 22.55%)' }}>
                       <div className="p-2 bg-[var(--voyage-accent)]/10 rounded-full">
                         <Globe className="h-5 w-5 text-[var(--voyage-accent)]" />
                       </div>
@@ -405,7 +405,7 @@ export function PlanDetails({ plan }: { plan: any }) {
                       </div>
                    </div>
                    
-                   <div className="flex items-center gap-3 p-3 rounded-lg bg-[var(--voyage-bg)]/50 border border-[var(--voyage-border)]/50">
+                   <div className="flex items-center gap-3 p-3 rounded-lg bg-[var(--voyage-bg)]/50 border" style={{ borderColor: 'hsl(214.91deg 47.83% 22.55%)' }}>
                       <div className="p-2 bg-[var(--voyage-accent)]/10 rounded-full">
                         <Wifi className="h-5 w-5 text-[var(--voyage-accent)]" />
                       </div>

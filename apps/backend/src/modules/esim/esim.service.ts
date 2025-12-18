@@ -141,6 +141,7 @@ export class EsimService {
         normalizedList.push({
           code: location.code,
           name: location.name,
+          type: location.type, // Preserve type field (1 = country, 2 = region)
           locationLogo: this.getFlagUrl(location.code, location.type),
         });
         seenCodes.add(location.code);
@@ -153,6 +154,7 @@ export class EsimService {
             normalizedList.push({
               code: subLoc.code,
               name: subLoc.name,
+              type: 1, // Sub-locations are countries (type 1)
               locationLogo: this.getFlagUrl(subLoc.code, 1), // Sub-locations are countries (type 1)
             });
             seenCodes.add(subLoc.code);

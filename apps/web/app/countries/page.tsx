@@ -11,6 +11,7 @@ interface Country {
   code: string;
   name: string;
   locationLogo?: string;
+  type?: number; // 1 = country, 2 = region
 }
 
 export default function CountriesPage() {
@@ -25,8 +26,11 @@ export default function CountriesPage() {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
         const data = await safeFetch<any>(`${apiUrl}/countries`, { showToast: false });
         // Handle both array and { locationList: [...] } formats
-        const countriesArray = Array.isArray(data) ? data : (data.locationList || []);
-        const sorted = (countriesArray || []).sort((a: Country, b: Country) => a.name.localeCompare(b.name));
+        const locationArray = Array.isArray(data) ? data : (data.locationList || []);
+        
+        // Filter to only show countries (type === 1), exclude regions (type === 2)
+        const countriesList = locationArray.filter((item: Country) => item.type === 1 || !item.type); // Include items without type for backward compatibility
+        const sorted = countriesList.sort((a: Country, b: Country) => a.name.localeCompare(b.name));
         setCountries(sorted);
         setFiltered(sorted);
       } catch (error) {

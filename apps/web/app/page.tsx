@@ -13,11 +13,14 @@ interface Country {
   code: string;
   name: string;
   locationLogo?: string;
+  type?: number; // 1 = country, 2 = region
 }
 
 export default function Home() {
   const [countries, setCountries] = useState<Country[]>([]);
+  const [regions, setRegions] = useState<Country[]>([]);
   const [filtered, setFiltered] = useState<Country[]>([]);
+  const [filteredRegions, setFilteredRegions] = useState<Country[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -28,11 +31,21 @@ export default function Home() {
         const data = await safeFetch<any>(`${apiUrl}/countries`, { showToast: false });
         console.log('[HOME] Received countries data:', data);
         // Handle both array and { locationList: [...] } formats
-        const countriesArray = Array.isArray(data) ? data : (data.locationList || []);
-        console.log('[HOME] Countries array:', countriesArray.slice(0, 3));
-        const sorted = (countriesArray || []).sort((a: Country, b: Country) => a.name.localeCompare(b.name));
-        setCountries(sorted);
-        setFiltered(sorted);
+        const locationArray = Array.isArray(data) ? data : (data.locationList || []);
+        console.log('[HOME] Locations array:', locationArray.slice(0, 3));
+        
+        // Separate countries (type === 1) from regions (type === 2)
+        // Explicitly filter: countries must be type === 1, regions must be type === 2
+        const countriesList = locationArray.filter((item: Country) => item.type === 1); // Only countries
+        const regionsList = locationArray.filter((item: Country) => item.type === 2); // Only regions
+        
+        const sortedCountries = countriesList.sort((a: Country, b: Country) => a.name.localeCompare(b.name));
+        const sortedRegions = regionsList.sort((a: Country, b: Country) => a.name.localeCompare(b.name));
+        
+        setCountries(sortedCountries);
+        setRegions(sortedRegions);
+        setFiltered(sortedCountries);
+        setFilteredRegions(sortedRegions);
       } catch (error) {
         console.error("Failed to fetch countries", error);
       } finally {
@@ -67,13 +80,15 @@ export default function Home() {
   useEffect(() => {
     if (!search) {
       setFiltered(countries);
+      setFilteredRegions(regions);
     } else {
       const lower = search.toLowerCase();
       setFiltered(countries.filter(c => c.name.toLowerCase().includes(lower)));
+      setFilteredRegions(regions.filter(r => r.name.toLowerCase().includes(lower)));
     }
-  }, [search, countries]);
+  }, [search, countries, regions]);
 
-  const regions: Region[] = ["asia", "europe", "north-america", "south-america", "africa", "oceania", "global"];
+  const regionGroups: Region[] = ["asia", "europe", "north-america", "south-america", "africa", "oceania", "global"];
 
   return (
     <div className="min-h-[80vh] flex flex-col space-y-8">
@@ -100,14 +115,6 @@ export default function Home() {
                <SearchBar value={search} onChange={setSearch} />
              </div>
           </div>
-          
-          <div className="flex gap-4 pt-4 text-sm font-medium">
-             <Link href="/regions/europe" className="text-[var(--voyage-muted)] hover:text-white transition-colors">Popular: Europe</Link>
-             <span className="text-[var(--voyage-border)]">•</span>
-             <Link href="/regions/asia" className="text-[var(--voyage-muted)] hover:text-white transition-colors">Asia</Link>
-             <span className="text-[var(--voyage-border)]">•</span>
-             <Link href="/regions/global" className="text-[var(--voyage-muted)] hover:text-white transition-colors">Global</Link>
-          </div>
        </div>
 
        {/* Region Sections */}
@@ -129,7 +136,7 @@ export default function Home() {
              </div>
            ) : (
              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-               {regions.map((region) => {
+               {regionGroups.map((region) => {
                  const regionCountries = countriesByRegion[region];
                  // Always show Global region, even if empty
                  if (region !== "global" && regionCountries.length === 0) return null;
@@ -159,7 +166,7 @@ export default function Home() {
          </div>
        )}
 
-       {/* All Countries Grid */}
+       {/* All Countries Grid (type 1 only) */}
        <div className="space-y-4">
          <h2 className="text-2xl font-bold text-white">
            {search ? `Search Results` : "All Countries"}
@@ -177,14 +184,26 @@ export default function Home() {
                  <CountryCard key={country.code} country={country} />
               ))}
               
-              {filtered.length === 0 && (
+              {filtered.length === 0 && !loading && (
                  <div className="col-span-full text-center py-20 text-[var(--voyage-muted)]">
-                    No countries found matching "{search}"
+                    {search ? `No countries found matching "${search}"` : "No countries available"}
                  </div>
               )}
            </div>
          )}
        </div>
+
+       {/* Regions List (type 2) */}
+       {!search && filteredRegions.length > 0 && (
+         <div className="space-y-4">
+           <h2 className="text-2xl font-bold text-white">Regions</h2>
+           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 animate-in fade-in duration-1000">
+             {filteredRegions.map((region) => (
+               <CountryCard key={region.code} country={region} />
+             ))}
+           </div>
+         </div>
+       )}
     </div>
   );
 }

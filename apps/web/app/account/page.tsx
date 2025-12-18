@@ -51,7 +51,7 @@ export default function AccountPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-8">
+    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-white mb-2">Account</h1>
         <p className="text-[var(--voyage-muted)]">Manage your account settings</p>
@@ -76,8 +76,8 @@ export default function AccountPage() {
           <p className="text-sm text-[var(--voyage-muted)]">
             V-Cash is store credit you can use on Voyage purchases. Get V-Cash from refunds or affiliate earnings.
           </p>
-          <Link href="/account/vcash">
-            <Button variant="outline" className="border-[var(--voyage-border)]">
+          <Link href="/account/vcash" className="inline-block">
+            <Button variant="outline" className="border-[var(--voyage-border)] w-full sm:w-auto">
               View V-Cash Details
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
@@ -98,8 +98,8 @@ export default function AccountPage() {
             Earn 10% lifetime commissions on all purchases from your referrals (initial eSIM purchases and top-ups).
             Share your unique referral link and start earning today!
           </p>
-          <Link href="/account/affiliate">
-            <Button className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white">
+          <Link href="/account/affiliate" className="inline-block">
+            <Button className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white w-full sm:w-auto">
               View Affiliate Dashboard
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
@@ -119,15 +119,15 @@ export default function AccountPage() {
           <p className="text-[var(--voyage-muted)]">
             View all your support tickets and responses from our support team.
           </p>
-          <div className="flex gap-3">
-            <Link href="/account/support">
-              <Button variant="outline" className="border-[var(--voyage-border)]">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link href="/account/support" className="w-full sm:w-auto">
+              <Button variant="outline" className="border-[var(--voyage-border)] w-full sm:w-auto">
                 View My Tickets
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </Link>
-            <Link href="/support/contact">
-              <Button className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white">
+            <Link href="/support/contact" className="w-full sm:w-auto">
+              <Button className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white w-full sm:w-auto">
                 Create New Ticket
               </Button>
             </Link>

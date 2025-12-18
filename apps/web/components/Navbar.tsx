@@ -5,16 +5,25 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Globe, LifeBuoy, LogIn, UserPlus, ShoppingBag } from "lucide-react";
+import { Menu, X, Globe, LifeBuoy, LogIn, UserPlus, ShoppingBag, User, Smartphone, LogOut } from "lucide-react";
 import { CurrencySelector } from "@/components/CurrencySelector";
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, useClerk } from "@clerk/nextjs";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { NavigationUserMenu } from "@/components/NavigationUserMenu";
+import { useRouter } from "next/navigation";
 
 export function Navbar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const { isAdmin } = useIsAdmin();
+  const { signOut } = useClerk();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    setIsOpen(false);
+    await signOut();
+    router.push("/");
+  };
 
   const navLinks = [
     { name: "eSIM Plans", href: "/", icon: <ShoppingBag className="h-4 w-4" /> },
@@ -134,10 +143,30 @@ export function Navbar() {
                   </SignedOut>
 
                   <SignedIn>
-                    <div className="flex items-center gap-4 px-2 py-2">
-                      <NavigationUserMenu />
-                      <span className="text-sm font-medium text-white">My Account</span>
-                    </div>
+                    <h4 className="text-xs font-semibold text-[var(--voyage-muted)] uppercase tracking-wider">Account</h4>
+                    <Link 
+                      href="/account" 
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-[var(--voyage-text)] hover:bg-[var(--voyage-bg-light)]"
+                    >
+                      <User className="h-4 w-4" />
+                      <span className="font-medium">My Account</span>
+                    </Link>
+                    <Link 
+                      href="/my-esims" 
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-[var(--voyage-text)] hover:bg-[var(--voyage-bg-light)]"
+                    >
+                      <Smartphone className="h-4 w-4" />
+                      <span className="font-medium">My eSIMs</span>
+                    </Link>
+                    <button
+                      onClick={handleSignOut}
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-[var(--voyage-text)] hover:bg-[var(--voyage-bg-light)] w-full text-left"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span className="font-medium">Sign out</span>
+                    </button>
                   </SignedIn>
                 </div>
               </div>

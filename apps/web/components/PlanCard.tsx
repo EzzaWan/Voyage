@@ -85,15 +85,20 @@ export function PlanCard({ plan }: PlanCardProps) {
            {/* Flags mini-list if multi-region */}
            {regionCount > 1 && (
               <div className="flex -space-x-2 overflow-hidden py-1">
-                 {plan.locationNetworkList?.slice(0, 5).map((net, i) => (
-                    <div key={i} className="relative h-6 w-6 rounded-full border border-[var(--voyage-card)] bg-[var(--voyage-bg)]">
-                       <div className="absolute inset-0 flex items-center justify-center text-[8px] text-gray-500 font-bold">
-                         {net.locationCode}
-                       </div>
-                    </div>
-                 ))}
+                 {plan.locationNetworkList?.slice(0, 5).map((net, i) => {
+                   const locationCode = net.locationCode?.trim().toLowerCase().split('-')[0] || '';
+                   return (
+                     <div key={i} className="relative h-6 w-6 rounded-full border-2 border-[var(--voyage-card)] bg-[var(--voyage-bg)] overflow-hidden flex-shrink-0 shadow-sm">
+                       <FlagIcon 
+                         logoUrl={`https://flagcdn.com/w320/${locationCode}.png`}
+                         alt={net.locationCode || ''}
+                         className="h-full w-full object-cover"
+                       />
+                     </div>
+                   );
+                 })}
                  {regionCount > 5 && (
-                   <div className="relative h-6 w-6 rounded-full border border-[var(--voyage-card)] bg-[var(--voyage-bg-light)] flex items-center justify-center text-[8px] text-[var(--voyage-muted)]">
+                   <div className="relative h-6 w-6 rounded-full border-2 border-[var(--voyage-card)] bg-[var(--voyage-bg-light)] flex items-center justify-center text-[8px] font-semibold text-[var(--voyage-muted)] flex-shrink-0">
                      +{regionCount - 5}
                    </div>
                  )}
