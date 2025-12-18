@@ -5,7 +5,7 @@ import Link from "next/link";
 import { SearchBar } from "@/components/SearchBar";
 import { CountryCard } from "@/components/CountryCard";
 import { CountrySkeleton } from "@/components/skeletons";
-import { Globe, ArrowRight } from "lucide-react";
+import { Globe, ArrowRight, Shield, Lock, Clock, CheckCircle2, Star, Quote } from "lucide-react";
 import { safeFetch } from "@/lib/safe-fetch";
 import { getRegionForCountry, REGION_NAMES, Region } from "@/lib/regions";
 
@@ -117,12 +117,86 @@ export default function Home() {
           </div>
        </div>
 
+       {/* Trust Badges & Guarantee Messaging */}
+       {!search && (
+         <div className="space-y-6">
+           {/* Trust Badges */}
+           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+             <div className="flex items-center gap-3 p-4 bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl hover:border-[var(--voyage-accent)]/50 transition-all">
+               <div className="p-2 bg-green-500/10 rounded-lg">
+                 <Lock className="h-6 w-6 text-green-400" />
+               </div>
+               <div>
+                 <h3 className="text-sm font-semibold text-white">SSL Secured</h3>
+                 <p className="text-xs text-[var(--voyage-muted)]">256-bit encryption</p>
+               </div>
+             </div>
+             <div className="flex items-center gap-3 p-4 bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl hover:border-[var(--voyage-accent)]/50 transition-all">
+               <div className="p-2 bg-blue-500/10 rounded-lg">
+                 <Shield className="h-6 w-6 text-blue-400" />
+               </div>
+               <div>
+                 <h3 className="text-sm font-semibold text-white">Money-Back Guarantee</h3>
+                 <p className="text-xs text-[var(--voyage-muted)]">30-day satisfaction</p>
+               </div>
+             </div>
+             <div className="flex items-center gap-3 p-4 bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl hover:border-[var(--voyage-accent)]/50 transition-all">
+               <div className="p-2 bg-purple-500/10 rounded-lg">
+                 <Clock className="h-6 w-6 text-purple-400" />
+               </div>
+               <div>
+                 <h3 className="text-sm font-semibold text-white">24/7 Support</h3>
+                 <p className="text-xs text-[var(--voyage-muted)]">Always here to help</p>
+               </div>
+             </div>
+           </div>
+
+           {/* Guarantee Messaging */}
+           <div className="bg-gradient-to-r from-[var(--voyage-accent)]/10 to-purple-500/10 rounded-2xl p-6">
+             <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+               <div className="flex items-center gap-2">
+                 <CheckCircle2 className="h-6 w-6 text-green-400" />
+                 <span className="text-lg font-bold text-white">Instant Delivery</span>
+               </div>
+               <div className="hidden md:block h-6 w-px bg-[var(--voyage-border)]" />
+               <div className="flex items-center gap-2">
+                 <CheckCircle2 className="h-6 w-6 text-green-400" />
+                 <span className="text-lg font-bold text-white">Satisfaction Guaranteed</span>
+               </div>
+               <div className="hidden md:block h-6 w-px bg-[var(--voyage-border)]" />
+               <div className="flex items-center gap-2">
+                 <CheckCircle2 className="h-6 w-6 text-green-400" />
+                 <span className="text-lg font-bold text-white">No Hidden Fees</span>
+               </div>
+             </div>
+           </div>
+
+           {/* Security Indicators */}
+           <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-[var(--voyage-muted)]">
+             <div className="flex items-center gap-2">
+               <Shield className="h-4 w-4 text-[var(--voyage-accent)]" />
+               <span>PCI DSS Compliant</span>
+             </div>
+             <div className="hidden sm:block h-4 w-px bg-[var(--voyage-border)]" />
+             <div className="flex items-center gap-2">
+               <Lock className="h-4 w-4 text-[var(--voyage-accent)]" />
+               <span>Data Protection</span>
+             </div>
+             <div className="hidden sm:block h-4 w-px bg-[var(--voyage-border)]" />
+             <div className="flex items-center gap-2">
+               <CheckCircle2 className="h-4 w-4 text-green-400" />
+               <span>Secure Payments</span>
+             </div>
+           </div>
+         </div>
+       )}
+
        {/* Region Sections */}
        {!search && (
          <div className="space-y-4">
            <div className="text-center">
-             <h2 className="text-xl font-bold text-white mb-1">Browse by Region</h2>
-             <p className="text-sm text-[var(--voyage-muted)]">Explore eSIM plans by region</p>
+            <h2 className="text-xl font-bold text-white mb-1">Browse by Continent</h2>
+            <p className="text-sm text-[var(--voyage-muted)]">Explore eSIM plans by continent</p>
            </div>
            
            {loading ? (
@@ -201,6 +275,84 @@ export default function Home() {
              {filteredRegions.map((region) => (
                <CountryCard key={region.code} country={region} />
              ))}
+           </div>
+         </div>
+       )}
+
+       {/* Testimonials Section - Bottom of Page */}
+       {!search && (
+         <div className="space-y-6 pt-8">
+           <div className="text-center">
+             <h2 className="text-3xl font-bold text-white mb-2">Trusted by Travelers Worldwide</h2>
+             <p className="text-[var(--voyage-muted)]">See what our customers are saying</p>
+           </div>
+           
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+             {/* Testimonial 1 */}
+             <div className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl p-6 hover:border-[var(--voyage-accent)]/50 transition-all">
+               <div className="flex items-center gap-1 mb-4">
+                 {[...Array(5)].map((_, i) => (
+                   <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                 ))}
+               </div>
+               <Quote className="h-6 w-6 text-[var(--voyage-accent)] mb-3 opacity-50" />
+               <p className="text-[var(--voyage-text)] mb-4 italic">
+                 "Perfect for my European trip! Activated instantly and worked flawlessly in 8 countries. No more expensive roaming charges!"
+               </p>
+               <div className="flex items-center gap-3">
+                 <div className="h-10 w-10 rounded-full bg-[var(--voyage-accent)]/20 flex items-center justify-center">
+                   <span className="text-sm font-bold text-[var(--voyage-accent)]">SM</span>
+                 </div>
+                 <div>
+                   <p className="text-sm font-semibold text-white">Sarah M.</p>
+                   <p className="text-xs text-[var(--voyage-muted)]">Verified Customer</p>
+                 </div>
+               </div>
+             </div>
+
+             {/* Testimonial 2 */}
+             <div className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl p-6 hover:border-[var(--voyage-accent)]/50 transition-all">
+               <div className="flex items-center gap-1 mb-4">
+                 {[...Array(5)].map((_, i) => (
+                   <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                 ))}
+               </div>
+               <Quote className="h-6 w-6 text-[var(--voyage-accent)] mb-3 opacity-50" />
+               <p className="text-[var(--voyage-text)] mb-4 italic">
+                 "Best eSIM service I've used. The setup was so easy with the QR code, and customer support helped me when I had questions."
+               </p>
+               <div className="flex items-center gap-3">
+                 <div className="h-10 w-10 rounded-full bg-[var(--voyage-accent)]/20 flex items-center justify-center">
+                   <span className="text-sm font-bold text-[var(--voyage-accent)]">JK</span>
+                 </div>
+                 <div>
+                   <p className="text-sm font-semibold text-white">James K.</p>
+                   <p className="text-xs text-[var(--voyage-muted)]">Verified Customer</p>
+                 </div>
+               </div>
+             </div>
+
+             {/* Testimonial 3 */}
+             <div className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl p-6 hover:border-[var(--voyage-accent)]/50 transition-all">
+               <div className="flex items-center gap-1 mb-4">
+                 {[...Array(5)].map((_, i) => (
+                   <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                 ))}
+               </div>
+               <Quote className="h-6 w-6 text-[var(--voyage-accent)] mb-3 opacity-50" />
+               <p className="text-[var(--voyage-text)] mb-4 italic">
+                 "Affordable prices and great coverage. I bought a global plan and it worked perfectly across Asia. Highly recommend!"
+               </p>
+               <div className="flex items-center gap-3">
+                 <div className="h-10 w-10 rounded-full bg-[var(--voyage-accent)]/20 flex items-center justify-center">
+                   <span className="text-sm font-bold text-[var(--voyage-accent)]">ML</span>
+                 </div>
+                 <div>
+                   <p className="text-sm font-semibold text-white">Maria L.</p>
+                   <p className="text-xs text-[var(--voyage-muted)]">Verified Customer</p>
+                 </div>
+               </div>
+             </div>
            </div>
          </div>
        )}

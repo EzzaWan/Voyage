@@ -17,13 +17,31 @@ export function Footer() {
               Global connectivity made simple. Instant eSIM activation for over 190+ countries worldwide.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="text-[var(--voyage-muted)] hover:text-white transition-colors">
+              <a 
+                href="https://twitter.com/voyageesim" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                aria-label="Follow us on Twitter"
+                className="text-[var(--voyage-muted)] hover:text-white transition-colors"
+              >
                 <Twitter className="h-5 w-5" />
               </a>
-              <a href="#" className="text-[var(--voyage-muted)] hover:text-white transition-colors">
+              <a 
+                href="https://instagram.com/voyageesim" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                aria-label="Follow us on Instagram"
+                className="text-[var(--voyage-muted)] hover:text-white transition-colors"
+              >
                 <Instagram className="h-5 w-5" />
               </a>
-              <a href="#" className="text-[var(--voyage-muted)] hover:text-white transition-colors">
+              <a 
+                href="https://linkedin.com/company/voyageesim" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                aria-label="Follow us on LinkedIn"
+                className="text-[var(--voyage-muted)] hover:text-white transition-colors"
+              >
                 <Linkedin className="h-5 w-5" />
               </a>
             </div>
