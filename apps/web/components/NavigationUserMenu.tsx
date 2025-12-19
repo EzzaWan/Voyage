@@ -52,7 +52,6 @@ export function NavigationUserMenu() {
       
       <UserButton
         appearance={{
-          baseTheme: "dark",
           elements: {
             avatarBox: "w-8 h-8",
             userButtonPopoverCard: "bg-[var(--voyage-card)] border-[var(--voyage-border)] shadow-lg",

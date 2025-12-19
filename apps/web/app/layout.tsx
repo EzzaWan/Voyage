@@ -38,7 +38,6 @@ export default function RootLayout({
     <ErrorBoundary>
       <ClerkProvider
         appearance={{
-          baseTheme: "dark",
           elements: {
             userButtonPopoverCard: "bg-[var(--voyage-card)] border-[var(--voyage-border)]",
             userButtonPopoverHeader: "bg-[var(--voyage-card)] border-b border-[var(--voyage-border)]",
