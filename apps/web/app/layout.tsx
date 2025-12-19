@@ -20,6 +20,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
 import { KeyboardNavigationProvider } from "@/components/KeyboardNavigationProvider";
+import { ClarityTracker } from "@/components/ClarityTracker";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -76,6 +77,7 @@ export default function RootLayout({
                     
                     <main className="flex-grow max-w-6xl mx-auto px-6 py-10 w-full">
                        <ReferralTracker />
+                       <ClarityTracker />
                        <SignedIn>
                          <SignupTracker />
                        </SignedIn>
