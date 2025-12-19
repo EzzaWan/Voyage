@@ -5,13 +5,11 @@ import Link from "next/link";
 import { SearchBar } from "@/components/SearchBar";
 import { CountryCard } from "@/components/CountryCard";
 import { CountrySkeleton } from "@/components/skeletons";
-import { PlanCard, Plan } from "@/components/PlanCard";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Globe, ArrowRight, Shield, Lock, Clock, CheckCircle2, Star, Quote, Zap, Smartphone, Wifi, Plane, HelpCircle } from "lucide-react";
 import { safeFetch } from "@/lib/safe-fetch";
 import { getRegionForCountry, REGION_NAMES, Region } from "@/lib/regions";
-import { filterVisiblePlans } from "@/lib/plan-utils";
 
 interface Country {
   code: string;
@@ -27,8 +25,7 @@ export default function Home() {
   const [filteredRegions, setFilteredRegions] = useState<Country[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [popularPlans, setPopularPlans] = useState<Plan[]>([]);
-  const [loadingPlans, setLoadingPlans] = useState(false);
+  const [popularDestinations, setPopularDestinations] = useState<Country[]>([]);
 
   useEffect(() => {
     const fetchCountries = async () => {
@@ -61,47 +58,20 @@ export default function Home() {
     fetchCountries();
   }, []);
 
-  // Fetch popular plans from popular countries
+  // Set popular destinations from countries list
   useEffect(() => {
-    if (search) return; // Don't fetch if searching
+    if (search || countries.length === 0) return;
     
-    const fetchPopularPlans = async () => {
-      setLoadingPlans(true);
-      try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-        // Popular countries: US, UK, France, Japan, Australia
-        const popularCountries = ['US', 'GB', 'FR', 'JP', 'AU'];
-        const allPlans: Plan[] = [];
-        
-        // Fetch plans from each popular country (limit to first 2 plans per country)
-        for (const countryCode of popularCountries) {
-          try {
-            const data = await safeFetch<Plan[]>(`${apiUrl}/countries/${countryCode}/plans`, { showToast: false });
-            if (Array.isArray(data) && data.length > 0) {
-              // Filter visible plans and take first 2
-              const visiblePlans = filterVisiblePlans(data).slice(0, 2);
-              allPlans.push(...visiblePlans);
-            }
-          } catch (error) {
-            console.error(`Failed to fetch plans for ${countryCode}:`, error);
-          }
-        }
-        
-        // Sort by price and take top 6
-        const sorted = allPlans
-          .sort((a, b) => a.price - b.price)
-          .slice(0, 6);
-        
-        setPopularPlans(sorted);
-      } catch (error) {
-        console.error("Failed to fetch popular plans", error);
-      } finally {
-        setLoadingPlans(false);
-      }
-    };
+    // Popular destination country codes
+    const popularCodes = ['US', 'GB', 'FR', 'JP', 'AU', 'DE', 'IT', 'ES', 'TH', 'SG'];
     
-    fetchPopularPlans();
-  }, [search]);
+    // Find matching countries from the countries list
+    const popular = countries
+      .filter((country) => popularCodes.includes(country.code.toUpperCase()))
+      .slice(0, 8); // Limit to 8 destinations
+    
+    setPopularDestinations(popular);
+  }, [countries, search]);
 
   // Group countries by region
   const countriesByRegion = useMemo(() => {
@@ -226,38 +196,36 @@ export default function Home() {
          </div>
        )}
 
-       {/* Popular Plans Section */}
-       {!search && (
-         <div className="space-y-6">
+       {/* Popular Destinations Section */}
+       {!search && popularDestinations.length > 0 && (
+         <div className="space-y-4">
            <div className="flex items-center justify-between">
              <div>
-               <h2 className="text-3xl font-bold text-white mb-2">Popular Plans</h2>
-               <p className="text-[var(--voyage-muted)]">Best-selling eSIM plans from popular destinations</p>
+               <h2 className="text-2xl font-bold text-white mb-1">Popular Destinations</h2>
+               <p className="text-sm text-[var(--voyage-muted)]">Top travel destinations with eSIM coverage</p>
              </div>
-             <Link href="/">
-               <Button variant="outline" className="border-[var(--voyage-border)] text-white hover:bg-[var(--voyage-bg-light)]">
-                 View All <ArrowRight className="ml-2 h-4 w-4" />
-               </Button>
-             </Link>
+             <Button 
+               variant="outline" 
+               size="sm"
+               className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-bg-light)] hover:text-white hover:border-[var(--voyage-accent)]"
+               onClick={() => {
+                 const allCountriesSection = document.getElementById('all-countries');
+                 if (allCountriesSection) {
+                   allCountriesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                 }
+               }}
+             >
+               View All <ArrowRight className="ml-2 h-4 w-4" />
+             </Button>
            </div>
            
-           {loadingPlans ? (
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-               {[...Array(6)].map((_, i) => (
-                 <div key={i} className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl p-6 animate-pulse">
-                   <div className="h-6 bg-[var(--voyage-bg-light)] rounded mb-4 w-24"></div>
-                   <div className="h-4 bg-[var(--voyage-bg-light)] rounded w-32 mb-2"></div>
-                   <div className="h-4 bg-[var(--voyage-bg-light)] rounded w-40"></div>
-                 </div>
+           <div className="max-w-5xl mx-auto">
+             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+               {popularDestinations.map((country) => (
+                 <CountryCard key={country.code} country={country} />
                ))}
              </div>
-           ) : popularPlans.length > 0 ? (
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-               {popularPlans.map((plan) => (
-                 <PlanCard key={plan.packageCode} plan={plan} />
-               ))}
-             </div>
-           ) : null}
+           </div>
          </div>
        )}
 
@@ -385,7 +353,7 @@ export default function Home() {
        )}
 
        {/* All Countries Grid (type 1 only) */}
-       <div className="space-y-4">
+       <div id="all-countries" className="space-y-4">
          <h2 className="text-2xl font-bold text-white">
            {search ? `Search Results` : "All Countries"}
          </h2>
@@ -447,7 +415,7 @@ export default function Home() {
                    Which devices support eSIM?
                  </AccordionTrigger>
                  <AccordionContent className="text-[var(--voyage-muted)]">
-                   Most modern smartphones support eSIM, including iPhone XS and newer, Google Pixel 3 and newer, Samsung Galaxy S20 and newer, and many other devices. Check your device compatibility using our <Link href="/support/device-check" className="text-[var(--voyage-accent)] hover:underline">device checker</Link> before purchasing.
+                   Most modern smartphones support eSIM, including all recent iPhone models (iPhone 11 through the iPhone 16 series), Google Pixel devices (Pixel 5 and newer), Samsung Galaxy phones (Galaxy S21, S22, S23, and S24 series), and many other current devices. Please check your device compatibility using our <Link href="/support/device-check" className="text-[var(--voyage-accent)] hover:underline">device checker</Link> before purchasing.
                  </AccordionContent>
                </AccordionItem>
                

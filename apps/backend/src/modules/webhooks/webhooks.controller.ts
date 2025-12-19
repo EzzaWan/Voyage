@@ -34,16 +34,11 @@ export class WebhooksController {
     @Req() req: any,
     @Headers('stripe-signature') signature: string,
   ) {
-    // Validate IP whitelist if configured
-    const allowedIps = this.config
-      .get<string>('ALLOWED_WEBHOOK_IPS', '')
-      .split(',')
-      .map((ip) => ip.trim())
-      .filter(Boolean);
-    
-    if (allowedIps.length > 0) {
-      validateWebhookIp(req, allowedIps);
-    }
+    // Stripe doesn't use static IPs - signature verification is the proper security method
+    // IP whitelisting is not recommended for Stripe webhooks
+    // We rely on signature verification below which is more secure
+    const clientIp = getClientIp(req);
+    console.log(`[WEBHOOK] Stripe webhook received from IP: ${clientIp} (using signature verification)`);
 
     const raw = req.rawBody;
 

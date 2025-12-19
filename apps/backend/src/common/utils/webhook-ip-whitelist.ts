@@ -28,6 +28,11 @@ export function getClientIp(request: Request): string {
 export function validateWebhookIp(request: Request, allowedIps: string[]): void {
   const ip = getClientIp(request);
   
+  // Allow localhost/127.0.0.1 for local development
+  if (ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1' || ip === 'localhost' || ip === 'unknown') {
+    return; // Allow localhost for development
+  }
+  
   if (!isIpAllowed(ip, allowedIps)) {
     throw new AppError('Unauthorized IP', 401, 'IP_NOT_ALLOWED', { ip });
   }

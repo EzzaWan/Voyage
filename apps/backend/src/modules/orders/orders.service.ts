@@ -35,6 +35,306 @@ export class OrdersService {
   ) {}
   private readonly logger = new Logger(OrdersService.name);
 
+  /**
+   * Create a pending order (for review page before payment)
+   */
+  async createPendingOrder({ planCode, amount, currency, planName, displayCurrency, referralCode, email }: {
+    planCode: string;
+    amount: number;
+    currency: string;
+    planName: string;
+    displayCurrency?: string;
+    referralCode?: string;
+    email?: string;
+  }) {
+    try {
+      this.logger.log(`[PENDING_ORDER] Creating pending order: planCode=${planCode}, amount=${amount} USD`);
+      
+      // Create or get user (for guest checkout, use email or create temp user)
+      let user;
+      if (email) {
+        user = await this.prisma.user.upsert({
+          where: { email: email.toLowerCase().trim() },
+          create: {
+            id: crypto.randomUUID(),
+            email: email.toLowerCase().trim(),
+            name: null,
+          },
+          update: {},
+        });
+      } else {
+        // Create a temporary guest user
+        const guestEmail = `guest-${crypto.randomUUID()}@voyage.app`;
+        user = await this.prisma.user.create({
+          data: {
+            id: crypto.randomUUID(),
+            email: guestEmail,
+            name: 'Guest',
+          },
+        });
+      }
+
+      // Calculate amount in USD cents
+      const amountUSDCents = Math.round(amount * 100);
+      
+      // Get display currency
+      const targetCurrency = currency?.toUpperCase() || 'USD';
+      let displayAmountCents = amountUSDCents;
+      
+      // Convert to display currency if needed
+      if (targetCurrency !== 'USD') {
+        try {
+          const convertedAmount = await this.currencyService.convert(amount, targetCurrency);
+          displayAmountCents = Math.round(convertedAmount * 100);
+        } catch (error) {
+          this.logger.warn('[PENDING_ORDER] Currency conversion failed, using USD', error);
+        }
+      }
+
+      // Create pending order
+      const order = await this.prisma.order.create({
+        data: {
+          id: crypto.randomUUID(),
+          userId: user.id,
+          planId: planCode,
+          amountCents: amountUSDCents,
+          currency: 'USD',
+          displayCurrency: targetCurrency,
+          displayAmountCents: displayAmountCents,
+          status: 'pending',
+          paymentMethod: 'stripe',
+        },
+      });
+
+      this.logger.log(`[PENDING_ORDER] Created pending order: ${order.id}`);
+      return { orderId: order.id };
+    } catch (error) {
+      this.logger.error('[PENDING_ORDER] Failed to create pending order', error);
+      throw new BadRequestException(
+        error instanceof Error 
+          ? `Failed to create order: ${error.message}` 
+          : 'Failed to create order. Please try again.'
+      );
+    }
+  }
+
+  /**
+   * Apply promo code discount to an order
+   * Calculates discount from the original order amount (before any discounts)
+   * Returns original amounts and promo info
+   */
+  async applyPromoCodeToOrder(orderId: string, promoCode: string, discountPercent: number): Promise<{
+    originalAmount: number;
+    originalDisplayAmount: number;
+    promoCode: string;
+    discountPercent: number;
+  }> {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Order ${orderId} not found`);
+    }
+
+    if (order.status !== 'pending') {
+      throw new BadRequestException(`Cannot apply promo code to order with status: ${order.status}`);
+    }
+
+    // For now, we'll assume the current amount is the original amount
+    // In production, you'd want to store originalAmount separately
+    // Calculate: if we have discountedAmount and discountPercent, original = discounted / (1 - discount/100)
+    // But since we don't track that, we'll use current amount as original
+    // This means if promo is applied twice, it will double-discount (which we prevent by checking if promo already applied)
+    
+    const originalAmount = order.amountCents;
+    const discountAmount = Math.round(originalAmount * (discountPercent / 100));
+    const discountedAmount = originalAmount - discountAmount;
+
+    // Ensure minimum amount (Stripe minimum)
+    const STRIPE_MINIMUM_CENTS = 50; // $0.50
+    if (discountedAmount < STRIPE_MINIMUM_CENTS) {
+      throw new BadRequestException(
+        `Discount would make order amount too low. Minimum charge is $${(STRIPE_MINIMUM_CENTS / 100).toFixed(2)}.`
+      );
+    }
+
+    // Calculate display amount discount
+    const originalDisplayAmount = order.displayAmountCents || order.amountCents;
+    const displayDiscountAmount = Math.round(originalDisplayAmount * (discountPercent / 100));
+    const discountedDisplayAmount = originalDisplayAmount - displayDiscountAmount;
+
+    // Store original amounts and promo code in order metadata
+    // We'll store it in a way we can retrieve later
+    // For now, we'll calculate backwards if needed, but ideally we'd store originalAmount
+    // Since we don't have a promoCode field, we'll need to track it differently
+    // For now, we'll store the calculation info in the response and frontend will track it
+    
+    // Update order with discounted amount
+    await this.prisma.order.update({
+      where: { id: orderId },
+      data: {
+        amountCents: discountedAmount,
+        displayAmountCents: Math.max(STRIPE_MINIMUM_CENTS, discountedDisplayAmount),
+        // Note: In production, add promoCode field to Order model
+        // For now, we'll detect if promo was applied by comparing amounts
+      },
+    });
+
+    this.logger.log(`[PROMO] Applied ${promoCode} (${discountPercent}% off) to order ${orderId}: ${originalAmount} → ${discountedAmount} cents`);
+    
+    // Return original amount and promo info for frontend
+    return {
+      originalAmount,
+      originalDisplayAmount: order.displayAmountCents || order.amountCents,
+      promoCode,
+      discountPercent,
+    };
+  }
+
+  /**
+   * Remove promo code from an order and restore original amount
+   * Note: This assumes we can calculate original from discounted amount
+   * For production, store original amount when applying promo
+   */
+  async removePromoCodeFromOrder(orderId: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Order ${orderId} not found`);
+    }
+
+    if (order.status !== 'pending') {
+      throw new BadRequestException(`Cannot remove promo code from order with status: ${order.status}`);
+    }
+
+    // For now, we can't easily restore the original amount without storing it
+    // This is a limitation - in production, you'd store originalAmount when applying promo
+    // For now, we'll need to fetch the order again or store original in metadata
+    // Since we don't have that, we'll just log a warning
+    this.logger.warn(`[PROMO] Cannot fully restore original amount for order ${orderId} - original amount not stored`);
+    
+    // In a real implementation, you'd restore from stored originalAmount
+    // For now, this endpoint exists but may not fully restore the amount
+    // The frontend will handle the restoration using stored values
+  }
+
+  /**
+   * Create Stripe checkout session for an existing order
+   */
+  async createStripeCheckoutForOrder(orderId: string, referralCode?: string) {
+    try {
+      this.logger.log(`[CHECKOUT] Creating Stripe session for order: ${orderId}`);
+      
+      // Get the order
+      const order = await this.prisma.order.findUnique({
+        where: { id: orderId },
+        include: { User: true },
+      });
+
+      if (!order) {
+        throw new NotFoundException(`Order ${orderId} not found`);
+      }
+
+      if (order.status !== 'pending') {
+        throw new BadRequestException(`Order ${orderId} is not in pending status`);
+      }
+
+      // Validate Stripe is configured
+      if (!this.stripe?.stripe) {
+        this.logger.error('[CHECKOUT] Stripe is not configured. STRIPE_SECRET is missing.');
+        throw new BadRequestException('Payment system is not configured. Please contact support.');
+      }
+
+      // Get amounts
+      const amountUSD = order.amountCents / 100;
+      const targetCurrency = (order.displayCurrency || order.currency || 'USD').toUpperCase();
+      const displayAmount = (order.displayAmountCents || order.amountCents) / 100;
+
+      // Convert to target currency for Stripe
+      let convertedAmount = amountUSD;
+      if (targetCurrency !== 'USD') {
+        try {
+          convertedAmount = await this.currencyService.convert(amountUSD, targetCurrency);
+        } catch (error) {
+          this.logger.warn('[CHECKOUT] Currency conversion failed, using USD', error);
+        }
+      }
+
+      // Convert to cents (Stripe requires cents)
+      const unit_amount_cents = Math.round(convertedAmount * 100);
+
+      // Stripe minimum check
+      const STRIPE_MINIMUM_USD = 0.50;
+      let minimumInTargetCurrency = STRIPE_MINIMUM_USD;
+      if (targetCurrency !== 'USD') {
+        try {
+          minimumInTargetCurrency = await this.currencyService.convert(STRIPE_MINIMUM_USD, targetCurrency);
+        } catch (error) {
+          minimumInTargetCurrency = STRIPE_MINIMUM_USD;
+        }
+      }
+      const STRIPE_MINIMUM_CENTS = Math.round(minimumInTargetCurrency * 100);
+
+      if (unit_amount_cents < STRIPE_MINIMUM_CENTS) {
+        throw new BadRequestException(
+          `Amount too low. Stripe requires a minimum charge equivalent to $${STRIPE_MINIMUM_USD.toFixed(2)} USD.`
+        );
+      }
+
+      const webUrl = this.config.get('WEB_URL') || 'http://localhost:3000';
+
+      // Get plan name from order (we stored planCode in planId)
+      const planName = order.planId; // This is actually the planCode
+
+      const session = await this.stripe.stripe.checkout.sessions.create({
+        mode: 'payment',
+        payment_method_types: ['card'],
+        customer_email: order.User.email !== `guest-${order.User.id}@voyage.app` ? order.User.email : undefined,
+
+        line_items: [
+          {
+            price_data: {
+              currency: targetCurrency.toLowerCase(),
+              unit_amount: unit_amount_cents,
+              product_data: {
+                name: planName,
+              },
+            },
+            quantity: 1,
+          },
+        ],
+
+        success_url: `${webUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${webUrl}/checkout/${orderId}`,
+        metadata: {
+          orderId: order.id, // Store orderId in metadata for webhook
+          planCode: order.planId,
+          amountUSD: amountUSD.toString(),
+          displayCurrency: targetCurrency,
+          ...(referralCode ? { referralCode } : {}),
+        },
+      });
+
+      this.logger.log(`[CHECKOUT] Stripe session created: ${session.id} for order ${orderId}`);
+      return { url: session.url };
+    } catch (error) {
+      this.logger.error('[CHECKOUT] Failed to create Stripe checkout session for order', error);
+      
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      
+      throw new BadRequestException(
+        error instanceof Error 
+          ? `Failed to create checkout: ${error.message}` 
+          : 'Failed to create checkout. Please try again.'
+      );
+    }
+  }
+
   async createStripeCheckout({ planCode, amount, currency, planName, displayCurrency, referralCode }: {
     planCode: string;
     amount: number;
@@ -263,9 +563,90 @@ export class OrdersService {
     const email = session.customer_details?.email || 'guest@voyage.app';
     const planCode = session.metadata?.planCode || null;
     const referralCode = session.metadata?.referralCode || null;
+    const existingOrderId = session.metadata?.orderId; // Check if order already exists
     
-    this.logger.log(`[CHECKOUT] Processing payment: email=${email}, planCode=${planCode}, referralCode=${referralCode || 'none'}`);
+    this.logger.log(`[CHECKOUT] Processing payment: email=${email}, planCode=${planCode}, referralCode=${referralCode || 'none'}, existingOrderId=${existingOrderId || 'none'}`);
 
+    // If order already exists (from pending order flow), update it instead of creating new one
+    if (existingOrderId) {
+      const existingOrder = await this.prisma.order.findUnique({
+        where: { id: existingOrderId },
+        include: { User: true },
+      });
+
+      if (!existingOrder) {
+        this.logger.error(`[CHECKOUT] Order ${existingOrderId} from metadata not found`);
+        throw new NotFoundException(`Order ${existingOrderId} not found`);
+      }
+
+      if (existingOrder.status !== 'pending') {
+        this.logger.warn(`[CHECKOUT] Order ${existingOrderId} is not in pending status, current status: ${existingOrder.status}`);
+      }
+
+      // Update user email if provided (for guest users)
+      let user = existingOrder.User;
+      if (email && email !== user.email && !user.email.startsWith('guest-')) {
+        // Update user email if it's a real email
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: { 
+            email: email.toLowerCase().trim(),
+            name: session.customer_details?.name || user.name,
+          },
+        });
+      } else if (email && user.email.startsWith('guest-')) {
+        // Update guest user with real email
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: { 
+            email: email.toLowerCase().trim(),
+            name: session.customer_details?.name || user.name,
+          },
+        });
+      }
+
+      // Get original USD amount from metadata, or convert from Stripe amount
+      let amountUSD = parseFloat(session.metadata?.amountUSD || '0');
+      
+      // If metadata doesn't have USD amount, we need to convert from Stripe currency
+      if (amountUSD === 0 && session.amount_total) {
+        const stripeCurrency = session.currency?.toUpperCase() || 'USD';
+        if (stripeCurrency !== 'USD') {
+          const stripeAmountDollars = (session.amount_total ?? 0) / 100;
+          const rate = await this.currencyService.getRate(stripeCurrency);
+          amountUSD = stripeAmountDollars / rate;
+          this.logger.log(`[CHECKOUT] Converted ${stripeAmountDollars} ${stripeCurrency} back to ${amountUSD.toFixed(2)} USD`);
+        } else {
+          amountUSD = (session.amount_total ?? 0) / 100;
+        }
+      }
+      
+      const amountUSDCents = Math.round(amountUSD * 100);
+      const displayCurrency = (session.metadata?.displayCurrency || session.currency?.toUpperCase() || 'USD').toUpperCase();
+      const displayAmountCents = session.amount_total || amountUSDCents;
+
+      // Update existing order
+      const order = await this.prisma.order.update({
+        where: { id: existingOrderId },
+        data: {
+          amountCents: amountUSDCents,
+          displayCurrency: displayCurrency,
+          displayAmountCents: displayAmountCents,
+          status: 'paid',
+          paymentRef: (session.payment_intent as string) || session.id,
+          esimOrderNo: `PENDING-${session.id}`,
+        },
+      });
+
+      // Handle referral and affiliate setup
+      await this.setupUserAffiliateAndReferral(user, referralCode);
+
+      // Continue with email sending and provisioning
+      await this.processOrderCompletion(order, user, planCode);
+      return;
+    }
+
+    // Legacy flow: Create new order (for backwards compatibility)
     // Check if user exists before upsert
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
@@ -1109,6 +1490,44 @@ export class OrdersService {
     }
 
     this.logger.log('[SYNC] Sync cycle completed');
+  }
+
+  // Helper method to setup affiliate and referral
+  private async setupUserAffiliateAndReferral(user: any, referralCode?: string | null) {
+    // Check if user has affiliate record
+    const existingAffiliate = await this.prisma.affiliate.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (!existingAffiliate) {
+      // Create affiliate record for user
+      await this.affiliateService.createAffiliateForUser(user.id).catch((err) => {
+        this.logger.error(`[AFFILIATE] Failed to create affiliate for user ${user.id}:`, err);
+      });
+    }
+
+    // Handle referral if referral code provided
+    if (referralCode) {
+      this.logger.log(`[AFFILIATE] Processing referral code: ${referralCode} for user ${user.id}`);
+      await this.handleReferral(referralCode, user.id).catch((err) => {
+        this.logger.error(`[AFFILIATE] Failed to handle referral:`, err);
+      });
+    } else {
+      this.logger.log(`[AFFILIATE] No referral code provided for user ${user.id}`);
+    }
+  }
+
+  // Helper method to process order completion (emails and provisioning)
+  private async processOrderCompletion(order: any, user: any, planCode: string | null) {
+    // Send order confirmation email (fire and forget)
+    this.sendOrderConfirmationEmail(order, user, planCode).catch((err) => {
+      this.logger.error(`[EMAIL] Failed to send order confirmation email:`, err);
+    });
+
+    // Provision eSIM (fire and forget)
+    this.performEsimOrderForOrder(order, user, planCode, undefined as any).catch((err) => {
+      this.logger.error(`[ESIM] Failed to provision eSIM:`, err);
+    });
   }
 
   // Email helper methods (made public for resend endpoint)

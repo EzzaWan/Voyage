@@ -162,6 +162,7 @@ export default function MyEsimsPage() {
         <Button 
           variant="outline" 
           size="icon" 
+          className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-accent)] hover:border-[var(--voyage-accent)]"
           onClick={async () => {
             setLoading(true);
             const userEmail = user?.primaryEmailAddress?.emailAddress;
@@ -179,7 +180,7 @@ export default function MyEsimsPage() {
             setLoading(false);
           }}
         >
-           <RefreshCw className="h-4 w-4" />
+           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
         </Button>
       </div>
 

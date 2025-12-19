@@ -112,6 +112,7 @@ export default function AdminTopupsPage() {
       header: "Amount",
       accessor: (row: TopUp) =>
         formatUsdDollars(row.amountCents / 100),
+      className: "text-white",
     },
     {
       header: "Status",
@@ -127,7 +128,7 @@ export default function AdminTopupsPage() {
     {
       header: "Provider Response",
       accessor: (row: TopUp) => row.rechargeOrder || "-",
-      className: (row: TopUp) => row.rechargeOrder ? "break-all min-w-[100px] font-mono text-xs" : "break-all min-w-[100px] text-[var(--voyage-muted)]",
+      className: (row: TopUp) => row.rechargeOrder ? "break-all min-w-[100px] font-mono text-xs text-white" : "break-all min-w-[100px] text-[var(--voyage-muted)]",
     },
     {
       header: "User Email",
@@ -135,6 +136,7 @@ export default function AdminTopupsPage() {
         const user = row.User || row.user;
         return user?.email || "-";
       },
+      className: "text-white",
     },
     {
       header: "Created",
@@ -144,6 +146,7 @@ export default function AdminTopupsPage() {
           month: "short",
           day: "numeric",
         }),
+      className: "text-white",
     },
   ], [planNames]);
 

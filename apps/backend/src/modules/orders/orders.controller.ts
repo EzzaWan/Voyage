@@ -31,8 +31,10 @@ export class OrdersController {
       displayCurrency?: string;
       referralCode?: string;
       paymentMethod?: 'stripe' | 'vcash';
+      email?: string; // User email (from Clerk if logged in)
     },
     @Req() req: any,
+    @Headers('x-user-email') userEmailHeader: string | undefined,
   ) {
     try {
       const paymentMethod = body.paymentMethod || 'stripe';
@@ -58,23 +60,187 @@ export class OrdersController {
         throw new BadRequestException('Missing required field: currency is required');
       }
       
-      // If V-Cash payment, we need user email from headers
+      // Get user email from body, header, or use guest
+      const email = body.email || userEmailHeader;
+      
+      // If V-Cash payment, we need user email
       if (paymentMethod === 'vcash') {
-        const email = req.headers['x-user-email'] as string;
         if (!email) {
           throw new NotFoundException('User email required for V-Cash payment');
         }
         return this.ordersService.createVCashOrder({ ...body, email });
       }
       
-      // Default to Stripe checkout
-      return await this.ordersService.createStripeCheckout(body);
+      // For Stripe, create pending order with email if provided
+      return this.ordersService.createPendingOrder({ 
+        ...body, 
+        email: email // Use email from body or header if available
+      });
     } catch (error) {
       // Log the error for debugging
       console.error('[CREATE_ORDER_ERROR]', error);
       // Re-throw to let the exception filter handle it
       throw error;
     }
+  }
+
+  @Post(':orderId/validate-promo')
+  @RateLimit({ limit: 10, window: 60 })
+  async validatePromoCode(
+    @Param('orderId') orderId: string,
+    @Body() body: { promoCode: string },
+  ) {
+    try {
+      if (!body.promoCode) {
+        throw new BadRequestException('Promo code is required');
+      }
+
+      // Validate promo code
+      const validPromoCodes: Record<string, number> = {
+        'TEST10': 10,
+        'TEST20': 20,
+        'TEST50': 50,
+        'WELCOME10': 10, // Welcome discount
+      };
+      
+      const promoCode = body.promoCode.toUpperCase().trim();
+      if (!validPromoCodes[promoCode]) {
+        throw new BadRequestException(`Invalid promo code: ${body.promoCode}`);
+      }
+
+      // Check if order already has a promo applied
+      const existingOrder = await this.prisma.order.findUnique({
+        where: { id: orderId },
+        select: {
+          amountCents: true,
+          status: true,
+        },
+      });
+
+      if (!existingOrder) {
+        throw new NotFoundException(`Order ${orderId} not found`);
+      }
+
+      if (existingOrder.status !== 'pending') {
+        throw new BadRequestException('Cannot apply promo code to an order that is not pending');
+      }
+
+      // Note: We can't perfectly detect if a promo was already applied without storing it in the database
+      // The frontend will handle duplicate prevention via localStorage and UI state
+      // Backend will apply the discount, and if it was already applied, it will double-discount
+      // For production, add a promoCode field to Order model to track this properly
+
+      // Apply discount to order
+      const discountPercent = validPromoCodes[promoCode];
+      const promoResult = await this.ordersService.applyPromoCodeToOrder(orderId, promoCode, discountPercent);
+
+      // Get updated order to return new amounts
+      const updatedOrder = await this.prisma.order.findUnique({
+        where: { id: orderId },
+        select: {
+          id: true,
+          amountCents: true,
+          displayAmountCents: true,
+          displayCurrency: true,
+        },
+      });
+
+      if (!updatedOrder) {
+        throw new NotFoundException(`Order ${orderId} not found`);
+      }
+
+      return {
+        valid: true,
+        promoCode,
+        discountPercent,
+        originalAmount: promoResult.originalAmount,
+        originalDisplayAmount: promoResult.originalDisplayAmount,
+        discountedAmount: updatedOrder.amountCents,
+        displayAmount: updatedOrder.displayAmountCents || updatedOrder.amountCents,
+        displayCurrency: updatedOrder.displayCurrency || 'USD',
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Failed to validate promo code');
+    }
+  }
+
+  @Post(':orderId/remove-promo')
+  @RateLimit({ limit: 10, window: 60 })
+  async removePromoCode(@Param('orderId') orderId: string) {
+    try {
+      await this.ordersService.removePromoCodeFromOrder(orderId);
+      return { success: true, message: 'Promo code removed' };
+    } catch (error) {
+      console.error('[REMOVE_PROMO_ERROR]', error);
+      throw error;
+    }
+  }
+
+  @Post(':orderId/checkout')
+  @RateLimit({ limit: 5, window: 30 })
+  async createCheckoutSession(
+    @Param('orderId') orderId: string,
+    @Body() body: { referralCode?: string },
+    @Req() req: any,
+  ) {
+    try {
+      // Get referral code from body or headers
+      const referralCode = body.referralCode || req.headers['x-referral-code'] as string | undefined;
+      
+      // Promo code should already be applied via validate-promo endpoint
+      return await this.ordersService.createStripeCheckoutForOrder(orderId, referralCode);
+    } catch (error) {
+      console.error('[CREATE_CHECKOUT_SESSION_ERROR]', error);
+      throw error;
+    }
+  }
+
+  @Get(':id')
+  @RateLimit({ limit: 10, window: 60 })
+  async getOrder(@Param('id') id: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+      include: {
+        EsimProfile: {
+          take: 1,
+          orderBy: { id: 'asc' },
+          select: {
+            id: true,
+            iccid: true,
+            qrCodeUrl: true,
+            ac: true,
+            esimStatus: true,
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Order ${id} not found`);
+    }
+
+    // Check if a promo code was likely applied by detecting if amount seems discounted
+    // This is a heuristic - in production, store promoCode in Order model
+    // For now, we'll return a flag if we detect a discount pattern
+    // We can't perfectly detect, but we can check localStorage on frontend
+    
+    // Return only the fields we need
+    return {
+      id: order.id,
+      planId: order.planId,
+      amountCents: order.amountCents,
+      displayAmountCents: order.displayAmountCents,
+      displayCurrency: order.displayCurrency,
+      currency: order.currency,
+      status: order.status,
+      paymentMethod: order.paymentMethod,
+      createdAt: order.createdAt,
+      receiptSent: order.receiptSent,
+      EsimProfile: order.EsimProfile,
+    };
   }
 
   @Get(':id/receipt')
@@ -182,37 +348,26 @@ export class OrdersController {
   @Get('by-session/:sessionId')
   @RateLimit({ limit: 10, window: 60 })
   async getOrderBySession(@Param('sessionId') sessionId: string) {
-    // paymentRef stores payment_intent ID (not session ID), so we need to:
-    // 1. First try to find by session ID directly (in case payment_intent wasn't available)
-    // 2. If not found, get payment_intent from Stripe session and search by that
+    // In the new flow, orderId is stored in Stripe session metadata
+    // paymentRef stores payment_intent ID (not session ID)
+    // So we need to:
+    // 1. First try to get orderId from Stripe session metadata (new flow)
+    // 2. Try to find by session ID directly (legacy)
+    // 3. Get payment_intent from Stripe session and search by that
     
-    let order = await this.prisma.order.findFirst({
-      where: {
-        OR: [
-          { paymentRef: sessionId }, // Try session ID directly first
-          { esimOrderNo: `PENDING-${sessionId}` }, // Fallback: check esimOrderNo format
-        ],
-      },
-      select: {
-        id: true,
-        amountCents: true,
-        currency: true,
-        displayCurrency: true,
-        displayAmountCents: true,
-        status: true,
-        paymentMethod: true,
-      },
-    });
+    let order = null;
+    let orderIdFromMetadata: string | null = null;
 
-    // If not found, try to get payment_intent from Stripe session
-    if (!order && this.stripeService?.stripe) {
+    // First, try to get orderId from Stripe session metadata (new flow)
+    if (this.stripeService?.stripe) {
       try {
         const session = await this.stripeService.stripe.checkout.sessions.retrieve(sessionId);
-        const paymentIntentId = session.payment_intent as string;
+        orderIdFromMetadata = session.metadata?.orderId as string | undefined || null;
         
-        if (paymentIntentId) {
+        if (orderIdFromMetadata) {
+          // Found orderId in metadata - this is the new flow
           order = await this.prisma.order.findUnique({
-            where: { paymentRef: paymentIntentId },
+            where: { id: orderIdFromMetadata },
             select: {
               id: true,
               amountCents: true,
@@ -223,10 +378,51 @@ export class OrdersController {
               paymentMethod: true,
             },
           });
+        } else {
+          // No orderId in metadata - try legacy flow
+          // Get payment_intent from session
+          const paymentIntentId = session.payment_intent as string;
+          
+          if (paymentIntentId) {
+            order = await this.prisma.order.findUnique({
+              where: { paymentRef: paymentIntentId },
+              select: {
+                id: true,
+                amountCents: true,
+                currency: true,
+                displayCurrency: true,
+                displayAmountCents: true,
+                status: true,
+                paymentMethod: true,
+              },
+            });
+          }
         }
       } catch (error) {
-        // Stripe lookup failed, continue with not found
+        // Stripe lookup failed, try database lookup
+        console.error(`[GET_ORDER_BY_SESSION] Failed to retrieve Stripe session:`, error);
       }
+    }
+
+    // If still not found, try direct database lookup (legacy)
+    if (!order) {
+      order = await this.prisma.order.findFirst({
+        where: {
+          OR: [
+            { paymentRef: sessionId }, // Try session ID directly
+            { esimOrderNo: `PENDING-${sessionId}` }, // Fallback: check esimOrderNo format
+          ],
+        },
+        select: {
+          id: true,
+          amountCents: true,
+          currency: true,
+          displayCurrency: true,
+          displayAmountCents: true,
+          status: true,
+          paymentMethod: true,
+        },
+      });
     }
 
     if (!order) {

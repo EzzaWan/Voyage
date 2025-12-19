@@ -71,12 +71,17 @@ function AdminTableComponent<T extends { id: string }>({
                 
                 const cellClassName = typeof column.className === "function"
                   ? column.className(row)
-                  : (column.className || "text-white");
+                  : (column.className || "");
+                
+                // Ensure text color is always set - default to white if not specified
+                const finalClassName = cellClassName.includes("text-") 
+                  ? cellClassName 
+                  : `${cellClassName} text-white`.trim();
                 
                 return (
                   <td
                     key={idx}
-                    className={`text-left px-4 py-3 text-sm break-words ${cellClassName}`}
+                    className={`text-left px-4 py-3 text-sm break-words ${finalClassName}`}
                   >
                     {cellValue}
                   </td>

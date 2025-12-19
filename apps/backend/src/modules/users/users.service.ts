@@ -10,15 +10,21 @@ export class UsersService {
   ) {}
 
   async getUserEsimsByEmail(email: string) {
-    // Find user by email first
+    // Normalize email (lowercase, trim) for case-insensitive lookup
+    const normalizedEmail = email.toLowerCase().trim();
+    
+    // Find user by email (exact match - emails should be normalized when stored)
     const user = await this.prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
     if (!user) {
+      console.log(`[UsersService] No user found for email: ${normalizedEmail}`);
       // Return empty array if user doesn't exist yet (no orders)
       return [];
     }
+
+    console.log(`[UsersService] Found user ${user.id} for email: ${normalizedEmail}`);
 
     // Use the relation defined in schema: User -> profiles
     const profiles = await this.prisma.esimProfile.findMany({
@@ -30,8 +36,11 @@ export class UsersService {
       }
     });
 
+    console.log(`[UsersService] Found ${profiles.length} eSIM profile(s) for user ${user.id}`);
+
     // Convert BigInt fields to strings for JSON serialization and fetch plan details
-    const profilesWithPlans = await Promise.all(
+    // Use Promise.allSettled to ensure all profiles are returned even if some plan fetches fail
+    const profilesWithPlans = await Promise.allSettled(
       profiles.map(async (profile) => {
         const serialized: any = {
           id: profile.id,
@@ -61,9 +70,19 @@ export class UsersService {
               duration: planDetails.duration,
               durationUnit: planDetails.durationUnit,
             };
-          } catch (error) {
+          } catch (error: any) {
             // If plan fetch fails, just log and continue without plan details
-            console.warn(`[UsersService] Failed to fetch plan details for ${profile.Order.planId}:`, error);
+            // This can happen if the plan was removed from the eSIM provider or is a mock/test plan
+            console.warn(`[UsersService] Failed to fetch plan details for ${profile.Order.planId}:`, error?.message || error);
+            // Set planDetails to null or use planId as fallback
+            serialized.planDetails = {
+              name: profile.Order.planId, // Use planId as fallback name
+              packageCode: profile.Order.planId,
+              locationCode: null,
+              volume: null,
+              duration: null,
+              durationUnit: null,
+            };
           }
         }
 
@@ -71,6 +90,9 @@ export class UsersService {
       })
     );
 
-    return profilesWithPlans;
+    // Extract successful results, filter out any that failed (shouldn't happen, but just in case)
+    return profilesWithPlans
+      .filter((result): result is PromiseFulfilledResult<any> => result.status === 'fulfilled')
+      .map(result => result.value);
   }
 }

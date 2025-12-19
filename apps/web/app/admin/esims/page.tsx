@@ -84,12 +84,12 @@ export default function AdminEsimsPage() {
     {
       header: "ICCID",
       accessor: (row: EsimProfile) => row.iccid,
-      className: "break-all min-w-[120px] font-mono text-xs",
+      className: "break-all min-w-[120px] font-mono text-xs text-white",
     },
     {
       header: "esimTranNo",
       accessor: (row: EsimProfile) => row.esimTranNo,
-      className: "break-all min-w-[100px] font-mono text-xs",
+      className: "break-all min-w-[100px] font-mono text-xs text-white",
     },
     {
       header: "Status",
@@ -107,6 +107,7 @@ export default function AdminEsimsPage() {
     {
       header: "Total Volume",
       accessor: (row: EsimProfile) => formatBytes(row.totalVolume),
+      className: "text-white",
     },
     {
       header: "Expired Time",
@@ -114,6 +115,7 @@ export default function AdminEsimsPage() {
         row.expiredTime
           ? new Date(row.expiredTime).toLocaleDateString()
           : "N/A",
+      className: "text-white",
     },
     {
       header: "User Email",
@@ -123,6 +125,7 @@ export default function AdminEsimsPage() {
         const user = (order as any).User || (order as any).user;
         return user?.email || "-";
       },
+      className: "text-white",
     },
   ], []);
 

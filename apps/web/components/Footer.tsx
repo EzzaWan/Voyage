@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Facebook, Twitter, Instagram, Linkedin, Mail } from "lucide-react";
+import { Facebook, Instagram, Linkedin, Mail } from "lucide-react";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -17,15 +17,6 @@ export function Footer() {
               Global connectivity made simple. Instant eSIM activation for over 190+ countries worldwide.
             </p>
             <div className="flex gap-4">
-              <a 
-                href="https://twitter.com/voyageesim" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                aria-label="Follow us on Twitter"
-                className="text-[var(--voyage-muted)] hover:text-white transition-colors"
-              >
-                <Twitter className="h-5 w-5" />
-              </a>
               <a 
                 href="https://instagram.com/voyageesim" 
                 target="_blank" 

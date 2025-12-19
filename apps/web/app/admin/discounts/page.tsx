@@ -300,7 +300,12 @@ export default function AdminDiscountsPage() {
               Set discounts that apply to all plans of a specific GB size across all countries. Individual plan discounts override these.
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={handleClearGlobal}>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleClearGlobal}
+            className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-accent)] hover:border-[var(--voyage-accent)]"
+          >
             <Trash2 className="h-4 w-4 mr-2" />
             Clear Global
           </Button>
@@ -345,11 +350,19 @@ export default function AdminDiscountsPage() {
           <Save className="h-4 w-4 mr-2" />
           {saving ? "Saving..." : "Save Changes"}
         </Button>
-        <Button variant="outline" onClick={handleExport}>
+        <Button 
+          variant="outline" 
+          onClick={handleExport}
+          className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-accent)] hover:border-[var(--voyage-accent)]"
+        >
           <Download className="h-4 w-4 mr-2" />
           Export JSON
         </Button>
-        <Button variant="outline" onClick={handleClear}>
+        <Button 
+          variant="outline" 
+          onClick={handleClear}
+          className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-accent)] hover:border-[var(--voyage-accent)]"
+        >
           <Trash2 className="h-4 w-4 mr-2" />
           Clear All
         </Button>
@@ -368,7 +381,11 @@ export default function AdminDiscountsPage() {
         {importError && (
           <p className="text-red-400 text-sm">{importError}</p>
         )}
-        <Button variant="outline" onClick={handleImport}>
+        <Button 
+          variant="outline" 
+          onClick={handleImport}
+          className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-accent)] hover:border-[var(--voyage-accent)]"
+        >
           <Upload className="h-4 w-4 mr-2" />
           Import
         </Button>
@@ -409,7 +426,7 @@ export default function AdminDiscountsPage() {
                 setSelectedCountry(null);
                 setSearchQuery("");
               }}
-              className="text-[var(--voyage-muted)] hover:text-white"
+              className="text-white hover:bg-[var(--voyage-bg-light)] hover:text-white"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Countries
@@ -559,6 +576,7 @@ export default function AdminDiscountsPage() {
                               delete newDiscounts[plan.packageCode];
                               setDiscountsState(newDiscounts);
                             }}
+                            className="text-white hover:bg-[var(--voyage-bg-light)] hover:text-white"
                           >
                             Use Global
                           </Button>

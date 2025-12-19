@@ -72,7 +72,7 @@ export default function AdminOrdersPage() {
     {
       header: "Order ID",
       accessor: (row: Order) => row.id,
-      className: "break-all min-w-[120px] font-mono text-xs",
+      className: "break-all min-w-[120px] font-mono text-xs text-white",
     },
     {
       header: "User Email",
@@ -80,6 +80,7 @@ export default function AdminOrdersPage() {
         const user = row.User || row.user;
         return user?.email || "-";
       },
+      className: "text-white",
     },
     {
       header: "Plan",
@@ -103,6 +104,7 @@ export default function AdminOrdersPage() {
       header: "Amount",
       accessor: (row: Order) =>
         formatUsdDollars(row.amountCents / 100),
+      className: "text-white",
     },
     {
       header: "Status",
@@ -118,12 +120,12 @@ export default function AdminOrdersPage() {
     {
       header: "Provider Order",
       accessor: (row: Order) => row.esimOrderNo || "-",
-      className: (row: Order) => row.esimOrderNo ? "break-all min-w-[100px] font-mono text-xs" : "break-all min-w-[100px] text-[var(--voyage-muted)]",
+      className: (row: Order) => row.esimOrderNo ? "break-all min-w-[100px] font-mono text-xs text-white" : "break-all min-w-[100px] text-[var(--voyage-muted)]",
     },
     {
       header: "Payment Ref",
       accessor: (row: Order) => row.paymentRef || "-",
-      className: (row: Order) => row.paymentRef ? "break-all min-w-[100px] font-mono text-xs" : "break-all min-w-[100px] text-[var(--voyage-muted)]",
+      className: (row: Order) => row.paymentRef ? "break-all min-w-[100px] font-mono text-xs text-white" : "break-all min-w-[100px] text-[var(--voyage-muted)]",
     },
     {
       header: "Created",
@@ -135,6 +137,7 @@ export default function AdminOrdersPage() {
           hour: "2-digit",
           minute: "2-digit",
         }),
+      className: "text-white",
     },
   ], [planNames]);
 

@@ -51,25 +51,27 @@ export default function AdminUsersPage() {
     {
       header: "ID",
       accessor: (row: User) => row.id,
-      className: "break-all min-w-[120px] font-mono text-xs",
+      className: "break-all min-w-[120px] font-mono text-xs text-white",
     },
     {
       header: "Email",
       accessor: (row: User) => row.email,
+      className: "text-white",
     },
     {
       header: "Name",
       accessor: (row: User) => row.name || "-",
+      className: "text-white",
     },
     {
       header: "eSIMs",
       accessor: (row: User) => row.esimCount,
-      className: "text-center",
+      className: "text-center text-white",
     },
     {
       header: "Orders",
       accessor: (row: User) => row.orderCount,
-      className: "text-center",
+      className: "text-center text-white",
     },
     {
       header: "Created",
@@ -79,6 +81,7 @@ export default function AdminUsersPage() {
           month: "short",
           day: "numeric",
         }),
+      className: "text-white",
     },
   ], []);
 
