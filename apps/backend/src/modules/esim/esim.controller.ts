@@ -29,6 +29,14 @@ export class EsimController {
     return data.locationList;
   }
 
+  @Get('search')
+  async search(@Query('q') query: string) {
+    if (!query || query.trim().length < 2) {
+      return { countries: [], plans: [] };
+    }
+    return this.esimService.search(query.trim());
+  }
+
   @Get('countries/:code/plans')
   async getPlans(@Param('code') code: string) {
     const data = await this.esimService.getPackages(code);

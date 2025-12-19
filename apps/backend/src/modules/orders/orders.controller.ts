@@ -391,6 +391,24 @@ export class OrdersController {
           // Found orderId in metadata - this is the new flow
           order = await this.prisma.order.findUnique({
             where: { id: orderIdFromMetadata },
+      select: {
+        id: true,
+        amountCents: true,
+        currency: true,
+        displayCurrency: true,
+        displayAmountCents: true,
+        status: true,
+        paymentMethod: true,
+      },
+    });
+        } else {
+          // No orderId in metadata - try legacy flow
+          // Get payment_intent from session
+        const paymentIntentId = session.payment_intent as string;
+        
+        if (paymentIntentId) {
+          order = await this.prisma.order.findUnique({
+            where: { paymentRef: paymentIntentId },
             select: {
               id: true,
               amountCents: true,
@@ -401,24 +419,6 @@ export class OrdersController {
               paymentMethod: true,
             },
           });
-        } else {
-          // No orderId in metadata - try legacy flow
-          // Get payment_intent from session
-          const paymentIntentId = session.payment_intent as string;
-          
-          if (paymentIntentId) {
-            order = await this.prisma.order.findUnique({
-              where: { paymentRef: paymentIntentId },
-              select: {
-                id: true,
-                amountCents: true,
-                currency: true,
-                displayCurrency: true,
-                displayAmountCents: true,
-                status: true,
-                paymentMethod: true,
-              },
-            });
           }
         }
       } catch (error) {

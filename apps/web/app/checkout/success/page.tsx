@@ -7,6 +7,7 @@ import Link from "next/link";
 import Script from "next/script";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { CheckCircle2, QrCode, Mail, ExternalLink, ArrowRight, Smartphone, Download, Clock, LogIn, UserPlus, AlertCircle, Link as LinkIcon, Loader2 } from "lucide-react";
 import { safeFetch } from "@/lib/safe-fetch";
 import { formatCurrency } from "@/lib/utils";
@@ -186,6 +187,7 @@ function SuccessContent() {
       )}
 
       <div className="max-w-4xl mx-auto space-y-8">
+        <Breadcrumbs />
         {/* Success Header */}
         <div className="flex flex-col items-center text-center space-y-4">
           <div className="h-20 w-20 rounded-full bg-green-500/20 flex items-center justify-center">

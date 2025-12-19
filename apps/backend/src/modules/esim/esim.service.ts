@@ -168,6 +168,29 @@ export class EsimService {
     };
   }
 
+  // ---- SEARCH COUNTRIES AND PLANS ----
+  async search(query: string) {
+    const queryLower = query.toLowerCase();
+    const locations = await this.getLocations();
+    const allLocations = locations.locationList || [];
+    
+    // Search countries (type 1 only)
+    const matchingCountries = allLocations
+      .filter((loc: any) => loc.type === 1 && loc.name.toLowerCase().includes(queryLower))
+      .slice(0, 8) // Limit to 8 results
+      .map((loc: any) => ({
+        code: loc.code,
+        name: loc.name,
+        type: loc.type,
+        locationLogo: loc.locationLogo,
+      }));
+
+    return {
+      countries: matchingCountries,
+      plans: [], // Plans search can be added later if needed
+    };
+  }
+
   // ---- 2. GET PACKAGES FOR A COUNTRY ----
   async getPackages(locationCode: string) {
     const result = await this.esimAccess.packages.getPackagesByLocation(locationCode);

@@ -40,11 +40,11 @@
 
 ### Navigation & User Flow
 - [x] **Add "My eSIMs" to main navigation** - When user is signed in (✅ Available in NavigationUserMenu dropdown)
-- [ ] **Add global search to navbar** - Search functionality on all pages
-- [ ] **Add breadcrumbs to all pages** - Better navigation context
-- [ ] **Add "Recently Viewed" or "Continue Shopping"** - On account pages
-- [ ] **Add keyboard navigation support** - Full keyboard accessibility
-- [ ] **Add account dropdown preview** - Show balance/status in user menu
+- [x] **Add global search to navbar** - Search functionality on all pages (✅ Implemented - Dropdown search with backend API endpoint)
+- [x] **Add breadcrumbs to all pages** - Better navigation context (✅ Implemented - Added to Plans, Account, My eSIMs, Checkout pages)
+- [x] **Add "Recently Viewed" or "Continue Shopping"** - On account pages (✅ Implemented - Both features added with localStorage tracking)
+- [x] **Add keyboard navigation support** - Full keyboard accessibility (✅ Implemented - Ctrl+K for search, Ctrl+H for home, Ctrl+M for My eSIMs, Ctrl+A for Account)
+- [x] **Add account dropdown preview** - Show balance/status in user menu (✅ Implemented - Shows active eSIM count badge)
 
 ### Plan Browsing & Discovery
 - [ ] **Show starting price on country cards** - "From $X" pricing

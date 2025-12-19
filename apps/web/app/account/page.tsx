@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { RecentlyViewed } from "@/components/RecentlyViewed";
 import Link from "next/link";
-import { DollarSign, ArrowRight, Wallet, MessageSquare } from "lucide-react";
+import { DollarSign, ArrowRight, Wallet, MessageSquare, ShoppingBag } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrency } from "@/components/providers/CurrencyProvider";
 import { safeFetch } from "@/lib/safe-fetch";
@@ -52,9 +54,19 @@ export default function AccountPage() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-white mb-2">Account</h1>
-        <p className="text-[var(--voyage-muted)]">Manage your account settings</p>
+      <Breadcrumbs />
+      
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-white mb-2">Account</h1>
+          <p className="text-[var(--voyage-muted)]">Manage your account settings</p>
+        </div>
+        <Link href="/">
+          <Button variant="outline" className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-bg-light)] hover:text-white hover:border-[var(--voyage-accent)]">
+            <ShoppingBag className="h-4 w-4 mr-2" />
+            Continue Shopping
+          </Button>
+        </Link>
       </div>
 
       {/* V-Cash Balance Card */}
@@ -77,7 +89,7 @@ export default function AccountPage() {
             V-Cash is store credit you can use on Voyage purchases. Get V-Cash from refunds or affiliate earnings.
           </p>
           <Link href="/account/vcash" className="inline-block">
-            <Button variant="outline" className="border-[var(--voyage-border)] w-full sm:w-auto">
+            <Button variant="outline" className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-bg-light)] hover:text-white hover:border-[var(--voyage-accent)] w-full sm:w-auto">
               View V-Cash Details
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
@@ -121,7 +133,7 @@ export default function AccountPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
             <Link href="/account/support" className="w-full sm:w-auto">
-              <Button variant="outline" className="border-[var(--voyage-border)] w-full sm:w-auto">
+              <Button variant="outline" className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-bg-light)] hover:text-white hover:border-[var(--voyage-accent)] w-full sm:w-auto">
                 View My Tickets
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
@@ -134,6 +146,9 @@ export default function AccountPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Recently Viewed */}
+      <RecentlyViewed />
     </div>
   );
 }

@@ -6,10 +6,12 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PlanDetails } from "@/components/PlanDetails";
 import { PlanDetailsSkeleton } from "@/components/skeletons";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { safeFetch } from "@/lib/safe-fetch";
 import { useParams, useRouter } from "next/navigation";
 import { fetchDiscounts } from "@/lib/admin-discounts";
 import { getSlugFromCode } from "@/lib/country-slugs";
+import { addToRecentlyViewed } from "@/lib/recently-viewed";
 
 export default function PlanPage() {
   const params = useParams();
@@ -31,6 +33,15 @@ export default function PlanPage() {
       try {
         const data = await safeFetch<any>(`${apiUrl}/plans/${id}`, { showToast: false });
         setPlan(data);
+        
+        // Track recently viewed
+        if (data?.name) {
+          addToRecentlyViewed({
+            id: id,
+            name: data.name,
+            href: `/plans/${id}`,
+          });
+        }
       } catch (error) {
         console.error("Failed to fetch plan:", error);
       } finally {
@@ -88,6 +99,8 @@ export default function PlanPage() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumbs />
+      
       {useBackNavigation ? (
         <Button 
           variant="ghost" 

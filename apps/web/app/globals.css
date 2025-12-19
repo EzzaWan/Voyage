@@ -117,3 +117,91 @@
   );
   background-size: 1000px 100%;
 }
+
+/* Clerk UI Dark Theme Overrides - Comprehensive */
+.cl-userButtonPopoverCard,
+[class*="cl-userButtonPopoverCard"] {
+  background-color: var(--voyage-card) !important;
+  border-color: var(--voyage-border) !important;
+}
+
+.cl-userButtonPopoverHeader,
+[class*="cl-userButtonPopoverHeader"] {
+  background-color: var(--voyage-card) !important;
+  border-bottom-color: var(--voyage-border) !important;
+}
+
+.cl-userButtonPopoverHeaderTitle,
+[class*="cl-userButtonPopoverHeaderTitle"],
+.cl-userButtonPopoverHeaderTitle * {
+  color: white !important;
+}
+
+.cl-userButtonPopoverHeaderSubtitle,
+[class*="cl-userButtonPopoverHeaderSubtitle"],
+.cl-userButtonPopoverHeaderSubtitle * {
+  color: var(--voyage-muted) !important;
+}
+
+.cl-userButtonPopoverActions,
+[class*="cl-userButtonPopoverActions"] {
+  background-color: var(--voyage-card) !important;
+}
+
+.cl-userButtonPopoverActionButton,
+[class*="cl-userButtonPopoverActionButton"] {
+  color: white !important;
+  background-color: transparent !important;
+}
+
+.cl-userButtonPopoverActionButton:hover,
+[class*="cl-userButtonPopoverActionButton"]:hover {
+  background-color: var(--voyage-bg-light) !important;
+  color: white !important;
+}
+
+.cl-userButtonPopoverActionButtonText,
+[class*="cl-userButtonPopoverActionButtonText"],
+.cl-userButtonPopoverActionButtonText * {
+  color: white !important;
+}
+
+.cl-userButtonPopoverActionButtonIcon,
+[class*="cl-userButtonPopoverActionButtonIcon"],
+.cl-userButtonPopoverActionButtonIcon * {
+  color: var(--voyage-muted) !important;
+}
+
+.cl-userButtonPopoverFooter,
+[class*="cl-userButtonPopoverFooter"] {
+  background-color: var(--voyage-card) !important;
+  border-top-color: var(--voyage-border) !important;
+}
+
+.cl-userButtonPopoverFooter *,
+[class*="cl-userButtonPopoverFooter"] * {
+  color: var(--voyage-muted) !important;
+}
+
+/* Force dark theme for all Clerk popover elements */
+[class*="cl-userButtonPopover"] {
+  background-color: var(--voyage-card) !important;
+  color: white !important;
+}
+
+[class*="cl-userButtonPopover"] * {
+  color: white !important;
+}
+
+/* Specific overrides for text elements */
+[class*="cl-userButtonPopover"] p,
+[class*="cl-userButtonPopover"] span,
+[class*="cl-userButtonPopover"] div {
+  color: white !important;
+}
+
+/* Override for muted text */
+[class*="cl-userButtonPopover"] [class*="muted"],
+[class*="cl-userButtonPopover"] [class*="subtitle"] {
+  color: var(--voyage-muted) !important;
+}

@@ -19,6 +19,7 @@ import { ErrorToastProvider } from "@/components/ui/error-toast-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
+import { KeyboardNavigationProvider } from "@/components/KeyboardNavigationProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -34,7 +35,22 @@ export default function RootLayout({
 }>) {
   return (
     <ErrorBoundary>
-      <ClerkProvider>
+      <ClerkProvider
+        appearance={{
+          baseTheme: "dark",
+          elements: {
+            userButtonPopoverCard: "bg-[var(--voyage-card)] border-[var(--voyage-border)]",
+            userButtonPopoverHeader: "bg-[var(--voyage-card)] border-b border-[var(--voyage-border)]",
+            userButtonPopoverHeaderTitle: "text-white",
+            userButtonPopoverHeaderSubtitle: "text-[var(--voyage-muted)]",
+            userButtonPopoverActions: "bg-[var(--voyage-card)]",
+            userButtonPopoverActionButton: "text-white hover:bg-[var(--voyage-bg-light)] hover:text-white",
+            userButtonPopoverActionButtonText: "text-white",
+            userButtonPopoverActionButtonIcon: "text-[var(--voyage-muted)]",
+            userButtonPopoverFooter: "bg-[var(--voyage-card)] border-t border-[var(--voyage-border)]",
+          },
+        }}
+      >
         <CurrencyProvider>
           <ErrorToastProvider>
             <html lang="en">
@@ -54,19 +70,21 @@ export default function RootLayout({
                 </Script>
                 <div className="fixed inset-0 bg-gradient-to-br from-[var(--voyage-bg)] via-[var(--voyage-bg)] to-[#051020] -z-10" />
                 
-                <div className="flex flex-col min-h-screen">
-                  <Navbar />
-                  
-                  <main className="flex-grow max-w-6xl mx-auto px-6 py-10 w-full">
-                     <ReferralTracker />
-                     <SignedIn>
-                       <SignupTracker />
-                     </SignedIn>
-                     {children}
-                  </main>
-                  
-                  <Footer />
-                </div>
+                <KeyboardNavigationProvider>
+                  <div className="flex flex-col min-h-screen">
+                    <Navbar />
+                    
+                    <main className="flex-grow max-w-6xl mx-auto px-6 py-10 w-full">
+                       <ReferralTracker />
+                       <SignedIn>
+                         <SignupTracker />
+                       </SignedIn>
+                       {children}
+                    </main>
+                    
+                    <Footer />
+                  </div>
+                </KeyboardNavigationProvider>
                 <Toaster />
                 <LiveChat />
               </body>

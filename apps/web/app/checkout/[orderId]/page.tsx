@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { CheckoutProgress } from "@/components/checkout/CheckoutProgress";
 import { EmailPreview } from "@/components/checkout/EmailPreview";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Mail, CreditCard, Loader2, Tag, X } from "lucide-react";
@@ -360,6 +361,7 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
+      <Breadcrumbs />
       {/* Progress Indicator */}
       <div className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-2xl p-6">
         <CheckoutProgress currentStep={currentStep} />

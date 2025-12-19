@@ -6,8 +6,9 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { QrCode, Signal, RefreshCw, Calendar, HardDrive, Download, Copy, CheckCircle2 } from "lucide-react";
+import { QrCode, Signal, RefreshCw, Calendar, HardDrive, Download, Copy, CheckCircle2, ShoppingBag } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { safeFetch } from "@/lib/safe-fetch";
@@ -157,31 +158,43 @@ export default function MyEsimsPage() {
 
   return (
     <div className="space-y-8">
+      <Breadcrumbs />
+      
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-white">My eSIMs</h1>
-        <Button 
-          variant="outline" 
-          size="icon" 
-          className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-accent)] hover:border-[var(--voyage-accent)]"
-          onClick={async () => {
-            setLoading(true);
-            const userEmail = user?.primaryEmailAddress?.emailAddress;
-            if (userEmail) {
-              try {
-                const data = await safeFetch<EsimProfile[]>(
-                  `${process.env.NEXT_PUBLIC_API_URL}/user/esims?email=${encodeURIComponent(userEmail)}`,
-                  { showToast: false }
-                );
-                setEsims(data || []);
-              } catch (e) {
-                console.error('[MY-ESIMS] Refresh error:', e);
+        <div>
+          <h1 className="text-3xl font-bold text-white">My eSIMs</h1>
+        </div>
+        <div className="flex items-center gap-3">
+          <Link href="/">
+            <Button variant="outline" className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-bg-light)] hover:text-white hover:border-[var(--voyage-accent)]">
+              <ShoppingBag className="h-4 w-4 mr-2" />
+              Continue Shopping
+            </Button>
+          </Link>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-accent)] hover:border-[var(--voyage-accent)]"
+            onClick={async () => {
+              setLoading(true);
+              const userEmail = user?.primaryEmailAddress?.emailAddress;
+              if (userEmail) {
+                try {
+                  const data = await safeFetch<EsimProfile[]>(
+                    `${process.env.NEXT_PUBLIC_API_URL}/user/esims?email=${encodeURIComponent(userEmail)}`,
+                    { showToast: false }
+                  );
+                  setEsims(data || []);
+                } catch (e) {
+                  console.error('[MY-ESIMS] Refresh error:', e);
+                }
               }
-            }
-            setLoading(false);
-          }}
-        >
-           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-        </Button>
+              setLoading(false);
+            }}
+          >
+             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
       </div>
 
       {loading ? (
