@@ -80,7 +80,7 @@ export default function AdminTopupsPage() {
     {
       header: "ID",
       accessor: (row: TopUp) => row.id,
-      className: "break-all min-w-[120px] font-mono text-xs",
+      className: "break-all min-w-[120px] font-mono text-xs text-white",
     },
     {
       header: "esimTranNo",
@@ -88,7 +88,7 @@ export default function AdminTopupsPage() {
         const profile = row.EsimProfile || row.profile;
         return profile?.esimTranNo || "-";
       },
-      className: "break-all min-w-[100px] font-mono text-xs",
+      className: "break-all min-w-[100px] font-mono text-xs text-white",
     },
     {
       header: "Plan",

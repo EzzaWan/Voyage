@@ -50,7 +50,6 @@ export function EmailPreview({
               </div>
               <div>
                 <p className="text-sm font-semibold text-white">Voyage eSIM</p>
-                <p className="text-xs text-[var(--voyage-muted)]">support@voyage-esim.com</p>
               </div>
             </div>
             <p className="text-xs text-[var(--voyage-muted)] mt-2">Order Confirmation - {orderId}</p>
@@ -125,7 +124,7 @@ export function EmailPreview({
             {/* Support Section */}
             <div className="pt-4 border-t border-[var(--voyage-border)]">
               <p className="text-xs text-[var(--voyage-muted)]">
-                Need help? Visit our <a href="/support" className="text-[var(--voyage-accent)] hover:underline">Help Center</a> or contact support at support@voyage-esim.com
+                Need help? Visit our <a href="/support" className="text-[var(--voyage-accent)] hover:underline">Help Center</a>
               </p>
             </div>
           </div>
@@ -134,4 +133,5 @@ export function EmailPreview({
     </Card>
   );
 }
+
 

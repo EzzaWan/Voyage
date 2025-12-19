@@ -6,6 +6,8 @@ const isPublicRoute = createRouteMatcher([
   '/',
   '/countries(.*)',
   '/plans(.*)',
+  '/checkout(.*)', // Allow guest checkout without sign-in
+  '/orders(.*)', // Allow guest order access via secure link
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/support(.*)',

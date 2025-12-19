@@ -179,6 +179,23 @@ export class OrdersController {
     }
   }
 
+  @Post(':orderId/update-email')
+  @RateLimit({ limit: 5, window: 60 })
+  async updateOrderEmail(
+    @Param('orderId') orderId: string,
+    @Body() body: { email: string },
+  ) {
+    try {
+      if (!body.email) {
+        throw new BadRequestException('Email is required');
+      }
+      return await this.ordersService.updateOrderEmail(orderId, body.email);
+    } catch (error) {
+      console.error('[UPDATE_ORDER_EMAIL_ERROR]', error);
+      throw error;
+    }
+  }
+
   @Post(':orderId/checkout')
   @RateLimit({ limit: 5, window: 30 })
   async createCheckoutSession(
@@ -204,6 +221,11 @@ export class OrdersController {
     const order = await this.prisma.order.findUnique({
       where: { id },
       include: {
+        User: {
+          select: {
+            email: true,
+          },
+        },
         EsimProfile: {
           take: 1,
           orderBy: { id: 'asc' },
@@ -239,6 +261,7 @@ export class OrdersController {
       paymentMethod: order.paymentMethod,
       createdAt: order.createdAt,
       receiptSent: order.receiptSent,
+      userEmail: order.User?.email,
       EsimProfile: order.EsimProfile,
     };
   }
@@ -435,6 +458,90 @@ export class OrdersController {
       currency: order.displayCurrency || order.currency,
       status: order.status,
     };
+  }
+
+  @Post(':orderId/request-guest-access')
+  @RateLimit({ limit: 3, window: 300 })
+  async requestGuestAccess(
+    @Param('orderId') orderId: string,
+    @Body() body: { email: string },
+  ) {
+    try {
+      if (!body.email) {
+        throw new BadRequestException('Email is required');
+      }
+      return await this.ordersService.requestGuestAccess(orderId, body.email);
+    } catch (error) {
+      console.error('[REQUEST_GUEST_ACCESS_ERROR]', error);
+      throw error;
+    }
+  }
+
+  @Get(':orderId/guest')
+  @RateLimit({ limit: 10, window: 60 })
+  async getOrderForGuest(
+    @Param('orderId') orderId: string,
+    @Query('token') token: string,
+    @Query('email') email: string,
+  ) {
+    try {
+      if (!token || !email) {
+        throw new BadRequestException('Token and email are required');
+      }
+
+      // Verify token
+      const tokenData = this.ordersService.verifyGuestAccessToken(token);
+      if (!tokenData || tokenData.orderId !== orderId || tokenData.email.toLowerCase() !== email.toLowerCase().trim()) {
+        throw new ForbiddenException('Invalid or expired access token');
+      }
+
+      // Get order with eSIM profiles
+      const order = await this.prisma.order.findUnique({
+        where: { id: orderId },
+        include: {
+          User: {
+            select: {
+              email: true,
+            },
+          },
+          EsimProfile: {
+            select: {
+              id: true,
+              iccid: true,
+              qrCodeUrl: true,
+              ac: true,
+              esimStatus: true,
+            },
+          },
+        },
+      });
+
+      if (!order) {
+        throw new NotFoundException(`Order ${orderId} not found`);
+      }
+
+      // Verify email matches
+      if (order.User.email.toLowerCase() !== email.toLowerCase().trim()) {
+        throw new ForbiddenException('Email does not match order');
+      }
+
+      return {
+        id: order.id,
+        planId: order.planId,
+        amountCents: order.amountCents,
+        displayAmountCents: order.displayAmountCents,
+        displayCurrency: order.displayCurrency,
+        currency: order.currency,
+        status: order.status,
+        paymentMethod: order.paymentMethod,
+        createdAt: order.createdAt,
+        receiptSent: order.receiptSent,
+        EsimProfile: order.EsimProfile,
+      };
+    } catch (error) {
+      console.error('[GET_GUEST_ORDER_ERROR]', error);
+      throw error;
+    }
   }
 
   // ============================================

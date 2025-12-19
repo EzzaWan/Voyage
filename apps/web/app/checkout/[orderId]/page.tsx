@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import { CheckoutProgress } from "@/components/checkout/CheckoutProgress";
 import { EmailPreview } from "@/components/checkout/EmailPreview";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +26,7 @@ interface Order {
 export default function CheckoutPage({ params }: { params: { orderId: string } }) {
   const router = useRouter();
   const { toast } = useToast();
+  const { user, isLoaded: userLoaded } = useUser();
   const [currentStep, setCurrentStep] = useState(1);
   const [showEmailPreview, setShowEmailPreview] = useState(false);
   const [order, setOrder] = useState<Order | null>(null);
@@ -34,6 +36,8 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
   const [applyingPromo, setApplyingPromo] = useState(false);
   const [promoDiscount, setPromoDiscount] = useState<{ percent: number; originalAmount: number; originalDisplayAmount: number } | null>(null);
+  const [email, setEmail] = useState("");
+  const [updatingEmail, setUpdatingEmail] = useState(false);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -43,6 +47,11 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
           showToast: false,
         });
         setOrder(orderData);
+        
+        // Set email from logged-in user if available
+        if (userLoaded && user?.primaryEmailAddress?.emailAddress) {
+          setEmail(user.primaryEmailAddress.emailAddress);
+        }
 
         // Check if promo code was previously applied (stored in localStorage)
         const storedPromo = localStorage.getItem(`promo_${params.orderId}`);
@@ -81,7 +90,7 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
     };
 
     fetchOrder();
-  }, [params.orderId, toast]);
+  }, [params.orderId, toast, userLoaded, user]);
 
   const handleApplyPromo = async () => {
     if (!promoCode.trim()) {
@@ -242,9 +251,58 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
   };
 
   const handleProceedToPayment = async () => {
+    // Validate email for guests
+    if (!user && !email.trim()) {
+      toast({
+        title: "Email required",
+        description: "Please enter your email address to receive your eSIM.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!user && !emailRegex.test(email.trim())) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setProcessing(true);
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+      
+      // Update order email if guest user
+      if (!user && email.trim()) {
+        setUpdatingEmail(true);
+        try {
+          await safeFetch(
+            `${apiUrl}/orders/${params.orderId}/update-email`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: email.trim() }),
+              errorMessage: "Failed to update email.",
+            }
+          );
+        } catch (error: any) {
+          toast({
+            title: "Failed to update email",
+            description: error.message || "Please try again.",
+            variant: "destructive",
+          });
+          setUpdatingEmail(false);
+          setProcessing(false);
+          return;
+        }
+        setUpdatingEmail(false);
+      }
+
+      // Create Stripe checkout session
       const data = await safeFetch<{ url: string }>(
         `${apiUrl}/orders/${params.orderId}/checkout`,
         {
@@ -327,6 +385,40 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
                     Plan: <span className="text-white">{order.planId}</span>
                   </p>
                 </div>
+                
+                {/* Email Input Section (for guests) */}
+                {!user && (
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-white">Email Address</h3>
+                    <p className="text-xs text-[var(--voyage-muted)]">
+                      Enter your email to receive your eSIM and order confirmation
+                    </p>
+                    <Input
+                      type="email"
+                      placeholder="your.email@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] text-white placeholder:text-[var(--voyage-muted)] focus:border-[var(--voyage-accent)]"
+                      disabled={updatingEmail}
+                    />
+                  </div>
+                )}
+                
+                {/* Logged-in user email display */}
+                {user && user.primaryEmailAddress?.emailAddress && (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-semibold text-white">Email Address</h3>
+                    <div className="bg-[var(--voyage-bg-light)] rounded-lg p-3 border border-[var(--voyage-border)]">
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-[var(--voyage-accent)]" />
+                        <span className="text-sm text-white">{user.primaryEmailAddress.emailAddress}</span>
+                      </div>
+                      <p className="text-xs text-[var(--voyage-muted)] mt-1">
+                        Your eSIM will be sent to this email
+                      </p>
+                    </div>
+                  </div>
+                )}
                 
                 {/* Promo Code Section */}
                 <div className="space-y-3">
@@ -412,13 +504,13 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
                 <div className="pt-4">
                   <Button
                     onClick={handleProceedToPayment}
-                    disabled={processing || order.status !== 'pending'}
-                    className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white py-6 text-lg"
+                    disabled={processing || updatingEmail || order.status !== 'pending' || (!user && !email.trim())}
+                    className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white py-6 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {processing ? (
+                    {processing || updatingEmail ? (
                       <>
                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Processing...
+                        {updatingEmail ? 'Updating email...' : 'Processing...'}
                       </>
                     ) : (
                       <>

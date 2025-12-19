@@ -13,7 +13,7 @@ import { SecurityLoggerService } from '../../common/services/security-logger.ser
   imports: [
     StripeModule,
     EsimModule,
-    OrdersModule,
+    forwardRef(() => OrdersModule),
     forwardRef(() => AffiliateModule),
     forwardRef(() => TopUpModule),
   ],

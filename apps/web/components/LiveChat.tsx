@@ -37,6 +37,17 @@ export function LiveChat() {
     if (typeof window !== "undefined") {
       (window as any).Tawk_API = (window as any).Tawk_API || {};
       (window as any).Tawk_LoadStart = new Date();
+      
+      // Prevent auto-opening - minimize widget when it loads (bubble visible, window closed)
+      // Users can click the chat bubble to open it manually
+      (window as any).Tawk_API.onLoad = function() {
+        // Small delay to ensure widget is fully rendered before minimizing
+        setTimeout(() => {
+          if ((window as any).Tawk_API && typeof (window as any).Tawk_API.minimize === "function") {
+            (window as any).Tawk_API.minimize();
+          }
+        }, 100);
+      };
     }
 
     // Create and inject the Tawk.to script

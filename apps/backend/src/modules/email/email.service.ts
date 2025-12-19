@@ -435,5 +435,20 @@ export class EmailService {
       idempotencyKey: idempotency || `affiliate-vcash-convert-${Date.now()}`,
     });
   }
+
+  async sendGuestAccessEmail(to: string, orderId: string, accessUrl: string, idempotency?: string) {
+    const subject = `Access your eSIM order — Voyage`;
+    return this.sendEmail({
+      to,
+      template: 'guest-access',
+      subject,
+      variables: {
+        orderId,
+        accessUrl,
+        expiresIn: '7 days',
+      },
+      idempotencyKey: idempotency || `guest-access-${orderId}-${Date.now()}`,
+    });
+  }
 }
 

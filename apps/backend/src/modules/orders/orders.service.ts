@@ -36,6 +36,181 @@ export class OrdersService {
   private readonly logger = new Logger(OrdersService.name);
 
   /**
+   * Link guest orders to user account when they sign up/login
+   * This is called when a user is created or their email is confirmed
+   */
+  async linkGuestOrdersToUser(userEmail: string, userId: string): Promise<number> {
+    try {
+      const normalizedEmail = userEmail.toLowerCase().trim();
+      
+      // Find all orders with this email that aren't already linked to this user
+      const guestOrders = await this.prisma.order.findMany({
+        where: {
+          User: {
+            email: normalizedEmail,
+          },
+          userId: {
+            not: userId, // Not already linked to this user
+          },
+        },
+        include: {
+          User: true,
+        },
+      });
+
+      if (guestOrders.length === 0) {
+        return 0;
+      }
+
+      this.logger.log(`[LINK_ORDERS] Found ${guestOrders.length} guest orders to link for ${normalizedEmail}`);
+
+      let linkedCount = 0;
+      
+      // Link each order to the user account
+      for (const order of guestOrders) {
+        // Only link if the guest user email matches
+        if (order.User.email.toLowerCase() === normalizedEmail) {
+          // Update order to use the new user ID
+          await this.prisma.order.update({
+            where: { id: order.id },
+            data: { userId },
+          });
+
+          // Also update any eSIM profiles linked to this order
+          await this.prisma.esimProfile.updateMany({
+            where: { orderId: order.id },
+            data: { userId },
+          });
+
+          linkedCount++;
+          this.logger.log(`[LINK_ORDERS] Linked order ${order.id} to user ${userId}`);
+        }
+      }
+
+      this.logger.log(`[LINK_ORDERS] Successfully linked ${linkedCount} orders to user ${userId}`);
+      return linkedCount;
+    } catch (error) {
+      this.logger.error(`[LINK_ORDERS] Failed to link guest orders for ${userEmail}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate a secure token for guest access to an order
+   */
+  generateGuestAccessToken(orderId: string, email: string): string {
+    const secret = this.config.get<string>('JWT_SECRET') || 'default-secret-change-in-production';
+    const payload = {
+      orderId,
+      email: email.toLowerCase().trim(),
+      type: 'guest_access',
+      exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60), // 7 days expiry
+    };
+    
+    // Simple token generation using crypto
+    const data = JSON.stringify(payload);
+    const hmac = crypto.createHmac('sha256', secret);
+    hmac.update(data);
+    const signature = hmac.digest('hex');
+    
+    // Base64 encode the payload and signature
+    const token = Buffer.from(`${data}:${signature}`).toString('base64url');
+    return token;
+  }
+
+  /**
+   * Verify and decode guest access token
+   */
+  verifyGuestAccessToken(token: string): { orderId: string; email: string } | null {
+    try {
+      const secret = this.config.get<string>('JWT_SECRET') || 'default-secret-change-in-production';
+      
+      // Decode token
+      const decoded = Buffer.from(token, 'base64url').toString('utf8');
+      const [data, signature] = decoded.split(':');
+      
+      if (!data || !signature) {
+        return null;
+      }
+      
+      // Verify signature
+      const hmac = crypto.createHmac('sha256', secret);
+      hmac.update(data);
+      const expectedSignature = hmac.digest('hex');
+      
+      if (signature !== expectedSignature) {
+        return null;
+      }
+      
+      // Parse payload
+      const payload = JSON.parse(data);
+      
+      // Check expiry
+      if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+        return null;
+      }
+      
+      // Verify it's a guest access token
+      if (payload.type !== 'guest_access') {
+        return null;
+      }
+      
+      return {
+        orderId: payload.orderId,
+        email: payload.email,
+      };
+    } catch (error) {
+      this.logger.error('[GUEST_ACCESS] Failed to verify token:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Request guest access - generates token and sends email
+   */
+  async requestGuestAccess(orderId: string, email: string): Promise<{ success: boolean; message: string }> {
+    try {
+      // Verify order exists and email matches
+      const order = await this.prisma.order.findUnique({
+        where: { id: orderId },
+        include: { User: true },
+      });
+
+      if (!order) {
+        throw new NotFoundException(`Order ${orderId} not found`);
+      }
+
+      const normalizedEmail = email.toLowerCase().trim();
+      if (order.User.email.toLowerCase() !== normalizedEmail) {
+        throw new BadRequestException('Email does not match the order email');
+      }
+
+      // Generate access token
+      const token = this.generateGuestAccessToken(orderId, email);
+      
+      // Get app URL
+      const appUrl = this.config.get<string>('APP_URL') || 'http://localhost:3000';
+      const accessUrl = `${appUrl}/orders/${orderId}?token=${token}&email=${encodeURIComponent(email)}`;
+
+      // Send email with magic link
+      if (this.emailService) {
+        await this.emailService.sendGuestAccessEmail(email, orderId, accessUrl);
+        this.logger.log(`[GUEST_ACCESS] Sent access email to ${email} for order ${orderId}`);
+      } else {
+        this.logger.warn('[GUEST_ACCESS] Email service not available');
+      }
+
+      return {
+        success: true,
+        message: 'Access link sent to your email',
+      };
+    } catch (error) {
+      this.logger.error(`[GUEST_ACCESS] Failed to request access for order ${orderId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Create a pending order (for review page before payment)
    */
   async createPendingOrder({ planCode, amount, currency, planName, displayCurrency, referralCode, email }: {
@@ -219,6 +394,66 @@ export class OrdersService {
     // In a real implementation, you'd restore from stored originalAmount
     // For now, this endpoint exists but may not fully restore the amount
     // The frontend will handle the restoration using stored values
+  }
+
+  /**
+   * Update order user email (for guest checkout)
+   */
+  async updateOrderEmail(orderId: string, email: string) {
+    try {
+      this.logger.log(`[UPDATE_EMAIL] Updating email for order: ${orderId}, email: ${email}`);
+      
+      const order = await this.prisma.order.findUnique({
+        where: { id: orderId },
+        include: { User: true },
+      });
+
+      if (!order) {
+        throw new NotFoundException(`Order ${orderId} not found`);
+      }
+
+      if (order.status !== 'pending') {
+        throw new BadRequestException(`Cannot update email for order with status: ${order.status}`);
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        throw new BadRequestException('Invalid email format');
+      }
+
+      const normalizedEmail = email.toLowerCase().trim();
+
+      // If the order already has this email, no need to update
+      if (order.User.email.toLowerCase() === normalizedEmail) {
+        return { success: true, message: 'Email already set' };
+      }
+
+      // Create or get user with the new email
+      const user = await this.prisma.user.upsert({
+        where: { email: normalizedEmail },
+        create: {
+          id: crypto.randomUUID(),
+          email: normalizedEmail,
+          name: null,
+        },
+        update: {},
+      });
+
+      // Update order to use the new user
+      await this.prisma.order.update({
+        where: { id: orderId },
+        data: {
+          userId: user.id,
+        },
+      });
+
+      this.logger.log(`[UPDATE_EMAIL] Updated order ${orderId} to use email: ${normalizedEmail}`);
+      return { success: true, message: 'Email updated successfully' };
+    } catch (error) {
+      this.logger.error('[UPDATE_EMAIL] Failed to update order email', error);
+      throw error;
+    }
   }
 
   /**
@@ -1538,6 +1773,27 @@ export class OrdersService {
     }
 
     try {
+      // Send guest access link automatically for all orders
+      // This allows guests to access their order later, and logged-in users can ignore it if not needed
+      // We send it for all orders because:
+      // 1. Guest users definitely need it (they provided email during checkout)
+      // 2. Even logged-in users might want it as a backup/shareable link
+      // 3. It's harmless to send it to everyone
+      try {
+        const token = this.generateGuestAccessToken(order.id, user.email);
+        const appUrl = this.config.get<string>('APP_URL') || 'http://localhost:3000';
+        const accessUrl = `${appUrl}/orders/${order.id}?token=${token}&email=${encodeURIComponent(user.email)}`;
+        
+        // Send guest access email (fire and forget)
+        this.emailService.sendGuestAccessEmail(user.email, order.id, accessUrl).catch((err) => {
+          this.logger.error(`[EMAIL] Failed to send guest access email: ${err.message}`);
+        });
+        
+        this.logger.log(`[GUEST_ACCESS] Automatically sent access email to ${user.email} for order ${order.id}`);
+      } catch (err) {
+        this.logger.error(`[GUEST_ACCESS] Failed to send automatic guest access email:`, err);
+      }
+
       // Fetch plan details
       let planDetails: any = null;
       try {

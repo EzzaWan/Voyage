@@ -74,7 +74,7 @@ export default function AdminEmailLogsPage() {
       header: "To",
       accessor: (row: EmailLog) => row.to,
       render: (row: EmailLog) => (
-        <div className="truncate max-w-[180px]" title={row.to}>
+        <div className="truncate max-w-[180px] text-white" title={row.to}>
           {row.to}
         </div>
       ),
@@ -84,7 +84,7 @@ export default function AdminEmailLogsPage() {
       header: "Subject",
       accessor: (row: EmailLog) => row.subject,
       render: (row: EmailLog) => (
-        <div className="truncate max-w-[220px]" title={row.subject}>
+        <div className="truncate max-w-[220px] text-white" title={row.subject}>
           {row.subject}
         </div>
       ),
@@ -93,7 +93,7 @@ export default function AdminEmailLogsPage() {
     {
       header: "Template",
       accessor: (row: EmailLog) => row.template,
-      className: "w-[100px] font-mono text-xs",
+      className: "w-[100px] font-mono text-xs text-white",
     },
     {
       header: "Status",
@@ -106,7 +106,7 @@ export default function AdminEmailLogsPage() {
       accessor: (row: EmailLog) => row.providerId || "",
       render: (row: EmailLog) =>
         row.providerId ? (
-          <div className="font-mono text-xs truncate max-w-[120px]" title={row.providerId}>
+          <div className="font-mono text-xs truncate max-w-[120px] text-white" title={row.providerId}>
             {row.providerId}
           </div>
         ) : (
@@ -131,7 +131,7 @@ export default function AdminEmailLogsPage() {
       header: "Sent At",
       accessor: (row: EmailLog) =>
         new Date(row.createdAt).toLocaleString(),
-      className: "w-[150px]",
+      className: "w-[150px] text-white",
     },
   ], []);
 

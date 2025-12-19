@@ -6,6 +6,7 @@ import { AffiliateService } from '../affiliate/affiliate.service';
 import { AffiliateCommissionService } from '../affiliate/affiliate-commission.service';
 import { AffiliateAnalyticsService } from '../affiliate/affiliate-analytics.service';
 import { FraudDetectionService } from '../affiliate/fraud/fraud-detection.service';
+import { OrdersService } from '../orders/orders.service';
 import { Webhook } from 'svix';
 import { EsimAccess, WebhookEvent } from '../../../../../libs/esim-access';
 
@@ -27,6 +28,8 @@ export class WebhooksService {
     private analyticsService?: AffiliateAnalyticsService,
     @Inject(forwardRef(() => FraudDetectionService))
     private fraudDetection?: FraudDetectionService,
+    @Inject(forwardRef(() => OrdersService))
+    private ordersService?: OrdersService,
     // @InjectQueue('provisionQueue') private provisionQueue: Queue
   ) {
      this.esimAccess = new EsimAccess({
@@ -171,6 +174,18 @@ export class WebhooksService {
 
         this.logger.log(`[CLERK] Created/updated user in database: ${email}`);
 
+        // Link any guest orders with this email to the user account
+        if (this.ordersService) {
+          try {
+            const linkedCount = await this.ordersService.linkGuestOrdersToUser(email, user.id);
+            if (linkedCount > 0) {
+              this.logger.log(`[CLERK] Linked ${linkedCount} guest orders to user ${user.id}`);
+            }
+          } catch (err) {
+            this.logger.error(`[CLERK] Failed to link guest orders for user ${user.id}:`, err);
+          }
+        }
+
         // Create affiliate record for new user
         try {
           await this.affiliateService.createAffiliateForUser(user.id);
@@ -191,6 +206,11 @@ export class WebhooksService {
         const lastName = data.last_name || null;
         const name = firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || null;
 
+        // Get user to check if email was just verified
+        const user = await this.prisma.user.findFirst({
+          where: { email },
+        });
+
         await this.prisma.user.updateMany({
           where: { email },
           data: {
@@ -199,6 +219,18 @@ export class WebhooksService {
         });
 
         this.logger.log(`[CLERK] Updated user in database: ${email}`);
+
+        // If user exists and email was just verified, link guest orders
+        if (user && this.ordersService) {
+          try {
+            const linkedCount = await this.ordersService.linkGuestOrdersToUser(email, user.id);
+            if (linkedCount > 0) {
+              this.logger.log(`[CLERK] Linked ${linkedCount} guest orders to user ${user.id} after email verification`);
+            }
+          } catch (err) {
+            this.logger.error(`[CLERK] Failed to link guest orders for user ${user.id}:`, err);
+          }
+        }
       }
     } catch (err: any) {
       this.logger.error('[CLERK] Webhook verification failed:', err.message);

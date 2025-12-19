@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Facebook, Instagram, Linkedin, Mail } from "lucide-react";
+import { Facebook, Instagram, Linkedin } from "lucide-react";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -112,11 +112,6 @@ export function Footer() {
 
         <div className="border-t border-[var(--voyage-border)] mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-[var(--voyage-muted)]">
           <p>© {currentYear} Voyage eSIM. All rights reserved.</p>
-          <div className="flex items-center gap-6">
-            <span className="flex items-center gap-2">
-              <Mail className="h-4 w-4" /> support@voyage-esim.com
-            </span>
-          </div>
         </div>
       </div>
     </footer>
