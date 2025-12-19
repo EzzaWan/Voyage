@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Globe, ArrowRight, Shield, Lock, Clock, CheckCircle2, Star, Quote, Zap, Smartphone, Wifi, Plane, HelpCircle } from "lucide-react";
 import { safeFetch } from "@/lib/safe-fetch";
 import { getRegionForCountry, REGION_NAMES, Region } from "@/lib/regions";
+import { useCountryPlanSummaries } from "@/hooks/useCountryPlanSummary";
 
 interface Country {
   code: string;
@@ -94,6 +95,13 @@ export default function Home() {
 
     return grouped;
   }, [countries]);
+
+  // Fetch plan summaries only for popular destinations
+  const popularCountryCodes = useMemo(() => popularDestinations.map(c => c.code), [popularDestinations]);
+  const { summaries: planSummaries, loading: loadingSummaries } = useCountryPlanSummaries(
+    popularCountryCodes,
+    { enabled: popularDestinations.length > 0, batchSize: 15 }
+  );
 
   useEffect(() => {
     if (!search) {
@@ -221,9 +229,18 @@ export default function Home() {
            
            <div className="max-w-5xl mx-auto">
              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-               {popularDestinations.map((country) => (
-                 <CountryCard key={country.code} country={country} />
-               ))}
+              {popularDestinations.map((country) => {
+                const summary = planSummaries[country.code];
+                return (
+                  <CountryCard 
+                    key={country.code} 
+                    country={country}
+                    lowestPriceUSD={summary?.lowestPriceUSD || 0}
+                    planCount={summary?.planCount || 0}
+                    loadingSummary={loadingSummaries || summary?.loading || false}
+                  />
+                );
+              })}
              </div>
            </div>
          </div>
@@ -367,7 +384,7 @@ export default function Home() {
          ) : (
            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 animate-in fade-in duration-1000">
               {filtered.map((country) => (
-                 <CountryCard key={country.code} country={country} />
+                <CountryCard key={country.code} country={country} />
               ))}
               
               {filtered.length === 0 && !loading && (
@@ -384,9 +401,12 @@ export default function Home() {
          <div className="space-y-4">
            <h2 className="text-2xl font-bold text-white">Regions</h2>
            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 animate-in fade-in duration-1000">
-             {filteredRegions.map((region) => (
-               <CountryCard key={region.code} country={region} />
-             ))}
+             {filteredRegions.map((region) => {
+               // Regions don't have plan summaries, so we don't pass those props
+               return (
+                 <CountryCard key={region.code} country={region} />
+               );
+             })}
            </div>
          </div>
        )}
