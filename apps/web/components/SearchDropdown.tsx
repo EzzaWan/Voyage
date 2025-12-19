@@ -17,6 +17,7 @@ interface SearchDropdownProps {
   value: string;
   onChange: (value: string) => void;
   onSelect?: (result: SearchResult) => void;
+  onClose?: () => void;
   className?: string;
   placeholder?: string;
 }
