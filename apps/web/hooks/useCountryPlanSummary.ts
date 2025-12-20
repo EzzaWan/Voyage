@@ -50,31 +50,42 @@ async function fetchCountryPlanSummary(
       { showToast: false }
     );
 
+    if (!plans || !Array.isArray(plans)) {
+      console.warn(`No plans data returned for ${countryCode}`);
+      return { lowestPriceUSD: 0, planCount: 0 };
+    }
+
     // Filter to visible plans (same logic as country page)
-    const visiblePlans = filterVisiblePlans(plans || []);
+    const visiblePlans = filterVisiblePlans(plans);
 
     // Filter to only country-specific plans (exclude multi-country plans)
     const countrySpecificPlans = visiblePlans.filter((plan: Plan) => {
-      return (
-        plan.location &&
-        !plan.location.includes(",") &&
-        plan.location.trim().toUpperCase() === countryCode.toUpperCase()
-      );
+      if (!plan.location) return false;
+      const location = plan.location.trim().toUpperCase();
+      const code = countryCode.toUpperCase();
+      // Match exact country code, exclude multi-country plans (those with commas)
+      return !location.includes(",") && location === code;
     });
 
     // Calculate lowest price (with discounts applied)
     let lowestPriceUSD = 0;
     if (countrySpecificPlans.length > 0) {
       // Fetch discounts if not already loaded
-      await fetchDiscounts();
+      try {
+        await fetchDiscounts();
+      } catch (error) {
+        console.warn("Failed to fetch discounts, continuing without them:", error);
+      }
 
-      lowestPriceUSD = Math.min(
-        ...countrySpecificPlans.map((plan) => {
-          const gb = calculateGB(plan.volume);
-          const discount = getDiscount(plan.packageCode, gb);
-          return getFinalPriceUSD(plan, discount);
-        })
-      );
+      const prices = countrySpecificPlans.map((plan) => {
+        const gb = calculateGB(plan.volume);
+        const discount = getDiscount(plan.packageCode, gb);
+        return getFinalPriceUSD(plan, discount);
+      }).filter(price => price > 0); // Filter out invalid prices
+
+      if (prices.length > 0) {
+        lowestPriceUSD = Math.min(...prices);
+      }
     }
 
     const summary = {
@@ -82,15 +93,18 @@ async function fetchCountryPlanSummary(
       planCount: countrySpecificPlans.length,
     };
 
-    // Cache the result
-    cache[countryCode] = {
-      ...summary,
-      timestamp: Date.now(),
-    };
+    // Cache the result (only cache successful fetches with valid data)
+    if (summary.planCount > 0 || plans.length === 0) {
+      cache[countryCode] = {
+        ...summary,
+        timestamp: Date.now(),
+      };
+    }
 
     return summary;
   } catch (error) {
     console.error(`Failed to fetch plan summary for ${countryCode}:`, error);
+    // Don't cache errors - return 0,0 but allow retry on next render
     return { lowestPriceUSD: 0, planCount: 0 };
   }
 }
@@ -111,8 +125,11 @@ export function useCountryPlanSummaries(
   useEffect(() => {
     if (!enabled || countryCodes.length === 0) {
       setLoading(false);
+      setSummaries({});
       return;
     }
+
+    let cancelled = false;
 
     // Initialize summaries with loading state
     const initialSummaries: Record<string, CountryPlanSummary> = {};
@@ -129,23 +146,31 @@ export function useCountryPlanSummaries(
 
     // Fetch summaries in batches
     const fetchBatch = async (batch: string[], batchIndex: number) => {
+      if (cancelled) return;
+
       // Add delay between batches to avoid rate limiting
       if (batchIndex > 0) {
         await new Promise((resolve) => setTimeout(resolve, 100 * batchIndex));
       }
+
+      if (cancelled) return;
 
       const promises = batch.map(async (code) => {
         try {
           const summary = await fetchCountryPlanSummary(code, apiUrl);
           return { code, summary, success: true };
         } catch (error) {
+          console.error(`Failed to fetch plan summary for ${code}:`, error);
           return { code, summary: { lowestPriceUSD: 0, planCount: 0 }, success: false };
         }
       });
 
       const results = await Promise.all(promises);
 
+      if (cancelled) return;
+
       setSummaries((prev) => {
+        if (cancelled) return prev;
         const updated = { ...prev };
         results.forEach((result) => {
           updated[result.code] = {
@@ -166,11 +191,26 @@ export function useCountryPlanSummaries(
 
     // Process batches sequentially
     (async () => {
-      for (let i = 0; i < batches.length; i++) {
-        await fetchBatch(batches[i], i);
+      try {
+        for (let i = 0; i < batches.length; i++) {
+          if (cancelled) break;
+          await fetchBatch(batches[i], i);
+        }
+        if (!cancelled) {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error("Error fetching plan summaries:", error);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
-      setLoading(false);
     })();
+
+    // Cleanup function
+    return () => {
+      cancelled = true;
+    };
   }, [countryCodes.join(","), enabled, batchSize, apiUrl]);
 
   return { summaries, loading };

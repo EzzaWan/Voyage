@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { SearchBar } from "@/components/SearchBar";
 import { CountryCard } from "@/components/CountryCard";
@@ -96,12 +96,37 @@ export default function Home() {
     return grouped;
   }, [countries]);
 
-  // Fetch plan summaries only for popular destinations
+  // Fetch plan summaries only for popular destinations - LAZY LOADED
+  // Only fetch when user scrolls to the section
+  const [shouldLoadSummaries, setShouldLoadSummaries] = useState(false);
+  const popularDestinationsRef = useRef<HTMLDivElement>(null);
+  
   const popularCountryCodes = useMemo(() => popularDestinations.map(c => c.code), [popularDestinations]);
   const { summaries: planSummaries, loading: loadingSummaries } = useCountryPlanSummaries(
     popularCountryCodes,
-    { enabled: popularDestinations.length > 0, batchSize: 15 }
+    { enabled: shouldLoadSummaries && popularDestinations.length > 0, batchSize: 15 }
   );
+
+  // Only load when user scrolls to the popular destinations section
+  useEffect(() => {
+    if (shouldLoadSummaries || !popularDestinationsRef.current || popularDestinations.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setShouldLoadSummaries(true);
+            observer.disconnect();
+          }
+        });
+      },
+      { rootMargin: '50px', threshold: 0.1 } // Only trigger when actually visible
+    );
+
+    observer.observe(popularDestinationsRef.current);
+
+    return () => observer.disconnect();
+  }, [shouldLoadSummaries, popularDestinations.length]);
 
   useEffect(() => {
     if (!search) {
@@ -206,7 +231,7 @@ export default function Home() {
 
        {/* Popular Destinations Section */}
        {!search && popularDestinations.length > 0 && (
-         <div className="space-y-4">
+         <div ref={popularDestinationsRef} className="space-y-4">
            <div className="flex items-center justify-between">
              <div>
                <h2 className="text-2xl font-bold text-white mb-1">Popular Destinations</h2>
@@ -231,13 +256,15 @@ export default function Home() {
              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {popularDestinations.map((country) => {
                 const summary = planSummaries[country.code];
+                // Show loading if: overall loading OR this specific country's summary is still loading
+                const isLoading = loadingSummaries || (summary?.loading !== false);
                 return (
                   <CountryCard 
                     key={country.code} 
                     country={country}
-                    lowestPriceUSD={summary?.lowestPriceUSD || 0}
-                    planCount={summary?.planCount || 0}
-                    loadingSummary={loadingSummaries || summary?.loading || false}
+                    lowestPriceUSD={summary?.lowestPriceUSD ?? 0}
+                    planCount={summary?.planCount ?? 0}
+                    loadingSummary={isLoading}
                   />
                 );
               })}

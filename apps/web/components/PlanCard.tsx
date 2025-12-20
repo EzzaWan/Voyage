@@ -1,5 +1,7 @@
+"use client";
+
 import Link from "next/link";
-import { ArrowRight, Signal, Globe, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Signal, Globe, CheckCircle2, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { PriceTag } from "./PriceTag";
 import { Button } from "@/components/ui/button";
@@ -9,6 +11,8 @@ import { getDiscount } from "@/lib/admin-discounts";
 import { calculateFinalPrice } from "@/lib/plan-utils";
 import { getPlanFlagLabels } from "@/lib/plan-flags";
 import { PlanFlags } from "./PlanFlags";
+import { addToFavorites, removeFromFavorites, isFavorite } from "@/lib/favorites";
+import { useState, useEffect } from "react";
 
 export interface Plan {
   packageCode: string;
@@ -29,6 +33,7 @@ interface PlanCardProps {
 
 export function PlanCard({ plan }: PlanCardProps) {
   const { convert, formatCurrency } = useCurrency();
+  const [favorited, setFavorited] = useState(false);
   const sizeGB = plan.volume / 1024 / 1024 / 1024;
   const sizeGBRounded = sizeGB.toFixed(1);
   const isUnlimited = plan.volume === -1; // Assuming -1 or similar for unlimited if applicable
@@ -49,6 +54,23 @@ export function PlanCard({ plan }: PlanCardProps) {
   const flagInfo = getPlanFlagLabels(plan);
   const displayName = flagInfo.cleanedName || plan.name;
 
+  // Check if favorited on mount
+  useEffect(() => {
+    setFavorited(isFavorite(plan.packageCode));
+  }, [plan.packageCode]);
+
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (favorited) {
+      removeFromFavorites(plan.packageCode);
+      setFavorited(false);
+    } else {
+      addToFavorites(plan);
+      setFavorited(true);
+    }
+  };
+
   return (
     <Link href={`/plans/${plan.packageCode}`}>
       <div className="group h-full flex flex-col bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl p-6 shadow-lg hover:shadow-[var(--voyage-accent)]/20 hover:border-[var(--voyage-accent)] transition-all duration-300 cursor-pointer relative overflow-hidden">
@@ -63,8 +85,21 @@ export function PlanCard({ plan }: PlanCardProps) {
                  {isUnlimited ? "Unlimited" : `${sizeGBRounded} GB`}
               </h3>
            </div>
-           <div className="h-10 w-10 rounded-full bg-[var(--voyage-bg-light)] flex items-center justify-center text-[var(--voyage-accent-soft)] group-hover:bg-[var(--voyage-accent)] group-hover:text-white transition-colors">
-              <Signal className="h-5 w-5" />
+           <div className="flex items-center gap-2">
+             <button
+               onClick={handleFavoriteClick}
+               className={`h-10 w-10 rounded-full flex items-center justify-center transition-colors ${
+                 favorited
+                   ? "bg-[var(--voyage-accent)] text-white"
+                   : "bg-[var(--voyage-bg-light)] text-[var(--voyage-muted)] hover:bg-[var(--voyage-accent)]/20 hover:text-[var(--voyage-accent)]"
+               }`}
+               aria-label={favorited ? "Remove from favorites" : "Add to favorites"}
+             >
+               <Heart className={`h-5 w-5 ${favorited ? "fill-current" : ""}`} />
+             </button>
+             <div className="h-10 w-10 rounded-full bg-[var(--voyage-bg-light)] flex items-center justify-center text-[var(--voyage-accent-soft)] group-hover:bg-[var(--voyage-accent)] group-hover:text-white transition-colors">
+                <Signal className="h-5 w-5" />
+             </div>
            </div>
         </div>
 

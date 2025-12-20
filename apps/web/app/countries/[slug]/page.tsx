@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, MapPin } from "lucide-react";
+import { ArrowLeft, MapPin, GitCompare } from "lucide-react";
 import { PlanCard, Plan } from "@/components/PlanCard";
 import { Button } from "@/components/ui/button";
 import { FlagIcon } from "@/components/FlagIcon";
@@ -18,6 +18,7 @@ import {
   getFinalPriceUSD,
 } from "@/lib/plan-utils";
 import { getDiscount, fetchDiscounts } from "@/lib/admin-discounts";
+import { PlanComparison } from "@/components/PlanComparison";
 
 export default function CountryPlansPageSlug({ params }: { params: { slug: string } }) {
   const { slug } = params;
@@ -35,6 +36,10 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
   const [loading, setLoading] = useState(true);
   const [redirecting, setRedirecting] = useState(isCode);
   const [sortBy, setSortBy] = useState<"days" | "price" | "dataSize" | "name">("price");
+  const [currentPage, setCurrentPage] = useState(1);
+  const plansPerPage = 12;
+  const [comparisonPlans, setComparisonPlans] = useState<Plan[]>([]);
+  const [showComparison, setShowComparison] = useState(false);
   
   const { rates, convert, formatCurrency } = useCurrency();
   
@@ -54,18 +59,6 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
       }
     } else {
       setRedirecting(false);
-    }
-  }, [slug, isCode, router]);
-  
-  // Handle redirect if code detected
-  useEffect(() => {
-    if (isCode) {
-      const properSlug = getSlugFromCode(slug.toUpperCase()) || slug.toLowerCase();
-      if (properSlug !== slug.toLowerCase()) {
-        router.replace(`/countries/${properSlug}`);
-      } else {
-        setRedirecting(false);
-      }
     }
   }, [slug, isCode, router]);
   
@@ -107,59 +100,68 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
   // Filter plans to only visible ones (>= $3 USD and exclude 0.5GB/1.5GB/2GB)
   const visiblePlans = filterVisiblePlans(plans);
   
-  // Sort plans based on selected sort option
-  const sortedPlans = useMemo(() => {
-    const sorted = [...visiblePlans];
+  // Apply sort
+  const filteredAndSortedPlans = useMemo(() => {
+    let filtered = [...visiblePlans];
     
-    switch (sortBy) {
-      case "days":
-        // Sort by duration (days) ascending
-        sorted.sort((a, b) => {
-          const aDuration = a.duration || 0;
-          const bDuration = b.duration || 0;
-          return aDuration - bDuration;
-        });
-        break;
-      case "price":
-        // Sort by price (USD) ascending
-        sorted.sort((a, b) => {
-          const aGB = calculateGB(a.volume);
-          const bGB = calculateGB(b.volume);
-          const aDiscount = getDiscount(a.packageCode, aGB);
-          const bDiscount = getDiscount(b.packageCode, bGB);
-          const aPrice = getFinalPriceUSD(a, aDiscount);
-          const bPrice = getFinalPriceUSD(b, bDiscount);
-          return aPrice - bPrice;
-        });
-        break;
-      case "dataSize":
-        // Sort by data size (GB) ascending
-        sorted.sort((a, b) => {
-          const aGB = calculateGB(a.volume);
-          const bGB = calculateGB(b.volume);
-          return aGB - bGB;
-        });
-        break;
-      case "name":
-        // Sort by plan name alphabetically
-        sorted.sort((a, b) => {
-          const aName = a.name || "";
-          const bName = b.name || "";
-          return aName.localeCompare(bName);
-        });
-        break;
+    // Apply sort
+      switch (sortBy) {
+        case "days":
+          filtered.sort((a, b) => {
+            const aDuration = a.duration || 0;
+            const bDuration = b.duration || 0;
+            return aDuration - bDuration;
+          });
+          break;
+        case "price":
+          filtered.sort((a, b) => {
+            const aGB = calculateGB(a.volume);
+            const bGB = calculateGB(b.volume);
+            const aDiscount = getDiscount(a.packageCode, aGB);
+            const bDiscount = getDiscount(b.packageCode, bGB);
+            const aPrice = getFinalPriceUSD(a, aDiscount);
+            const bPrice = getFinalPriceUSD(b, bDiscount);
+            return aPrice - bPrice;
+          });
+          break;
+        case "dataSize":
+          filtered.sort((a, b) => {
+            const aGB = calculateGB(a.volume);
+            const bGB = calculateGB(b.volume);
+            return aGB - bGB;
+          });
+          break;
+        case "name":
+          filtered.sort((a, b) => {
+            const aName = a.name || "";
+            const bName = b.name || "";
+            return aName.localeCompare(bName);
+          });
+          break;
     }
     
-    return sorted;
+    return filtered;
   }, [visiblePlans, sortBy]);
+  
+  // Pagination
+  const totalPages = Math.ceil(filteredAndSortedPlans.length / plansPerPage);
+  const paginatedPlans = useMemo(() => {
+    const start = (currentPage - 1) * plansPerPage;
+    return filteredAndSortedPlans.slice(start, start + plansPerPage);
+  }, [filteredAndSortedPlans, currentPage, plansPerPage]);
+  
+  // Reset to page 1 when sort changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortBy]);
 
   // Construct flag URL
   const flagUrl = `https://flagcdn.com/w320/${countryCode.toLowerCase().split('-')[0]}.png`;
 
   // Calculate lowest price from the actual plans that will be displayed
   // This ensures the price matches what users will see
-  const lowestPriceUSD = sortedPlans.length > 0
-    ? Math.min(...sortedPlans.map(p => {
+  const lowestPriceUSD = filteredAndSortedPlans.length > 0
+    ? Math.min(...filteredAndSortedPlans.map(p => {
         const planGB = calculateGB(p.volume);
         const discountPercent = getDiscount(p.packageCode, planGB);
         return getFinalPriceUSD(p, discountPercent);
@@ -213,7 +215,7 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
           <div className="text-center py-20 text-[var(--voyage-muted)]">Redirecting...</div>
         ) : loading ? (
           <div className="text-center py-20 text-[var(--voyage-muted)]">Loading plans...</div>
-        ) : sortedPlans.length === 0 ? (
+        ) : paginatedPlans.length === 0 ? (
           <EmptyState
             title="No plans available"
             description={`No eSIM plans are currently available for ${countryName}. Please check back later or browse other countries.`}
@@ -225,35 +227,136 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
           />
         ) : (
           <>
-            {/* Sort Filter */}
-            <div className="flex items-center justify-between">
+            {/* Sort Filter and Comparison */}
+            <div className="flex items-center justify-between mb-6">
               <div className="text-sm text-[var(--voyage-muted)]">
-                {sortedPlans.length} plan{sortedPlans.length !== 1 ? 's' : ''} available
+                {filteredAndSortedPlans.length} plan{filteredAndSortedPlans.length !== 1 ? 's' : ''} available
+                {totalPages > 1 && ` • Page ${currentPage} of ${totalPages}`}
               </div>
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-[var(--voyage-muted)]">Sort by:</label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as "days" | "price" | "dataSize" | "name")}
-                  className="px-3 py-1.5 rounded-lg bg-[var(--voyage-card)] border border-[var(--voyage-border)] text-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--voyage-accent)]"
-                >
-                  <option value="days">Duration (Days)</option>
-                  <option value="price">Price (Low to High)</option>
-                  <option value="dataSize">Data Size</option>
-                  <option value="name">Plan Name</option>
-                </select>
+              <div className="flex items-center gap-3">
+                {comparisonPlans.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowComparison(true)}
+                    className="border-[var(--voyage-accent)] bg-[var(--voyage-accent)]/10 text-[var(--voyage-accent)] hover:bg-[var(--voyage-accent)] hover:text-white"
+                  >
+                    <GitCompare className="h-4 w-4 mr-2" />
+                    Compare ({comparisonPlans.length})
+                  </Button>
+                )}
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-[var(--voyage-muted)]">Sort by:</label>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as "days" | "price" | "dataSize" | "name")}
+                    className="px-3 py-1.5 rounded-lg bg-[var(--voyage-card)] border border-[var(--voyage-border)] text-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--voyage-accent)]"
+                  >
+                    <option value="days">Duration (Days)</option>
+                    <option value="price">Price (Low to High)</option>
+                    <option value="dataSize">Data Size</option>
+                    <option value="name">Plan Name</option>
+                  </select>
+                </div>
               </div>
             </div>
 
             {/* Plans Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {sortedPlans.map((plan) => (
-                <PlanCard key={plan.packageCode} plan={plan} />
+              {paginatedPlans.map((plan) => (
+                <div key={plan.packageCode} className="relative">
+                  <PlanCard plan={plan} />
+                  <button
+                    onClick={() => {
+                      if (comparisonPlans.some(p => p.packageCode === plan.packageCode)) {
+                        setComparisonPlans(prev => prev.filter(p => p.packageCode !== plan.packageCode));
+                      } else if (comparisonPlans.length < 4) {
+                        setComparisonPlans(prev => [...prev, plan]);
+                      }
+                    }}
+                    className={`absolute top-6 right-[120px] z-10 h-10 w-10 rounded-full flex items-center justify-center transition-all ${
+                      comparisonPlans.some(p => p.packageCode === plan.packageCode)
+                        ? "bg-[var(--voyage-accent)] text-white"
+                        : "bg-[var(--voyage-bg-light)] text-[var(--voyage-muted)] hover:bg-[var(--voyage-accent)]/20 hover:text-[var(--voyage-accent)]"
+                    }`}
+                    title={
+                      comparisonPlans.some(p => p.packageCode === plan.packageCode)
+                        ? "Remove from comparison"
+                        : comparisonPlans.length >= 4
+                        ? "Maximum 4 plans can be compared"
+                        : "Add to comparison"
+                    }
+                  >
+                    <GitCompare className="h-5 w-5" />
+                  </button>
+                </div>
               ))}
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-bg-light)] disabled:opacity-50"
+                >
+                  Previous
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                          currentPage === pageNum
+                            ? "bg-[var(--voyage-accent)] text-white"
+                            : "bg-[var(--voyage-card)] border border-[var(--voyage-border)] text-[var(--voyage-text)] hover:border-[var(--voyage-accent)]"
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-bg-light)] disabled:opacity-50"
+                >
+                  Next
+                </Button>
+              </div>
+            )}
           </>
         )}
       </div>
+
+      {/* Plan Comparison Modal */}
+      {showComparison && (
+        <PlanComparison
+          plans={comparisonPlans}
+          onClose={() => setShowComparison(false)}
+          onRemove={(packageCode) => {
+            setComparisonPlans(prev => prev.filter(p => p.packageCode !== packageCode));
+          }}
+        />
+      )}
     </div>
   );
 }

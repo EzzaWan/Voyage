@@ -48,29 +48,31 @@ export default clerkMiddleware(async (auth, req) => {
     'geolocation=(), microphone=(), camera=()'
   );
   
+  // Set CSP in all environments (development and production)
+  const isDevelopment = process.env.NODE_ENV !== 'production';
+  const csp = [
+    "default-src 'self'",
+    `script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.voyage-data.com https://js.stripe.com https://hcaptcha.com https://*.hcaptcha.com https://js.hcaptcha.com https://challenges.cloudflare.com https://www.googletagmanager.com https://*.googletagmanager.com https://embed.tawk.to https://*.tawk.to https://cdn.jsdelivr.net https://www.clarity.ms https://*.clarity.ms${isDevelopment ? ' http://localhost:*' : ''}`,
+    "worker-src 'self' blob:",
+    "style-src 'self' 'unsafe-inline' https://embed.tawk.to https://*.tawk.to",
+    "img-src 'self' data: https: blob:",
+    "font-src 'self' data: https://embed.tawk.to https://*.tawk.to",
+    `connect-src 'self' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.voyage-data.com https://clerk-telemetry.com https://api.stripe.com https://*.upstash.io https://voyage-production-881a.up.railway.app https://*.up.railway.app https://ipapi.co https://hcaptcha.com https://*.hcaptcha.com https://challenges.cloudflare.com https://*.cloudflare.com https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://www.google.com https://*.google.com https://www.google.com/ccm/collect https://*.tawk.to https://va.tawk.to wss://*.tawk.to https://www.clarity.ms https://*.clarity.ms${isDevelopment ? ' http://localhost:* ws://localhost:* wss://localhost:*' : ''}`,
+    `frame-src 'self' https://*.clerk.com https://*.clerk.accounts.dev https://clerk.voyage-data.com https://js.stripe.com https://hcaptcha.com https://*.hcaptcha.com https://challenges.cloudflare.com https://*.cloudflare.com https://www.googletagmanager.com https://*.googletagmanager.com https://*.tawk.to`,
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    ...(process.env.NODE_ENV === 'production' ? ["upgrade-insecure-requests"] : []),
+  ].join('; ');
+  
+  response.headers.set('Content-Security-Policy', csp);
+  
   if (process.env.NODE_ENV === 'production') {
     response.headers.set(
       'Strict-Transport-Security',
       'max-age=63072000; includeSubDomains; preload'
     );
-    
-    const csp = [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.clerk.com https://clerk.voyage-data.com https://js.stripe.com https://hcaptcha.com https://*.hcaptcha.com https://js.hcaptcha.com https://challenges.cloudflare.com https://www.googletagmanager.com https://*.googletagmanager.com https://embed.tawk.to https://*.tawk.to https://cdn.jsdelivr.net",
-      "worker-src 'self' blob:",
-      "style-src 'self' 'unsafe-inline' https://embed.tawk.to https://*.tawk.to",
-      "img-src 'self' data: https: blob:",
-      "font-src 'self' data: https://embed.tawk.to https://*.tawk.to",
-      "connect-src 'self' https://*.clerk.com https://clerk.voyage-data.com https://api.stripe.com https://*.upstash.io https://voyage-production-881a.up.railway.app https://*.up.railway.app https://ipapi.co https://hcaptcha.com https://*.hcaptcha.com https://challenges.cloudflare.com https://*.cloudflare.com https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://www.google.com https://*.google.com https://www.google.com/ccm/collect https://*.tawk.to https://va.tawk.to wss://*.tawk.to",
-      "frame-src 'self' https://*.clerk.com https://clerk.voyage-data.com https://js.stripe.com https://hcaptcha.com https://*.hcaptcha.com https://challenges.cloudflare.com https://*.cloudflare.com https://www.googletagmanager.com https://*.googletagmanager.com https://*.tawk.to",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "frame-ancestors 'none'",
-      "upgrade-insecure-requests",
-    ].join('; ');
-    
-    response.headers.set('Content-Security-Policy', csp);
   }
 
   return response;

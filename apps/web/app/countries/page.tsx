@@ -79,7 +79,7 @@ export default function CountriesPage() {
        ) : (
          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 animate-in fade-in duration-1000">
             {filtered.map((country) => (
-              <CountryCard key={country.code} country={country} />
+               <CountryCard key={country.code} country={country} />
             ))}
             
             {filtered.length === 0 && (
