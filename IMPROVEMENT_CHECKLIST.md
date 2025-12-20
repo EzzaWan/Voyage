@@ -49,7 +49,6 @@
 ### Plan Browsing & Discovery
 - [x] **Show starting price on country cards** - "From $X" pricing (✅ Implemented - CountryCard now displays "From $X" pricing with currency conversion, uses useCountryPlanSummaries hook to fetch lowest price per country)
 - [x] **Show plan count per country** - Number of available plans (✅ Implemented - CountryCard displays plan count, e.g. "X plans available", fetched via useCountryPlanSummaries hook with batching and caching)
-- [x] **Add "Quick Filters"** - Popular, Best Value, Longest Duration filters (✅ Implemented - Full quick filter system with "All Plans", "Popular", "Best Value", "Longest Duration" buttons in countries/[slug]/page.tsx)
 - [x] **Add plan comparison feature** - Side-by-side plan comparison (✅ Implemented - PlanComparison component with comparison buttons on plan cards, supports up to 4 plans)
 - [x] **Add favorites/wishlist functionality** - Save plans for later (✅ Implemented - Heart icon on PlanCard, localStorage-based favorites system in lib/favorites.ts)
 - [x] **Add infinite scroll or pagination** - For large plan lists (✅ Implemented - Pagination with Previous/Next buttons and page numbers, 12 plans per page)
