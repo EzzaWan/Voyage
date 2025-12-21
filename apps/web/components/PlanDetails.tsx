@@ -588,7 +588,7 @@ export function PlanDetails({ plan }: { plan: any }) {
                    <div className="h-8 w-8 rounded-full bg-[var(--voyage-accent)]/10 text-[var(--voyage-accent)] flex items-center justify-center font-bold border border-[var(--voyage-accent)]/20 flex-shrink-0">2</div>
                    <div>
                      <h4 className="text-white font-medium mb-1">Scan QR Code</h4>
-                     <p className="text-sm text-[var(--voyage-muted)]">Go to Settings > Cellular > Add eSIM and scan the QR code provided.</p>
+                      <p className="text-sm text-[var(--voyage-muted)]">Go to Settings &gt; Cellular &gt; Add eSIM and scan the QR code provided.</p>
                    </div>
                  </div>
                  <div className="flex items-start gap-4">
