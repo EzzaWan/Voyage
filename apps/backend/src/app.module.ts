@@ -17,6 +17,7 @@ import { CommonModule } from './common/modules/common.module';
 import { LogModule } from './modules/log/log.module';
 import { SupportModule } from './modules/support/support.module';
 import { VCashModule } from './modules/vcash/vcash.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { VCashModule } from './modules/vcash/vcash.module';
     LogModule,
     SupportModule,
     VCashModule,
+    ReviewsModule,
   ],
 })
 export class AppModule {}

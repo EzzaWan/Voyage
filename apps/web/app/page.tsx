@@ -7,6 +7,7 @@ import { CountryCard } from "@/components/CountryCard";
 import { CountrySkeleton } from "@/components/skeletons";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { ReviewsSection } from "@/components/ReviewsSection";
 import { Globe, ArrowRight, Shield, Lock, Clock, CheckCircle2, Star, Quote, Zap, Smartphone, Wifi, Plane, HelpCircle } from "lucide-react";
 import { safeFetch } from "@/lib/safe-fetch";
 import { getRegionForCountry, REGION_NAMES, Region } from "@/lib/regions";
@@ -509,77 +510,19 @@ export default function Home() {
        {/* Testimonials Section - Bottom of Page */}
        {!search && (
          <div className="space-y-6 pt-8">
-           <div className="text-center">
+            <div className="text-center">
              <h2 className="text-3xl font-bold text-white mb-2">Trusted by Travelers Worldwide</h2>
              <p className="text-[var(--voyage-muted)]">See what our customers are saying</p>
            </div>
            
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-             {/* Testimonial 1 */}
-             <div className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl p-6 hover:border-[var(--voyage-accent)]/50 transition-all">
-               <div className="flex items-center gap-1 mb-4">
-                 {[...Array(5)].map((_, i) => (
-                   <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                 ))}
-               </div>
-               <Quote className="h-6 w-6 text-[var(--voyage-accent)] mb-3 opacity-50" />
-               <p className="text-[var(--voyage-text)] mb-4 italic">
-                 "Perfect for my European trip! Activated instantly and worked flawlessly in 8 countries. No more expensive roaming charges!"
-               </p>
-               <div className="flex items-center gap-3">
-                 <div className="h-10 w-10 rounded-full bg-[var(--voyage-accent)]/20 flex items-center justify-center">
-                   <span className="text-sm font-bold text-[var(--voyage-accent)]">SM</span>
-                 </div>
-                 <div>
-                   <p className="text-sm font-semibold text-white">Sarah M.</p>
-                   <p className="text-xs text-[var(--voyage-muted)]">Verified Customer</p>
-                 </div>
-               </div>
-             </div>
-
-             {/* Testimonial 2 */}
-             <div className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl p-6 hover:border-[var(--voyage-accent)]/50 transition-all">
-               <div className="flex items-center gap-1 mb-4">
-                 {[...Array(5)].map((_, i) => (
-                   <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                 ))}
-               </div>
-               <Quote className="h-6 w-6 text-[var(--voyage-accent)] mb-3 opacity-50" />
-               <p className="text-[var(--voyage-text)] mb-4 italic">
-                 "Best eSIM service I've used. The setup was so easy with the QR code, and customer support helped me when I had questions."
-               </p>
-               <div className="flex items-center gap-3">
-                 <div className="h-10 w-10 rounded-full bg-[var(--voyage-accent)]/20 flex items-center justify-center">
-                   <span className="text-sm font-bold text-[var(--voyage-accent)]">JK</span>
-                 </div>
-                 <div>
-                   <p className="text-sm font-semibold text-white">James K.</p>
-                   <p className="text-xs text-[var(--voyage-muted)]">Verified Customer</p>
-                 </div>
-               </div>
-             </div>
-
-             {/* Testimonial 3 */}
-             <div className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl p-6 hover:border-[var(--voyage-accent)]/50 transition-all">
-               <div className="flex items-center gap-1 mb-4">
-                 {[...Array(5)].map((_, i) => (
-                   <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                 ))}
-               </div>
-               <Quote className="h-6 w-6 text-[var(--voyage-accent)] mb-3 opacity-50" />
-               <p className="text-[var(--voyage-text)] mb-4 italic">
-                 "Affordable prices and great coverage. I bought a global plan and it worked perfectly across Asia. Highly recommend!"
-               </p>
-               <div className="flex items-center gap-3">
-                 <div className="h-10 w-10 rounded-full bg-[var(--voyage-accent)]/20 flex items-center justify-center">
-                   <span className="text-sm font-bold text-[var(--voyage-accent)]">ML</span>
-                 </div>
-                 <div>
-                   <p className="text-sm font-semibold text-white">Maria L.</p>
-                   <p className="text-xs text-[var(--voyage-muted)]">Verified Customer</p>
-                 </div>
-               </div>
-             </div>
+           <ReviewsSection limit={3} />
+           
+           <div className="text-center mt-6">
+             <Link href="/reviews">
+               <Button variant="outline" className="bg-transparent border-[var(--voyage-accent)] text-[var(--voyage-accent)] hover:bg-[var(--voyage-accent)] hover:text-white transition-all">
+                 View All Reviews
+               </Button>
+             </Link>
            </div>
          </div>
        )}

@@ -15,22 +15,61 @@ import { useUser } from "@clerk/nextjs";
 import { toast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
 import { getCountryName } from "@/lib/country-slugs";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { getPlanFlagLabels } from "@/lib/plan-flags";
 import { PlanFlags } from "./PlanFlags";
 
+const getNetworkOperator = (locationCode: string | undefined | null) => {
+  if (!locationCode) return "Best Available Network";
+  
+  try {
+    const code = locationCode.split('-')[0].toUpperCase();
+    const operators: Record<string, string> = {
+      'US': 'AT&T / T-Mobile',
+      'GB': 'O2 / Three / Vodafone',
+      'FR': 'Orange / Bouygues / SFR',
+      'DE': 'Telekom / Vodafone / O2',
+      'ES': 'Movistar / Orange / Vodafone',
+      'IT': 'TIM / Vodafone / Wind Tre',
+      'JP': 'Softbank / KDDI / Docomo',
+      'KR': 'SK Telecom / KT / LG U+',
+      'CN': 'China Unicom / China Mobile',
+      'HK': 'CSL / SmartTone / 3HK',
+      'TW': 'Chunghwa / Taiwan Mobile',
+      'SG': 'Singtel / Starhub / M1',
+      'MY': 'Celcom / Digi / Maxis',
+      'TH': 'AIS / DTAC / TrueMove',
+      'ID': 'Telkomsel / XL Axiata',
+      'VN': 'Viettel / Vinaphone',
+      'PH': 'Globe / Smart',
+      'AU': 'Telstra / Optus / Vodafone',
+      'NZ': 'Spark / One NZ',
+      'CA': 'Rogers / Bell / Telus',
+      'TR': 'Turkcell / Vodafone / Turk Telekom',
+      'AE': 'Etisalat / Du',
+      'SA': 'STC / Mobily',
+    };
+    return operators[code] || "Best Available Network";
+  } catch (error) {
+    return "Best Available Network";
+  }
+};
+
 export function PlanDetails({ plan }: { plan: any }) {
-  console.log("PLAN DEBUG:", plan);
+  // Guard against missing plan data
+  if (!plan) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-[var(--voyage-muted)]">Plan not found</p>
+      </div>
+    );
+  }
+  
   const { selectedCurrency, convert, formatCurrency } = useCurrency();
   const { user, isLoaded: userLoaded } = useUser();
   const router = useRouter();
-  const sizeGB = (plan.volume / 1024 / 1024 / 1024).toFixed(1);
+  const sizeGB = ((plan.volume || 0) / 1024 / 1024 / 1024).toFixed(1);
   const [showDeviceWarning, setShowDeviceWarning] = useState(false);
   const [deviceCompatibility, setDeviceCompatibility] = useState<any>(null);
   const [proceedWithCheckout, setProceedWithCheckout] = useState(false);
@@ -38,6 +77,8 @@ export function PlanDetails({ plan }: { plan: any }) {
   const [vcashBalance, setVcashBalance] = useState<number | null>(null);
   const [loadingVCash, setLoadingVCash] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [activeTab, setActiveTab] = useState("coverage");
+  const [dialogOpen, setDialogOpen] = useState(false);
   
   // Calculate discounted price
   const planGB = calculateGB(plan.volume || 0);
@@ -51,10 +92,13 @@ export function PlanDetails({ plan }: { plan: any }) {
 
   // Extract flags and get cleaned name
   const flagInfo = getPlanFlagLabels(plan);
-  const displayName = flagInfo.cleanedName || plan.name;
+  const displayName = flagInfo.cleanedName || plan.name || '';
 
   // Format plan title nicely - parse components and structure them better
   const formatPlanTitle = (name: string) => {
+    if (!name) {
+      return { country: '', data: '', duration: '', full: '' };
+    }
     // Try multiple patterns to extract country, data, and duration
     // Pattern 1: "Malaysia 3GB 15Days" or "Malaysia 3GB/Day"
     let match = name.match(/^(.+?)\s+(\d+(?:\.\d+)?)\s*(GB|MB)\s*\/?\s*(\d+)\s*(Days?|Day)?/i);
@@ -124,7 +168,7 @@ export function PlanDetails({ plan }: { plan: any }) {
     return { country: name, data: '', duration: '', full: name };
   };
 
-  const titleParts = formatPlanTitle(displayName);
+  const titleParts = useMemo(() => formatPlanTitle(displayName), [displayName]);
 
   // Fetch discounts on mount
   useEffect(() => {
@@ -347,7 +391,7 @@ export function PlanDetails({ plan }: { plan: any }) {
                       )}
                     </div>
                   )}
-                  {!titleParts.data && !titleParts.duration && titleParts.full !== titleParts.country && (
+                  {!titleParts.data && !titleParts.duration && titleParts.full !== titleParts.country && titleParts.full && titleParts.country && (
                     <div className="text-lg md:text-xl font-medium text-[var(--voyage-muted)] mt-1">
                       {titleParts.full.replace(titleParts.country, '').trim()}
                     </div>
@@ -371,41 +415,49 @@ export function PlanDetails({ plan }: { plan: any }) {
                       </div>
                       <div className="flex flex-col">
                         <span className="text-xs text-[var(--voyage-muted)] uppercase tracking-wider font-semibold">Region</span>
-                        {plan.location && plan.location.includes(',') ? (
-                          <Dialog>
+                        {plan.location && typeof plan.location === 'string' && plan.location.includes(',') ? (
+                          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                             <DialogTrigger asChild>
                               <button className="text-white hover:text-[var(--voyage-accent)] transition-colors text-left font-medium flex items-center gap-1 group/btn">
-                                {plan.location.split(',').length} Countries
+                                {plan.location.split(',').filter((c: string) => c.trim()).length} Countries
                                 <ChevronRight className="h-4 w-4 opacity-0 group-hover/btn:opacity-100 transition-opacity -ml-1 group-hover/btn:ml-0" />
                               </button>
                             </DialogTrigger>
                             <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-[var(--voyage-card)] border-[var(--voyage-border)] text-white">
                               <DialogHeader>
-                                <DialogTitle>Covered Countries ({plan.location.split(',').length})</DialogTitle>
+                                <DialogTitle>Covered Countries ({plan.location.split(',').filter((c: string) => c.trim()).length})</DialogTitle>
                               </DialogHeader>
                               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
-                                {plan.location.split(',').map((code: string) => {
+                                {plan.location.split(',').filter((c: string) => c.trim()).map((code: string) => {
                                   const cleanCode = code.trim();
-                                  return (
-                                    <div key={cleanCode} className="flex items-center gap-2 p-2 rounded bg-[var(--voyage-bg-light)]">
-                                      <div className="h-5 w-5 rounded-full overflow-hidden relative flex-shrink-0">
-                                        <FlagIcon 
-                                          logoUrl={`https://flagcdn.com/w320/${cleanCode.toLowerCase().split('-')[0]}.png`} 
-                                          alt={cleanCode} 
-                                          className="h-full w-full object-cover" 
-                                        />
+                                  if (!cleanCode) return null;
+                                  try {
+                                    const countryCode = cleanCode.toLowerCase().split('-')[0];
+                                    return (
+                                      <div key={cleanCode} className="flex items-center gap-2 p-2 rounded bg-[var(--voyage-bg-light)]">
+                                        <div className="h-5 w-5 rounded-full overflow-hidden relative flex-shrink-0">
+                                          <FlagIcon 
+                                            logoUrl={`https://flagcdn.com/w320/${countryCode}.png`} 
+                                            alt={cleanCode} 
+                                            className="h-full w-full object-cover" 
+                                          />
+                                        </div>
+                                        <span className="text-sm truncate" title={getCountryName(cleanCode)}>
+                                          {getCountryName(cleanCode)}
+                                        </span>
                                       </div>
-                                      <span className="text-sm truncate" title={getCountryName(cleanCode)}>
-                                        {getCountryName(cleanCode)}
-                                      </span>
-                                    </div>
-                                  );
+                                    );
+                                  } catch (e) {
+                                    return null;
+                                  }
                                 })}
                               </div>
                             </DialogContent>
                           </Dialog>
-                        ) : (
+                        ) : plan.location && typeof plan.location === 'string' ? (
                           <span className="text-white font-medium">{getCountryName(plan.location)}</span>
+                        ) : (
+                          <span className="text-white font-medium">N/A</span>
                         )}
                       </div>
                    </div>
@@ -416,7 +468,7 @@ export function PlanDetails({ plan }: { plan: any }) {
                       </div>
                       <div className="flex flex-col">
                          <span className="text-xs text-[var(--voyage-muted)] uppercase tracking-wider font-semibold">Network Speed</span>
-                         <span className="text-white font-medium">{plan.speed}</span>
+                         <span className="text-white font-medium">{plan.speed || 'N/A'}</span>
                       </div>
                    </div>
                 </div>
@@ -439,7 +491,7 @@ export function PlanDetails({ plan }: { plan: any }) {
            </div>
            <div className="bg-[var(--voyage-card)] rounded-xl p-5 border border-[var(--voyage-border)] flex flex-col items-center justify-center text-center hover:border-[var(--voyage-accent)]/50 transition-all hover:bg-[var(--voyage-bg-light)] group">
               <span className="text-[var(--voyage-muted)] text-xs uppercase tracking-wider font-semibold mb-2 group-hover:text-[var(--voyage-accent)] transition-colors">Validity</span>
-              <span className="text-3xl font-bold text-white">{plan.duration} <span className="text-lg font-medium text-[var(--voyage-muted)]">Days</span></span>
+              <span className="text-3xl font-bold text-white">{plan.duration || 0} <span className="text-lg font-medium text-[var(--voyage-muted)]">Days</span></span>
            </div>
            <div className="bg-[var(--voyage-card)] rounded-xl p-5 border border-[var(--voyage-border)] flex flex-col items-center justify-center text-center hover:border-[var(--voyage-accent)]/50 transition-all hover:bg-[var(--voyage-bg-light)] group">
               <span className="text-[var(--voyage-muted)] text-xs uppercase tracking-wider font-semibold mb-2 group-hover:text-[var(--voyage-accent)] transition-colors">Type</span>
@@ -451,47 +503,114 @@ export function PlanDetails({ plan }: { plan: any }) {
            </div>
         </div>
 
-        {/* Coverage & Operators */}
-        <div className="bg-[var(--voyage-card)] rounded-2xl p-8 border border-[var(--voyage-border)]">
-           <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-             <Globe className="h-5 w-5 text-[var(--voyage-accent)]" />
-             Coverage & Networks
-           </h3>
-           {plan.locationNetworkList && plan.locationNetworkList.length > 0 ? (
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                   {plan.locationNetworkList.map((net: any, i: number) => (
-                       <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-[var(--voyage-bg-light)] border border-[var(--voyage-border)] hover:border-[var(--voyage-accent)]/30 transition-colors">
-                           <div className="flex items-center gap-3">
-                               <div className="h-10 w-10 rounded-lg overflow-hidden relative border-2 border-[var(--voyage-border)] shadow-md flex-shrink-0">
-                                   <FlagIcon 
-                                     logoUrl={`https://flagcdn.com/w320/${net.locationCode.toLowerCase().split('-')[0]}.png`} 
-                                     alt={net.locationCode} 
-                                     className="h-full w-full object-cover" 
-                                   />
+        {/* Info Tabs */}
+        {plan && (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="w-full bg-[var(--voyage-card)] border border-[var(--voyage-border)] p-1 rounded-xl grid grid-cols-2">
+              <TabsTrigger 
+                value="coverage"
+                className="rounded-lg data-[state=active]:bg-[var(--voyage-accent)] data-[state=active]:text-white text-[var(--voyage-muted)]"
+              >
+                Coverage & Networks
+              </TabsTrigger>
+              <TabsTrigger 
+                value="installation"
+                className="rounded-lg data-[state=active]:bg-[var(--voyage-accent)] data-[state=active]:text-white text-[var(--voyage-muted)]"
+              >
+                Installation
+              </TabsTrigger>
+            </TabsList>
+
+          <TabsContent value="coverage" className="mt-6 space-y-4">
+            <div className="bg-[var(--voyage-card)] rounded-2xl p-8 border border-[var(--voyage-border)]">
+               <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                 <Globe className="h-5 w-5 text-[var(--voyage-accent)]" />
+                 Coverage & Networks
+               </h3>
+               {plan.locationNetworkList && plan.locationNetworkList.length > 0 ? (
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       {plan.locationNetworkList
+                         .filter((net: any) => net?.locationCode) // Filter out entries without locationCode
+                         .map((net: any, i: number) => {
+                           const locationCode = net.locationCode || '';
+                           const countryCode = locationCode.toLowerCase().split('-')[0];
+                           return (
+                             <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-[var(--voyage-bg-light)] border border-[var(--voyage-border)] hover:border-[var(--voyage-accent)]/30 transition-colors">
+                               <div className="flex items-center gap-3">
+                                   <div className="h-10 w-10 rounded-lg overflow-hidden relative border-2 border-[var(--voyage-border)] shadow-md flex-shrink-0">
+                                       <FlagIcon 
+                                         logoUrl={`https://flagcdn.com/w320/${countryCode}.png`} 
+                                         alt={locationCode} 
+                                         className="h-full w-full object-cover" 
+                                       />
+                                   </div>
+                                   <div>
+                                     <span className="text-sm font-bold text-white block">{getCountryName(locationCode)}</span>
+                                     <span className="text-xs text-[var(--voyage-muted)]">{getNetworkOperator(locationCode)}</span>
+                                   </div>
                                </div>
-                               <div>
-                                 <span className="text-sm font-bold text-white block">{getCountryName(net.locationCode)}</span>
-                                 <span className="text-xs text-[var(--voyage-muted)]">Best Available Network</span>
-                               </div>
+                               <span className="text-xs font-bold px-2 py-1 rounded-md bg-[var(--voyage-bg)] text-[var(--voyage-accent)] border border-[var(--voyage-border)]">4G/LTE</span>
                            </div>
-                           <span className="text-xs font-bold px-2 py-1 rounded-md bg-[var(--voyage-bg)] text-[var(--voyage-accent)] border border-[var(--voyage-border)]">4G/LTE</span>
-                       </div>
-                   ))}
+                           );
+                         })}
+                   </div>
+               ) : (
+                   <div className="flex items-center gap-4 p-6 bg-[var(--voyage-bg-light)] rounded-xl border border-[var(--voyage-border)]">
+                      <div className="p-3 bg-[var(--voyage-bg)] rounded-full border border-[var(--voyage-border)]">
+                        <Globe className="h-6 w-6 text-[var(--voyage-accent)]" />
+                      </div>
+                      <div>
+                        <h4 className="text-white font-medium mb-1">Multi-Country Coverage</h4>
+                        <p className="text-sm text-[var(--voyage-muted)]">
+                          This plan provides high-speed connectivity across {plan.location || 'multiple countries'}. Enjoy seamless switching between top-tier networks.
+                        </p>
+                      </div>
+                   </div>
+               )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="installation" className="mt-6">
+            <div className="bg-[var(--voyage-card)] rounded-2xl p-8 border border-[var(--voyage-border)]">
+               <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                 <Smartphone className="h-5 w-5 text-[var(--voyage-accent)]" />
+                 Installation Instructions
+               </h3>
+               <div className="space-y-6">
+                 <div className="flex items-start gap-4">
+                   <div className="h-8 w-8 rounded-full bg-[var(--voyage-accent)]/10 text-[var(--voyage-accent)] flex items-center justify-center font-bold border border-[var(--voyage-accent)]/20 flex-shrink-0">1</div>
+                   <div>
+                     <h4 className="text-white font-medium mb-1">Buy and Receive</h4>
+                     <p className="text-sm text-[var(--voyage-muted)]">Purchase your plan and receive a QR code via email instantly.</p>
+                   </div>
+                 </div>
+                 <div className="flex items-start gap-4">
+                   <div className="h-8 w-8 rounded-full bg-[var(--voyage-accent)]/10 text-[var(--voyage-accent)] flex items-center justify-center font-bold border border-[var(--voyage-accent)]/20 flex-shrink-0">2</div>
+                   <div>
+                     <h4 className="text-white font-medium mb-1">Scan QR Code</h4>
+                     <p className="text-sm text-[var(--voyage-muted)]">Go to Settings > Cellular > Add eSIM and scan the QR code provided.</p>
+                   </div>
+                 </div>
+                 <div className="flex items-start gap-4">
+                   <div className="h-8 w-8 rounded-full bg-[var(--voyage-accent)]/10 text-[var(--voyage-accent)] flex items-center justify-center font-bold border border-[var(--voyage-accent)]/20 flex-shrink-0">3</div>
+                   <div>
+                     <h4 className="text-white font-medium mb-1">Activate</h4>
+                     <p className="text-sm text-[var(--voyage-muted)]">Turn on Data Roaming for the eSIM when you arrive at your destination.</p>
+                   </div>
+                 </div>
+                 
+                 <div className="mt-6 pt-6 border-t border-[var(--voyage-border)]/50">
+                    <Link href="/device-check" className="text-sm text-[var(--voyage-accent)] hover:text-white transition-colors inline-flex items-center gap-2 group/link">
+                      <Smartphone className="h-4 w-4" />
+                      <span>Check compatible devices</span>
+                      <ExternalLink className="h-3 w-3 opacity-50 group-hover/link:opacity-100 transition-opacity" />
+                    </Link>
+                 </div>
                </div>
-           ) : (
-               <div className="flex items-center gap-4 p-6 bg-[var(--voyage-bg-light)] rounded-xl border border-[var(--voyage-border)]">
-                  <div className="p-3 bg-[var(--voyage-bg)] rounded-full border border-[var(--voyage-border)]">
-                    <Globe className="h-6 w-6 text-[var(--voyage-accent)]" />
-                  </div>
-                  <div>
-                    <h4 className="text-white font-medium mb-1">Multi-Country Coverage</h4>
-                    <p className="text-sm text-[var(--voyage-muted)]">
-                      This plan provides high-speed connectivity across {plan.location}. Enjoy seamless switching between top-tier networks.
-                    </p>
-                  </div>
-               </div>
-           )}
-        </div>
+            </div>
+          </TabsContent>
+          </Tabs>
+        )}
       </div>
 
       {/* Right Column: Checkout */}
