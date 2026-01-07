@@ -26,7 +26,7 @@ export function FlagIcon({ logoUrl, alt, className }: FlagIconProps) {
   }
 
   return (
-    <div className={cn("relative h-8 w-8 overflow-hidden border bg-gray-100", className)}>
+    <div className={cn("relative h-8 w-8 overflow-hidden bg-gray-100", className)}>
       <Image
         src={logoUrl}
         alt={alt}

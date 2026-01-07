@@ -116,7 +116,7 @@ export default function DeviceCheckPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-4xl mx-auto py-10">
+      <div className="max-w-4xl mx-auto py-10 px-4">
         <Link href="/" className="inline-flex items-center gap-2 text-[var(--voyage-muted)] hover:text-[var(--voyage-accent)] transition-colors mb-6">
           <ArrowLeft className="h-4 w-4" />
           Back to Home
