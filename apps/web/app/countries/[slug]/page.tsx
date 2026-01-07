@@ -16,9 +16,12 @@ import {
   filterVisiblePlans,
   calculateGB,
   getFinalPriceUSD,
+  isDailyUnlimitedPlan,
+  deduplicatePlans,
 } from "@/lib/plan-utils";
 import { getDiscount, fetchDiscounts } from "@/lib/admin-discounts";
 import { PlanComparison } from "@/components/PlanComparison";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export default function CountryPlansPageSlug({ params }: { params: { slug: string } }) {
   const { slug } = params;
@@ -40,6 +43,7 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
   const plansPerPage = 12;
   const [comparisonPlans, setComparisonPlans] = useState<Plan[]>([]);
   const [showComparison, setShowComparison] = useState(false);
+  const [activeTab, setActiveTab] = useState<"standard" | "unlimited">("standard");
   
   const { rates, convert, formatCurrency } = useCurrency();
   
@@ -100,9 +104,17 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
   // Filter plans to only visible ones (>= $3 USD and exclude 0.5GB/1.5GB/2GB)
   const visiblePlans = filterVisiblePlans(plans);
   
-  // Apply sort
+  // Deduplicate plans: prefer IIJ for Japan, nonhkip for others
+  const deduplicatedPlans = deduplicatePlans(visiblePlans);
+  
+  // Separate plans into Standard and Unlimited
+  const standardPlans = deduplicatedPlans.filter(plan => !isDailyUnlimitedPlan(plan));
+  const unlimitedPlans = deduplicatedPlans.filter(plan => isDailyUnlimitedPlan(plan));
+  
+  // Apply sort to the active tab's plans
   const filteredAndSortedPlans = useMemo(() => {
-    let filtered = [...visiblePlans];
+    const plansToSort = activeTab === "standard" ? standardPlans : unlimitedPlans;
+    let filtered = [...plansToSort];
     
     // Apply sort
       switch (sortBy) {
@@ -141,7 +153,7 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
     }
     
     return filtered;
-  }, [visiblePlans, sortBy]);
+  }, [standardPlans, unlimitedPlans, activeTab, sortBy]);
   
   // Pagination
   const totalPages = Math.ceil(filteredAndSortedPlans.length / plansPerPage);
@@ -150,10 +162,10 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
     return filteredAndSortedPlans.slice(start, start + plansPerPage);
   }, [filteredAndSortedPlans, currentPage, plansPerPage]);
   
-  // Reset to page 1 when sort changes
+  // Reset to page 1 when sort or tab changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [sortBy]);
+  }, [sortBy, activeTab]);
 
   // Construct flag URL
   const flagUrl = `https://flagcdn.com/w320/${countryCode.toLowerCase().split('-')[0]}.png`;
@@ -226,13 +238,39 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
             }}
           />
         ) : (
-          <>
-            {/* Sort Filter and Comparison */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="text-sm text-[var(--voyage-muted)]">
-                {filteredAndSortedPlans.length} plan{filteredAndSortedPlans.length !== 1 ? 's' : ''} available
-                {totalPages > 1 && ` • Page ${currentPage} of ${totalPages}`}
-              </div>
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "standard" | "unlimited")} className="space-y-6">
+            {/* Tab Headers */}
+            <div className="flex items-center justify-between border-b border-[var(--voyage-border)]">
+              <TabsList className="bg-transparent p-0 h-auto gap-0">
+                <TabsTrigger 
+                  value="standard" 
+                  className="data-[state=active]:border-b-2 data-[state=active]:border-[var(--voyage-accent)] data-[state=active]:text-[var(--voyage-accent)] rounded-none px-6 py-3 font-semibold text-[var(--voyage-muted)] data-[state=active]:text-white"
+                >
+                  Standard
+                  <span className="ml-2 text-sm font-normal text-[var(--voyage-muted)]">
+                    ({standardPlans.length})
+                  </span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="unlimited" 
+                  className="data-[state=active]:border-b-2 data-[state=active]:border-[var(--voyage-accent)] data-[state=active]:text-[var(--voyage-accent)] rounded-none px-6 py-3 font-semibold text-[var(--voyage-muted)] data-[state=active]:text-white"
+                >
+                  Unlimited
+                  <span className="ml-2 text-sm font-normal text-[var(--voyage-muted)]">
+                    ({unlimitedPlans.length})
+                  </span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            {/* Standard Tab Content */}
+            <TabsContent value="standard" className="space-y-6 mt-6">
+              {/* Sort Filter and Comparison */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="text-sm text-[var(--voyage-muted)]">
+                  {filteredAndSortedPlans.length} plan{filteredAndSortedPlans.length !== 1 ? 's' : ''} available
+                  {totalPages > 1 && ` • Page ${currentPage} of ${totalPages}`}
+                </div>
               <div className="flex items-center gap-3">
                 {comparisonPlans.length > 0 && (
                   <Button
@@ -343,7 +381,136 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
                 </Button>
               </div>
             )}
-          </>
+            </TabsContent>
+
+            {/* Unlimited Tab Content */}
+            <TabsContent value="unlimited" className="mt-6">
+              {unlimitedPlans.length === 0 ? (
+                <div className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl p-12 text-center">
+                  <p className="text-[var(--voyage-muted)] font-medium">No unlimited plans available at this time.</p>
+                </div>
+              ) : (
+                <>
+                  {/* Sort Filter and Comparison */}
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="text-sm text-[var(--voyage-muted)]">
+                      {filteredAndSortedPlans.length} plan{filteredAndSortedPlans.length !== 1 ? 's' : ''} available
+                      {totalPages > 1 && ` • Page ${currentPage} of ${totalPages}`}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {comparisonPlans.length > 0 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowComparison(true)}
+                          className="border-[var(--voyage-accent)] bg-[var(--voyage-accent)]/10 text-[var(--voyage-accent)] hover:bg-[var(--voyage-accent)] hover:text-white"
+                        >
+                          <GitCompare className="h-4 w-4 mr-2" />
+                          Compare ({comparisonPlans.length})
+                        </Button>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <label className="text-sm text-[var(--voyage-muted)]">Sort by:</label>
+                        <select
+                          value={sortBy}
+                          onChange={(e) => setSortBy(e.target.value as "days" | "price" | "dataSize" | "name")}
+                          className="px-3 py-1.5 rounded-lg bg-[var(--voyage-card)] border border-[var(--voyage-border)] text-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--voyage-accent)]"
+                        >
+                          <option value="days">Duration (Days)</option>
+                          <option value="price">Price (Low to High)</option>
+                          <option value="dataSize">Data Size</option>
+                          <option value="name">Plan Name</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Plans Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {paginatedPlans.map((plan) => (
+                      <div key={plan.packageCode} className="relative">
+                        <PlanCard plan={plan} />
+                        <button
+                          onClick={() => {
+                            if (comparisonPlans.some(p => p.packageCode === plan.packageCode)) {
+                              setComparisonPlans(prev => prev.filter(p => p.packageCode !== plan.packageCode));
+                            } else if (comparisonPlans.length < 4) {
+                              setComparisonPlans(prev => [...prev, plan]);
+                            }
+                          }}
+                          className={`absolute top-6 right-[120px] z-10 h-10 w-10 rounded-full flex items-center justify-center transition-all ${
+                            comparisonPlans.some(p => p.packageCode === plan.packageCode)
+                              ? "bg-[var(--voyage-accent)] text-white"
+                              : "bg-[var(--voyage-bg-light)] text-[var(--voyage-muted)] hover:bg-[var(--voyage-accent)]/20 hover:text-[var(--voyage-accent)]"
+                          }`}
+                          title={
+                            comparisonPlans.some(p => p.packageCode === plan.packageCode)
+                              ? "Remove from comparison"
+                              : comparisonPlans.length >= 4
+                              ? "Maximum 4 plans can be compared"
+                              : "Add to comparison"
+                          }
+                        >
+                          <GitCompare className="h-5 w-5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-2 mt-8">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-bg-light)] disabled:opacity-50"
+                      >
+                        Previous
+                      </Button>
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          let pageNum;
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = currentPage - 2 + i;
+                          }
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => setCurrentPage(pageNum)}
+                              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                                currentPage === pageNum
+                                  ? "bg-[var(--voyage-accent)] text-white"
+                                  : "bg-[var(--voyage-card)] border border-[var(--voyage-border)] text-[var(--voyage-text)] hover:border-[var(--voyage-accent)]"
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-bg-light)] disabled:opacity-50"
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
+            </TabsContent>
+          </Tabs>
         )}
       </div>
 

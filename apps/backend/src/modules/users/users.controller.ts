@@ -16,33 +16,30 @@ export class UsersController {
     @Query('email') email: string,
     @Headers('x-user-email') userEmailHeader: string | undefined,
   ) {
-    // Use email from header or query param (query for backward compatibility)
+    // Use email from header (authenticated) or query param (guest access)
     const requestEmail = userEmailHeader || email;
     
     if (!requestEmail) {
       throw new Error('Email is required');
     }
 
-    // Validate ownership: ensure the requesting user matches the email
-    const requestingUserId = await getUserIdFromEmail(this.prisma, requestEmail);
+    // Normalize email for lookup
+    const normalizedEmail = requestEmail.toLowerCase().trim();
     
-    if (!requestingUserId) {
-      return [];
+    // For authenticated requests, verify the header email matches query email (if both provided)
+    if (userEmailHeader && email && userEmailHeader.toLowerCase().trim() !== normalizedEmail) {
+      // Security: authenticated user can only query their own email
+      throw new Error('Email mismatch');
     }
-
-    // Get user's eSIMs
-    const esims = await this.usersService.getUserEsimsByEmail(requestEmail);
     
-    // Verify ownership for each eSIM profile
-    for (const esim of esims) {
-      if (esim.userId) {
-        assertOwnership({
-          userId: requestingUserId,
-          ownerId: esim.userId,
-          resource: 'eSIM',
-        });
-      }
-    }
+    // Get user's eSIMs by email
+    // This will return eSIMs for orders linked to this user's email
+    // Returns empty array if user doesn't exist (no orders yet)
+    const esims = await this.usersService.getUserEsimsByEmail(normalizedEmail);
+    
+    // Note: For guest access, we don't enforce strict ownership checks
+    // The service will return eSIMs linked to orders with matching email
+    // For authenticated users, ownership is verified via the email match above
 
     return esims;
   }

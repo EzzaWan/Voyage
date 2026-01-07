@@ -12,6 +12,8 @@ import { useParams, useRouter } from "next/navigation";
 import { fetchDiscounts } from "@/lib/admin-discounts";
 import { getSlugFromCode } from "@/lib/country-slugs";
 import { addToRecentlyViewed } from "@/lib/recently-viewed";
+import { getPlanFlagLabels } from "@/lib/plan-flags";
+import { isDailyUnlimitedPlan } from "@/lib/plan-utils";
 
 export default function PlanPage() {
   const params = useParams();
@@ -97,9 +99,34 @@ export default function PlanPage() {
     }
   };
 
+  // Get plan display name for breadcrumb (replace 2GB with Unlimited for unlimited plans)
+  const getPlanDisplayName = () => {
+    if (!plan) return id;
+    
+    const flagInfo = getPlanFlagLabels(plan);
+    let displayName = flagInfo.cleanedName || plan.name || id;
+    
+    // Replace "2GB" with "Unlimited" for unlimited plans (2GB + FUP1Mbps)
+    if (isDailyUnlimitedPlan(plan)) {
+      displayName = displayName
+        .replace(/\b2gb\b/gi, 'Unlimited')
+        .replace(/\b2\s*gb\b/gi, 'Unlimited')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+    
+    return displayName || id;
+  };
+
+  const breadcrumbItems = [
+    { label: "Home", href: "/" },
+    { label: "Plans", href: "/countries" },
+    { label: getPlanDisplayName(), href: `/plans/${id}` },
+  ];
+
   return (
     <div className="space-y-6">
-      <Breadcrumbs />
+      <Breadcrumbs items={breadcrumbItems} />
       
       {useBackNavigation ? (
         <Button 

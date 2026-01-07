@@ -3,7 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "workspaces": [
-    "apps/*",
+    "apps/web",
+    "apps/backend",
+    "apps/worker",
     "libs/*"
   ],
   "scripts": {
@@ -20,6 +22,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@babel/runtime": "^7.28.4",
     "@prisma/client": "^5.22.0"
   }
 }

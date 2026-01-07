@@ -22,6 +22,8 @@ interface Order {
   displayCurrency?: string;
   currency: string;
   status: string;
+  planName?: string;
+  duration?: number; // Selected duration for Unlimited/Day Pass plans
 }
 
 export default function CheckoutPage({ params }: { params: { orderId: string } }) {
@@ -39,6 +41,8 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
   const [promoDiscount, setPromoDiscount] = useState<{ percent: number; originalAmount: number; originalDisplayAmount: number } | null>(null);
   const [email, setEmail] = useState("");
   const [updatingEmail, setUpdatingEmail] = useState(false);
+  const [planName, setPlanName] = useState<string | null>(null);
+  const [planDetails, setPlanDetails] = useState<{ name: string; volume: number; packageCode: string } | null>(null);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -48,6 +52,51 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
           showToast: false,
         });
         setOrder(orderData);
+        
+              // Fetch plan details to get plan name and check if it's unlimited
+              if (orderData.planId) {
+                try {
+                  const planData = await safeFetch<{ name: string; volume: number; packageCode: string }>(`${apiUrl}/plans/${orderData.planId}`, {
+                    showToast: false,
+                  });
+            if (planData?.name) {
+              // Process plan name: replace 2GB with Unlimited for unlimited plans
+              let processedName = planData.name;
+              
+              // Check if it's an unlimited plan (2GB + FUP1Mbps)
+              if (planData.volume !== -1) {
+                const volumeGB = planData.volume / (1024 * 1024 * 1024);
+                if (volumeGB >= 1.95 && volumeGB <= 2.05) {
+                  const nameLower = (planData.name || '').toLowerCase();
+                  const fupPattern = /\bfup(\d+)?mbps?\b/i;
+                  const fupStandalone = /\bfup\b/i;
+                  const hasFUP = nameLower.match(fupPattern) || nameLower.match(fupStandalone) ||
+                                nameLower.includes('fup1mbps') || nameLower.includes('fup 1mbps');
+                  
+                  if (hasFUP) {
+                    const speedMatch = nameLower.match(/fup(\d+)?mbps?/i);
+                    const speedLimit = speedMatch ? parseInt(speedMatch[1] || '1') : 1;
+                    if (speedLimit === 1) {
+                      // Replace 2GB with Unlimited
+                      processedName = processedName
+                        .replace(/\b2gb\b/gi, 'Unlimited')
+                        .replace(/\b2\s*gb\b/gi, 'Unlimited')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+                    }
+                  }
+                }
+              }
+              
+              setPlanName(processedName);
+              setPlanDetails(planData);
+            }
+          } catch (error) {
+            console.error('Failed to fetch plan details:', error);
+            // Fallback to planId if fetch fails
+            setPlanName(orderData.planId);
+          }
+        }
         
         // Set email from logged-in user if available
         if (userLoaded && user?.primaryEmailAddress?.emailAddress) {
@@ -384,7 +433,33 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
                     Order ID: <span className="text-white font-mono">{params.orderId}</span>
                   </p>
                   <p className="text-sm text-[var(--voyage-muted)]">
-                    Plan: <span className="text-white">{order.planId}</span>
+                    Plan: <span className="text-white">{planName || order.planId}</span>
+                    {(() => {
+                      // Check if we have all required data
+                      if (!planDetails || !order.duration) return null;
+                      
+                      // Check if it's an unlimited plan (2GB + FUP1Mbps)
+                      if (planDetails.volume === -1) return null;
+                      const volumeGB = planDetails.volume / (1024 * 1024 * 1024);
+                      if (volumeGB < 1.95 || volumeGB > 2.05) return null;
+                      
+                      const nameLower = (planDetails.name || '').toLowerCase();
+                      const fupPattern = /\bfup(\d+)?mbps?\b/i;
+                      const fupStandalone = /\bfup\b/i;
+                      const hasFUP = nameLower.match(fupPattern) || nameLower.match(fupStandalone) ||
+                                    nameLower.includes('fup1mbps') || nameLower.includes('fup 1mbps');
+                      
+                      if (hasFUP) {
+                        const speedMatch = nameLower.match(/fup(\d+)?mbps?/i);
+                        const speedLimit = speedMatch ? parseInt(speedMatch[1] || '1') : 1;
+                        if (speedLimit === 1) {
+                          return (
+                            <span className="text-white"> • {order.duration} {order.duration === 1 ? 'Day' : 'Days'}</span>
+                          );
+                        }
+                      }
+                      return null;
+                    })()}
                   </p>
                 </div>
                 
@@ -543,7 +618,32 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-[var(--voyage-muted)]">Plan</span>
-                  <span className="text-white">{order.planId}</span>
+                  <span className="text-white">
+                    {planName || order.planId}
+                    {planDetails && order.duration && (() => {
+                      // Check if it's an unlimited plan (2GB + FUP1Mbps)
+                      if (planDetails.volume === -1) return null;
+                      const volumeGB = planDetails.volume / (1024 * 1024 * 1024);
+                      if (volumeGB < 1.95 || volumeGB > 2.05) return null;
+                      
+                      const nameLower = (planDetails.name || '').toLowerCase();
+                      const fupPattern = /\bfup(\d+)?mbps?\b/i;
+                      const fupStandalone = /\bfup\b/i;
+                      const hasFUP = nameLower.match(fupPattern) || nameLower.match(fupStandalone) ||
+                                    nameLower.includes('fup1mbps') || nameLower.includes('fup 1mbps');
+                      
+                      if (hasFUP) {
+                        const speedMatch = nameLower.match(/fup(\d+)?mbps?/i);
+                        const speedLimit = speedMatch ? parseInt(speedMatch[1] || '1') : 1;
+                        if (speedLimit === 1) {
+                          return (
+                            <span className="block text-xs text-[var(--voyage-muted)] mt-1">{order.duration} {order.duration === 1 ? 'Day' : 'Days'}</span>
+                          );
+                        }
+                      }
+                      return null;
+                    })()}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-[var(--voyage-muted)]">Subtotal</span>

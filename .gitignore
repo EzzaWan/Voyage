@@ -13,6 +13,9 @@ dist/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.mobile
+apps/mobile/.env.mobile
+apps/mobile/.env.mobile.local
 
 # Logs
 npm-debug.log*

@@ -8,7 +8,7 @@ import { FlagIcon } from "./FlagIcon";
 import { useCurrency } from "./providers/CurrencyProvider";
 import { getStoredReferralCode } from "@/lib/referral";
 import { getDiscount, fetchDiscounts } from "@/lib/admin-discounts";
-import { calculateGB, calculateFinalPrice } from "@/lib/plan-utils";
+import { calculateGB, calculateFinalPrice, isDailyUnlimitedPlan } from "@/lib/plan-utils";
 import Link from "next/link";
 import { safeFetch } from "@/lib/safe-fetch";
 import { useUser } from "@clerk/nextjs";
@@ -80,11 +80,31 @@ export function PlanDetails({ plan }: { plan: any }) {
   const [activeTab, setActiveTab] = useState("coverage");
   const [dialogOpen, setDialogOpen] = useState(false);
   
+  // Check if this is an unlimited plan (2GB + FUP1Mbps)
+  const isUnlimitedPlan = isDailyUnlimitedPlan(plan);
+  
+  // For unlimited plans, allow user to select duration (1-365 days)
+  // For regular plans, use the plan's fixed duration
+  const [selectedDays, setSelectedDays] = useState<number>(plan.duration || 1);
+  
   // Calculate discounted price
   const planGB = calculateGB(plan.volume || 0);
   const discountPercent = getDiscount(plan.packageCode, planGB);
   const basePriceUSD = plan.price || 0;
-  const finalPriceUSD = calculateFinalPrice(basePriceUSD, discountPercent);
+  
+  // For unlimited plans: plan.price is daily price, total = daily × selected days
+  // For regular plans: plan.price is total price
+  const dailyPriceUSD = isUnlimitedPlan ? basePriceUSD : (basePriceUSD / (plan.duration || 1));
+  const totalPriceUSD = isUnlimitedPlan ? (dailyPriceUSD * selectedDays) : basePriceUSD;
+  
+  // Apply discount
+  const discountedDailyPriceUSD = isUnlimitedPlan 
+    ? calculateFinalPrice(dailyPriceUSD, discountPercent)
+    : dailyPriceUSD;
+  
+  const finalPriceUSD = isUnlimitedPlan
+    ? discountedDailyPriceUSD * selectedDays
+    : calculateFinalPrice(totalPriceUSD, discountPercent);
   
   // Convert final discounted price to selected currency
   const convertedPrice = convert(finalPriceUSD);
@@ -92,7 +112,16 @@ export function PlanDetails({ plan }: { plan: any }) {
 
   // Extract flags and get cleaned name
   const flagInfo = getPlanFlagLabels(plan);
-  const displayName = flagInfo.cleanedName || plan.name || '';
+  let displayName = flagInfo.cleanedName || plan.name || '';
+  
+  // Replace "2GB" with "Unlimited" for unlimited plans (2GB + FUP1Mbps)
+  if (isUnlimitedPlan) {
+    displayName = displayName
+      .replace(/\b2gb\b/gi, 'Unlimited')
+      .replace(/\b2\s*gb\b/gi, 'Unlimited')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
 
   // Format plan title nicely - parse components and structure them better
   const formatPlanTitle = (name: string) => {
@@ -285,6 +314,8 @@ export function PlanDetails({ plan }: { plan: any }) {
         paymentMethod: paymentMethod,
         // Include email in request body for pending order creation
         email: user?.primaryEmailAddress?.emailAddress || undefined,
+        // For Unlimited/Day Pass plans, include selected duration
+        ...(isUnlimitedPlan && { duration: selectedDays }),
       };
 
       // Debug logging
@@ -487,11 +518,42 @@ export function PlanDetails({ plan }: { plan: any }) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
            <div className="bg-[var(--voyage-card)] rounded-xl p-5 border border-[var(--voyage-border)] flex flex-col items-center justify-center text-center hover:border-[var(--voyage-accent)]/50 transition-all hover:bg-[var(--voyage-bg-light)] group">
               <span className="text-[var(--voyage-muted)] text-xs uppercase tracking-wider font-semibold mb-2 group-hover:text-[var(--voyage-accent)] transition-colors">Data</span>
-              <span className="text-3xl font-bold text-white">{sizeGB} <span className="text-lg font-medium text-[var(--voyage-muted)]">GB</span></span>
+              <span className="text-3xl font-bold text-white">{isUnlimitedPlan ? "Unlimited" : `${sizeGB} GB`}</span>
            </div>
            <div className="bg-[var(--voyage-card)] rounded-xl p-5 border border-[var(--voyage-border)] flex flex-col items-center justify-center text-center hover:border-[var(--voyage-accent)]/50 transition-all hover:bg-[var(--voyage-bg-light)] group">
               <span className="text-[var(--voyage-muted)] text-xs uppercase tracking-wider font-semibold mb-2 group-hover:text-[var(--voyage-accent)] transition-colors">Validity</span>
-              <span className="text-3xl font-bold text-white">{plan.duration || 0} <span className="text-lg font-medium text-[var(--voyage-muted)]">Days</span></span>
+              {isUnlimitedPlan ? (
+                <div className="flex flex-col items-center gap-2">
+                  <input
+                    type="number"
+                    min="1"
+                    max="365"
+                    value={selectedDays}
+                    onChange={(e) => {
+                      const days = Math.max(1, Math.min(365, parseInt(e.target.value) || 1));
+                      setSelectedDays(days);
+                    }}
+                    className="text-3xl font-bold text-white text-center w-24 bg-transparent border-2 border-[var(--voyage-border)] rounded-lg px-2 py-1 focus:outline-none focus:border-[var(--voyage-accent)]"
+                  />
+                  <div className="flex gap-1 flex-wrap justify-center mt-1">
+                    {[7, 14, 30].map((days) => (
+                      <button
+                        key={days}
+                        onClick={() => setSelectedDays(days)}
+                        className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${
+                          selectedDays === days
+                            ? 'bg-[var(--voyage-accent)] text-white'
+                            : 'bg-[var(--voyage-bg-light)] text-[var(--voyage-muted)] hover:bg-[var(--voyage-accent)]/20 hover:text-[var(--voyage-accent)]'
+                        }`}
+                      >
+                        {days}d
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <span className="text-3xl font-bold text-white">{plan.duration || 0} <span className="text-lg font-medium text-[var(--voyage-muted)]">Days</span></span>
+              )}
            </div>
            <div className="bg-[var(--voyage-card)] rounded-xl p-5 border border-[var(--voyage-border)] flex flex-col items-center justify-center text-center hover:border-[var(--voyage-accent)]/50 transition-all hover:bg-[var(--voyage-bg-light)] group">
               <span className="text-[var(--voyage-muted)] text-xs uppercase tracking-wider font-semibold mb-2 group-hover:text-[var(--voyage-accent)] transition-colors">Type</span>
@@ -620,9 +682,14 @@ export function PlanDetails({ plan }: { plan: any }) {
                  <div className="flex justify-between items-center mb-6 pb-6 border-b border-[var(--voyage-border)]">
                      <span className="text-[var(--voyage-muted)]">Total Price</span>
                     <div className="flex flex-col items-end">
+                      {isUnlimitedPlan && (
+                        <div className="text-xs text-[var(--voyage-muted)] mb-1">
+                          {formatCurrency(convert(discountedDailyPriceUSD))}/day × {selectedDays} days
+                        </div>
+                      )}
                       {discountPercent > 0 && (
                         <span className="text-sm text-[var(--voyage-muted)] line-through mb-1">
-                          {formatCurrency(convert(basePriceUSD))}
+                          {formatCurrency(convert(isUnlimitedPlan ? (dailyPriceUSD * selectedDays) : basePriceUSD))}
                         </span>
                       )}
                       <span className="text-4xl text-white font-bold">

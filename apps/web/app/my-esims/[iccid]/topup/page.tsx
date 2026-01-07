@@ -24,6 +24,7 @@ interface TopUpOption {
   duration: number;
   durationUnit: string;
   location: string;
+  speed?: string; // Optional for top-up options
 }
 
 export default function TopUpSelectionPage() {

@@ -32,6 +32,7 @@ export class OrdersController {
       referralCode?: string;
       paymentMethod?: 'stripe' | 'vcash';
       email?: string; // User email (from Clerk if logged in)
+      duration?: number; // Selected duration for Unlimited/Day Pass plans (e.g., 8 days)
     },
     @Req() req: any,
     @Headers('x-user-email') userEmailHeader: string | undefined,
@@ -263,6 +264,7 @@ export class OrdersController {
       receiptSent: order.receiptSent,
       userEmail: order.User?.email,
       EsimProfile: order.EsimProfile,
+      duration: order.duration, // Selected duration for Unlimited/Day Pass plans
     };
   }
 
@@ -399,6 +401,7 @@ export class OrdersController {
         displayAmountCents: true,
         status: true,
         paymentMethod: true,
+        duration: true,
       },
     });
         } else {
@@ -417,6 +420,7 @@ export class OrdersController {
               displayAmountCents: true,
               status: true,
               paymentMethod: true,
+              duration: true,
             },
           });
           }
@@ -444,6 +448,7 @@ export class OrdersController {
           displayAmountCents: true,
           status: true,
           paymentMethod: true,
+          duration: true,
         },
       });
     }
@@ -457,6 +462,7 @@ export class OrdersController {
       amountCents: order.displayAmountCents || order.amountCents,
       currency: order.displayCurrency || order.currency,
       status: order.status,
+      duration: order.duration, // Selected duration for Unlimited/Day Pass plans
     };
   }
 
@@ -528,6 +534,7 @@ export class OrdersController {
       return {
         id: order.id,
         planId: order.planId,
+        duration: order.duration, // Selected duration for Unlimited/Day Pass plans
         amountCents: order.amountCents,
         displayAmountCents: order.displayAmountCents,
         displayCurrency: order.displayCurrency,

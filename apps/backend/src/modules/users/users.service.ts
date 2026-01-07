@@ -26,17 +26,32 @@ export class UsersService {
 
     console.log(`[UsersService] Found user ${user.id} for email: ${normalizedEmail}`);
 
-    // Use the relation defined in schema: User -> profiles
+    // Query profiles in two ways:
+    // 1. Profiles directly linked to user via userId
+    // 2. Profiles linked via orders where the order's user email matches (for guest orders)
     const profiles = await this.prisma.esimProfile.findMany({
       where: {
-        userId: user.id
+        OR: [
+          { userId: user.id }, // Direct user link
+          { 
+            Order: {
+              User: {
+                email: normalizedEmail // Via order's user email (guest orders)
+              }
+            }
+          }
+        ]
       },
       include: {
-        Order: true // Optional: include order details if needed
+        Order: {
+          include: {
+            User: true // Include user details for verification
+          }
+        }
       }
     });
 
-    console.log(`[UsersService] Found ${profiles.length} eSIM profile(s) for user ${user.id}`);
+    console.log(`[UsersService] Found ${profiles.length} eSIM profile(s) for email: ${normalizedEmail}`);
 
     // Convert BigInt fields to strings for JSON serialization and fetch plan details
     // Use Promise.allSettled to ensure all profiles are returned even if some plan fetches fail

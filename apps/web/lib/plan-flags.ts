@@ -89,6 +89,10 @@ export function extractPlanFlags(plan: any): PlanFlagInfo {
     cleanedName = cleanedName.replace(/\s+/g, ' ').trim();
   }
   
+  // Remove IIJ label (e.g., "(IIJ)" or "IIJ") from name
+  cleanedName = cleanedName.replace(/\s*\(IIJ\)/gi, '').trim();
+  cleanedName = cleanedName.replace(/\s*IIJ\s*/gi, ' ').trim();
+  
   // Clean up any remaining artifacts: double spaces, trailing separators, parentheses
   cleanedName = cleanedName.replace(/\s+/g, ' ').trim();
   // Remove leading/trailing separators

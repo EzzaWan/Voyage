@@ -213,7 +213,7 @@ export class OrdersService {
   /**
    * Create a pending order (for review page before payment)
    */
-  async createPendingOrder({ planCode, amount, currency, planName, displayCurrency, referralCode, email }: {
+  async createPendingOrder({ planCode, amount, currency, planName, displayCurrency, referralCode, email, duration }: {
     planCode: string;
     amount: number;
     currency: string;
@@ -221,6 +221,7 @@ export class OrdersService {
     displayCurrency?: string;
     referralCode?: string;
     email?: string;
+    duration?: number; // Selected duration for Unlimited/Day Pass plans
   }) {
     try {
       this.logger.log(`[PENDING_ORDER] Creating pending order: planCode=${planCode}, amount=${amount} USD`);
@@ -278,6 +279,7 @@ export class OrdersService {
           displayAmountCents: displayAmountCents,
           status: 'pending',
           paymentMethod: 'stripe',
+          duration: duration, // Store selected duration for Unlimited/Day Pass plans
         },
       });
 
@@ -688,7 +690,7 @@ export class OrdersService {
     }
   }
 
-  async createVCashOrder({ planCode, amount, currency, planName, displayCurrency, referralCode, email }: {
+  async createVCashOrder({ planCode, amount, currency, planName, displayCurrency, referralCode, email, duration }: {
     planCode: string;
     amount: number;
     currency: string;
@@ -696,6 +698,7 @@ export class OrdersService {
     displayCurrency?: string;
     referralCode?: string;
     email: string;
+    duration?: number; // Selected duration for Unlimited/Day Pass plans
   }) {
     this.logger.log(`[VCASH CHECKOUT] Received from frontend: amount=${amount} USD, email=${email}, planCode=${planCode}`);
 
@@ -761,6 +764,7 @@ export class OrdersService {
         paymentMethod: 'vcash',
         paymentRef: `vcash_${orderId}`,
         esimOrderNo: `PENDING-${orderId}`,
+        duration: duration, // Store selected duration for Unlimited/Day Pass plans
       },
     });
 
@@ -1016,13 +1020,23 @@ export class OrdersService {
     // Provider expects their original cost price, not our selling price
     const amountInProviderUnits = await this.getProviderPriceInUnits(planCode, order.amountCents ?? 0);
     
+    // For Unlimited/Day Pass plans, pass periodNum (selected duration) to eSIM Access API
+    // If order.duration is set, it means user selected a custom duration (e.g., 8 days)
+    const packageInfo: any = {
+      packageCode: planCode, 
+      count: 1,
+      price: amountInProviderUnits, // Provider expects price in their format
+    };
+    
+    // Add periodNum if duration is specified (for Unlimited/Day Pass plans)
+    if (order.duration) {
+      packageInfo.periodNum = order.duration;
+      this.logger.log(`[ESIM][ORDER] Adding periodNum=${order.duration} for Unlimited/Day Pass plan`);
+    }
+    
     const body = {
       transactionId,
-      packageInfoList: [{ 
-        packageCode: planCode, 
-        count: 1,
-        price: amountInProviderUnits, // Provider expects price in their format
-      }],
+      packageInfoList: [packageInfo],
       amount: amountInProviderUnits,
     };
 
@@ -1249,15 +1263,22 @@ export class OrdersService {
         // Provider expects their original cost price, not our selling price
         const amountInProviderUnits = await this.getProviderPriceInUnits(order.planId, order.amountCents ?? 0);
 
+        // For Unlimited/Day Pass plans, pass periodNum (selected duration) to eSIM Access API
+        const packageInfo: any = {
+          packageCode: order.planId,
+          count: 1,
+          price: amountInProviderUnits,
+        };
+        
+        // Add periodNum if duration is specified (for Unlimited/Day Pass plans)
+        if (order.duration) {
+          packageInfo.periodNum = order.duration;
+          this.logger.log(`[RETRY][ESIM][ORDER] Adding periodNum=${order.duration} for Unlimited/Day Pass plan`);
+        }
+        
         const body = {
           transactionId,
-          packageInfoList: [
-            {
-              packageCode: order.planId,
-              count: 1,
-              price: amountInProviderUnits,
-            },
-          ],
+          packageInfoList: [packageInfo],
           amount: amountInProviderUnits,
         };
 

@@ -152,6 +152,8 @@ function SuccessContent() {
             }
             if (orderDetails?.userEmail) {
               setOrderEmail(orderDetails.userEmail);
+              // Store email in localStorage for guest access
+              localStorage.setItem('guest_checkout_email', orderDetails.userEmail);
             }
           } catch (err) {
             // Profile might not be ready yet, that's okay
@@ -389,6 +391,14 @@ function SuccessContent() {
                       </p>
                     </div>
                   </div>
+                  {orderEmail && (
+                    <Link href={`/my-esims?email=${encodeURIComponent(orderEmail)}`} className="block">
+                      <Button className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white py-6 text-lg mb-3">
+                        View My eSIMs
+                        <ArrowRight className="ml-2 h-5 w-5" />
+                      </Button>
+                    </Link>
+                  )}
                   <div className="flex flex-col sm:flex-row gap-3">
                     <Link href={`/sign-in?redirect_url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/checkout/success')}`} className="flex-1">
                       <Button className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white py-6 text-lg">

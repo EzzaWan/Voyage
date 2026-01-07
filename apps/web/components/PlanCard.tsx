@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { FlagIcon } from "./FlagIcon";
 import { useCurrency } from "./providers/CurrencyProvider";
 import { getDiscount } from "@/lib/admin-discounts";
-import { calculateFinalPrice } from "@/lib/plan-utils";
+import { calculateFinalPrice, isDailyUnlimitedPlan } from "@/lib/plan-utils";
 import { getPlanFlagLabels } from "@/lib/plan-flags";
 import { PlanFlags } from "./PlanFlags";
 import { addToFavorites, removeFromFavorites, isFavorite } from "@/lib/favorites";
@@ -36,7 +36,8 @@ export function PlanCard({ plan }: PlanCardProps) {
   const [favorited, setFavorited] = useState(false);
   const sizeGB = plan.volume / 1024 / 1024 / 1024;
   const sizeGBRounded = sizeGB.toFixed(1);
-  const isUnlimited = plan.volume === -1; // Assuming -1 or similar for unlimited if applicable
+  const isUnlimited = plan.volume === -1; // True unlimited plans (volume = -1)
+  const isUnlimitedPlan = isDailyUnlimitedPlan(plan); // 2GB + FUP1Mbps plans
   const regionCount = plan.locationNetworkList?.length || 1;
   
   // Get discount (frontend-only) - check individual first, then global GB
@@ -52,7 +53,16 @@ export function PlanCard({ plan }: PlanCardProps) {
 
   // Extract flags and get cleaned name
   const flagInfo = getPlanFlagLabels(plan);
-  const displayName = flagInfo.cleanedName || plan.name;
+  let displayName = flagInfo.cleanedName || plan.name;
+  
+  // Replace "2GB" with "Unlimited" for unlimited plans (2GB + FUP1Mbps)
+  if (isUnlimitedPlan) {
+    displayName = displayName
+      .replace(/\b2gb\b/gi, 'Unlimited')
+      .replace(/\b2\s*gb\b/gi, 'Unlimited')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
 
   // Check if favorited on mount
   useEffect(() => {
@@ -82,7 +92,7 @@ export function PlanCard({ plan }: PlanCardProps) {
                  {plan.duration} {plan.durationUnit}s
               </Badge>
               <h3 className="text-2xl font-bold text-white group-hover:text-[var(--voyage-accent)] transition-colors">
-                 {isUnlimited ? "Unlimited" : `${sizeGBRounded} GB`}
+                 {isUnlimited || isUnlimitedPlan ? "Unlimited" : `${sizeGBRounded} GB`}
               </h3>
            </div>
            <div className="flex items-center gap-2">
