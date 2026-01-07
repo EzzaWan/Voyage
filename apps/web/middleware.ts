@@ -5,6 +5,7 @@ import { cookies } from 'next/headers';
 const isPublicRoute = createRouteMatcher([
   '/',
   '/countries(.*)',
+  '/regions(.*)',
   '/plans(.*)',
   '/checkout(.*)', // Allow guest checkout without sign-in
   '/orders(.*)', // Allow guest order access via secure link
