@@ -11,13 +11,29 @@ const config: Config = {
     // Ensure CSS variable-based classes are included in production build
     {
       pattern: /bg-\[var\(--voyo-.*\)\]/,
+      variants: ['hover', 'focus', 'active'],
     },
     {
       pattern: /text-\[var\(--voyo-.*\)\]/,
+      variants: ['hover', 'focus'],
     },
     {
       pattern: /border-\[var\(--voyo-.*\)\]/,
+      variants: ['hover', 'focus'],
     },
+    // Explicitly include common voyo variable classes
+    'bg-[var(--voyo-bg)]',
+    'bg-[var(--voyo-bg-light)]',
+    'bg-[var(--voyo-card)]',
+    'bg-[var(--voyo-accent)]',
+    'bg-[var(--voyo-accent-soft)]',
+    'text-[var(--voyo-text)]',
+    'text-[var(--voyo-muted)]',
+    'text-[var(--voyo-accent)]',
+    'border-[var(--voyo-border)]',
+    'hover:bg-[var(--voyo-bg-light)]',
+    'hover:text-white',
+    'hover:border-[var(--voyo-accent)]',
   ],
   theme: {
   	extend: {

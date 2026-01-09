@@ -72,9 +72,13 @@
   * {
     @apply border-border;
   }
-  body {
+  html {
     background-color: var(--voyo-bg);
-    color: var(--voyo-text);
+  }
+  body {
+    background-color: var(--voyo-bg) !important;
+    color: var(--voyo-text) !important;
+    min-height: 100vh;
   }
 }
 

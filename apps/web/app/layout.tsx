@@ -53,8 +53,8 @@ export default function RootLayout({
       >
         <CurrencyProvider>
           <ErrorToastProvider>
-            <html lang="en">
-              <body className={`${inter.className} bg-[var(--voyo-bg)] text-[var(--voyo-text)] min-h-screen antialiased selection:bg-[var(--voyo-accent)] selection:text-white`}>
+            <html lang="en" style={{ backgroundColor: 'var(--voyo-bg)' }}>
+              <body className={`${inter.className} bg-[var(--voyo-bg)] text-[var(--voyo-text)] min-h-screen antialiased selection:bg-[var(--voyo-accent)] selection:text-white`} style={{ backgroundColor: 'var(--voyo-bg)', color: 'var(--voyo-text)' }}>
                 {/* Google tag (gtag.js) */}
                 <Script
                   src="https://www.googletagmanager.com/gtag/js?id=AW-17806579060"
