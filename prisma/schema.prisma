@@ -406,6 +406,7 @@ model User {
   TopUp            TopUp[]
   VCashBalance     VCashBalance?
   VCashTransaction VCashTransaction[]
+  Review           Review[]
 }
 
 model VCashBalance {
@@ -441,14 +442,21 @@ model WebhookEvent {
 
 model Review {
   id        String   @id @default(uuid())
+  planId    String?  // Optional link to plan (null for global reviews)
   userName  String
   rating    Int      // 1-5
-  comment   String
+  comment   String?  // Optional text
+  language  String?  // Original language code (e.g. "en", "es", "pl")
+  source    String   @default("purchase") // "purchase", "survey", "support"
   verified  Boolean  @default(false)
   userId    String?  // Optional link to user if authenticated
+  User      User?    @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@index([createdAt])
   @@index([verified])
+  @@index([rating])
+  @@index([source])
+  @@index([planId])
 }

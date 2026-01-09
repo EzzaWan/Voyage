@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { QrCode, Signal, RefreshCw, Calendar, HardDrive, Download, Copy, CheckCircle2, ShoppingBag } from "lucide-react";
+import { QrCode, Signal, RefreshCw, Calendar, HardDrive, Download, Copy, CheckCircle2, ShoppingBag, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { safeFetch } from "@/lib/safe-fetch";
@@ -17,6 +17,10 @@ import { ExpiryCountdown } from "@/components/esim/expiry-countdown";
 import { getTimeRemaining, getUrgencyLevel } from "@/lib/format-expiry";
 import { AlertCircle } from "lucide-react";
 import { getPlanFlagLabels } from "@/lib/plan-flags";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
 
 interface PlanDetails {
   name?: string;
@@ -121,6 +125,10 @@ export default function MyEsimsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedEsim, setSelectedEsim] = useState<EsimProfile | null>(null);
   const [copied, setCopied] = useState(false);
+  const [reviewEsim, setReviewEsim] = useState<EsimProfile | null>(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
     // Wait for Clerk to load
@@ -364,6 +372,18 @@ export default function MyEsimsPage() {
                      >
                         Top Up
                      </Button>
+
+                     <Button 
+                        variant="outline"
+                        className="w-full bg-[var(--voyage-bg-light)] hover:bg-[var(--voyage-border)] text-white border border-[var(--voyage-border)] mt-2"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setReviewEsim(esim);
+                        }}
+                     >
+                        <Star className="mr-2 h-4 w-4" /> Review
+                     </Button>
                      
                      {esim.ac && (
                         <Button 
@@ -451,6 +471,110 @@ export default function MyEsimsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Review Dialog */}
+      {reviewEsim && (
+        <Dialog open={!!reviewEsim} onOpenChange={(open) => !open && setReviewEsim(null)}>
+          <DialogContent className="bg-[var(--voyage-card)] border border-white/5 shadow-xl rounded-xl max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-white">Write a Review</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-semibold mb-2 block text-white">Rating</label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setReviewRating(star)}
+                      className="focus:outline-none transform hover:scale-110 transition-transform"
+                    >
+                      <Star
+                        className={cn(
+                          "h-8 w-8 transition-colors",
+                          star <= reviewRating
+                            ? "fill-[var(--voyage-accent)] text-[var(--voyage-accent)]"
+                            : "text-zinc-700"
+                        )}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-semibold mb-2 block text-white">
+                  Comment <span className="text-zinc-400 font-normal">(optional)</span>
+                </label>
+                <Textarea
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  placeholder="Share your experience with this plan... (optional)"
+                  className="min-h-[120px] border border-white/10 rounded-lg focus:ring-2 focus:ring-[var(--voyage-accent)]/20 focus:border-[var(--voyage-accent)] resize-none text-white bg-[var(--voyage-bg)]"
+                  maxLength={1000}
+                />
+                <p className="text-xs text-zinc-400 mt-1">
+                  {reviewComment.length}/1000 characters - Star-only reviews are welcome!
+                </p>
+              </div>
+              <Button
+                onClick={async () => {
+                  if (!user?.primaryEmailAddress?.emailAddress) {
+                    toast({ title: "Sign in required", description: "Please sign in to leave a review.", variant: "destructive" });
+                    return;
+                  }
+
+                  if (reviewComment.trim() && reviewComment.trim().length < 2) {
+                    toast({ title: "Invalid comment", description: "Comment must be at least 2 characters if provided.", variant: "destructive" });
+                    return;
+                  }
+
+                  setSubmittingReview(true);
+                  try {
+                    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+                    const userEmail = user.primaryEmailAddress.emailAddress;
+                    const userName = user.fullName || userEmail.split('@')[0] || 'Anonymous';
+                    const planId = reviewEsim.order?.planId || reviewEsim.planDetails?.packageCode;
+
+                    await safeFetch(`${apiUrl}/reviews`, {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-email': userEmail,
+                      },
+                      body: JSON.stringify({
+                        planId,
+                        userName,
+                        rating: reviewRating,
+                        comment: reviewComment.trim() || undefined,
+                      }),
+                    });
+
+                    toast({ title: "Review submitted", description: "Thank you for your review! It will be reviewed by our team." });
+                    setReviewEsim(null);
+                    setReviewComment("");
+                    setReviewRating(5);
+                  } catch (error: any) {
+                    console.error("Review submission error:", error);
+                    const errorMessage = error?.message || error?.cause?.message || "Failed to submit review.";
+                    toast({ 
+                      title: "Error", 
+                      description: errorMessage, 
+                      variant: "destructive" 
+                    });
+                  } finally {
+                    setSubmittingReview(false);
+                  }
+                }}
+                disabled={submittingReview}
+                className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent)]/90 text-black font-bold rounded-lg"
+              >
+                {submittingReview ? "Submitting..." : "Submit Review"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

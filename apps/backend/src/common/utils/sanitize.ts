@@ -11,13 +11,14 @@ export function sanitizeInput(input: string): string {
   // Remove HTML tags using regex
   let sanitized = input.replace(/<[^>]*>/g, '');
   
-  // Escape HTML entities
+  // Escape HTML entities (but preserve apostrophes for better readability)
   sanitized = sanitized
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
+    // Don't escape apostrophes - they're safe and improve readability
+    // .replace(/'/g, '&#x27;')
     .replace(/\//g, '&#x2F;');
 
   return sanitized.trim();

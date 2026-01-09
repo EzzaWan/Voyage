@@ -1,60 +1,87 @@
-import { Controller, Get, Post, Delete, Param, Body, Query, UseGuards, Headers } from '@nestjs/common';
-import { ReviewsService, CreateReviewDto } from './reviews.service';
+import { Controller, Post, Body, Get, Param, Delete, UseGuards, Headers, BadRequestException, Logger } from '@nestjs/common';
+import { ReviewsService } from './reviews.service';
 import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
 import { CsrfGuard } from '../../common/guards/csrf.guard';
 import { RateLimit } from '../../common/decorators/rate-limit.decorator';
+import { AdminGuard } from '../admin/guards/admin.guard';
+import { getUserIdFromEmail } from '../../common/utils/get-user-id';
 import { PrismaService } from '../../prisma.service';
 
 @Controller('reviews')
-@UseGuards(RateLimitGuard, CsrfGuard)
 export class ReviewsController {
+  private readonly logger = new Logger(ReviewsController.name);
+
   constructor(
     private readonly reviewsService: ReviewsService,
     private readonly prisma: PrismaService,
   ) {}
 
-  @Get()
-  @RateLimit({ limit: 100, window: 60 })
-  async getReviews(
-    @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
-    @Query('minRating') minRating?: string,
-  ) {
-    const result = await this.reviewsService.getReviews(
-      limit ? parseInt(limit, 10) : undefined,
-      offset ? parseInt(offset, 10) : undefined,
-      minRating ? parseInt(minRating, 10) : undefined,
-    );
-    return result;
-  }
-
   @Post()
-  @RateLimit({ limit: 5, window: 3600 }) // 5 reviews per hour
+  @UseGuards(RateLimitGuard, CsrfGuard)
+  @RateLimit({ limit: 20, window: 3600 }) // 20 reviews per hour
   async createReview(
-    @Body() body: CreateReviewDto,
-    @Headers('x-user-email') userEmail?: string,
+    @Body() body: { planId?: string; userName?: string; rating: number; comment?: string; language?: string; source?: string },
+    @Headers('x-user-email') userEmail: string | undefined,
   ) {
-    let userId: string | undefined;
-
-    // If user is authenticated, get their userId
+    // Allow anonymous reviews - userEmail is optional
+    let userId: string | null = null;
     if (userEmail) {
-      const user = await this.prisma.user.findUnique({
-        where: { email: userEmail.toLowerCase().trim() },
-        select: { id: true },
-      });
-      userId = user?.id;
+      // Try to get userId from email, but allow reviews even if user doesn't exist in DB yet
+      userId = await getUserIdFromEmail(this.prisma, userEmail);
+      // userId will be null if user doesn't exist, which is fine - review will be anonymous
     }
 
-    return await this.reviewsService.createReview({
-      ...body,
-      userId,
+    return this.reviewsService.createReview({
+      planId: body.planId || undefined,
+      userId: userId || undefined, // null from getUserIdFromEmail becomes undefined
+      userName: body.userName,
+      rating: body.rating,
+      comment: body.comment,
+      language: body.language,
+      source: body.source,
     });
+  }
+
+  @Get('stats')
+  @RateLimit({ limit: 100, window: 60 })
+  async getReviewStats() {
+    return this.reviewsService.getReviewStats();
+  }
+
+  @Get('plan/:planId')
+  @RateLimit({ limit: 100, window: 60 })
+  async getReviewsByPlan(@Param('planId') planId: string) {
+    return this.reviewsService.getReviewsByPlanId(planId);
+  }
+
+  @Get('all')
+  @RateLimit({ limit: 100, window: 60 })
+  async getAllReviews() {
+    return this.reviewsService.getAllReviews();
+  }
+
+  @Get('count')
+  @RateLimit({ limit: 100, window: 60 })
+  async getTotalCount() {
+    return { count: await this.reviewsService.getTotalReviewCount() };
+  }
+}
+
+@Controller('admin/reviews')
+@UseGuards(RateLimitGuard, CsrfGuard, AdminGuard)
+export class AdminReviewsController {
+  private readonly logger = new Logger(AdminReviewsController.name);
+
+  constructor(private readonly reviewsService: ReviewsService) {}
+
+  @Get()
+  async getRealReviews() {
+    return this.reviewsService.getRealReviewsForAdmin();
   }
 
   @Delete(':id')
   @RateLimit({ limit: 20, window: 60 })
   async deleteReview(@Param('id') id: string) {
-    return await this.reviewsService.deleteReview(id);
+    return this.reviewsService.deleteReview(id);
   }
 }
-

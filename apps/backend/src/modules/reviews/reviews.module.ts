@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ReviewsController } from './reviews.controller';
-import { AdminReviewsController } from './admin-reviews.controller';
+import { ReviewsController, AdminReviewsController } from './reviews.controller';
 import { ReviewsService } from './reviews.service';
 import { PrismaService } from '../../prisma.service';
 import { AdminModule } from '../admin/admin.module';
