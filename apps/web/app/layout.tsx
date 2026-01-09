@@ -25,7 +25,7 @@ import { ClarityTracker } from "@/components/ClarityTracker";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Voyage eSIM",
+  title: "Voyo eSIM",
   description: "Global eSIM Marketplace",
 };
 
@@ -37,24 +37,25 @@ export default function RootLayout({
   return (
     <ErrorBoundary>
       <ClerkProvider
+        frontendApi={process.env.NEXT_PUBLIC_CLERK_FRONTEND_API || undefined}
         appearance={{
           elements: {
-            userButtonPopoverCard: "bg-[var(--voyage-card)] border-[var(--voyage-border)]",
-            userButtonPopoverHeader: "bg-[var(--voyage-card)] border-b border-[var(--voyage-border)]",
+            userButtonPopoverCard: "bg-[var(--voyo-card)] border-[var(--voyo-border)]",
+            userButtonPopoverHeader: "bg-[var(--voyo-card)] border-b border-[var(--voyo-border)]",
             userButtonPopoverHeaderTitle: "text-white",
-            userButtonPopoverHeaderSubtitle: "text-[var(--voyage-muted)]",
-            userButtonPopoverActions: "bg-[var(--voyage-card)]",
-            userButtonPopoverActionButton: "text-white hover:bg-[var(--voyage-bg-light)] hover:text-white",
+            userButtonPopoverHeaderSubtitle: "text-[var(--voyo-muted)]",
+            userButtonPopoverActions: "bg-[var(--voyo-card)]",
+            userButtonPopoverActionButton: "text-white hover:bg-[var(--voyo-bg-light)] hover:text-white",
             userButtonPopoverActionButtonText: "text-white",
-            userButtonPopoverActionButtonIcon: "text-[var(--voyage-muted)]",
-            userButtonPopoverFooter: "bg-[var(--voyage-card)] border-t border-[var(--voyage-border)]",
+            userButtonPopoverActionButtonIcon: "text-[var(--voyo-muted)]",
+            userButtonPopoverFooter: "bg-[var(--voyo-card)] border-t border-[var(--voyo-border)]",
           },
         }}
       >
         <CurrencyProvider>
           <ErrorToastProvider>
             <html lang="en">
-              <body className={`${inter.className} bg-[var(--voyage-bg)] text-[var(--voyage-text)] min-h-screen antialiased selection:bg-[var(--voyage-accent)] selection:text-white`}>
+              <body className={`${inter.className} bg-[var(--voyo-bg)] text-[var(--voyo-text)] min-h-screen antialiased selection:bg-[var(--voyo-accent)] selection:text-white`}>
                 {/* Google tag (gtag.js) */}
                 <Script
                   src="https://www.googletagmanager.com/gtag/js?id=AW-17806579060"
@@ -68,7 +69,7 @@ export default function RootLayout({
                     gtag('config', 'AW-17806579060');
                   `}
                 </Script>
-                <div className="fixed inset-0 bg-gradient-to-br from-[var(--voyage-bg)] via-[var(--voyage-bg)] to-[#051020] -z-10" />
+                <div className="fixed inset-0 bg-gradient-to-br from-[var(--voyo-bg)] via-[var(--voyo-bg)] to-[#051020] -z-10" />
                 
                 <KeyboardNavigationProvider>
                   <div className="flex flex-col min-h-screen">

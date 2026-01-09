@@ -54,7 +54,10 @@ async function bootstrap() {
   // CORS configuration - supports multiple origins for production
   const allowedOrigins = [
     'http://localhost:3000',
-    'https://voyage-data.com',
+    'https://voyoesim.com',
+    'https://www.voyoesim.com',
+    'https://voyage-data.com', // Keep for redirect transition
+    'https://www.voyage-data.com', // Keep for redirect transition
     configService.get('WEB_URL'),
     configService.get('APP_URL'),
     configService.get('CLIENT_URL'),
