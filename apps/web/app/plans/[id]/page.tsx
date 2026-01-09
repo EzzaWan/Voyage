@@ -96,7 +96,7 @@ export default function PlanPage() {
     const defaultItems = [
       { label: 'Home', href: '/' },
       { label: 'Plans', href: '/countries' },
-      { label: currentLabel },
+      { label: currentLabel, href: '#' },
     ];
 
     if (!plan || !plan.location) return defaultItems;
@@ -108,7 +108,7 @@ export default function PlanPage() {
         return [
           { label: 'Home', href: '/' },
           { label: getCountryName(plan.location), href: `/countries/${slug}` },
-          { label: currentLabel },
+          { label: currentLabel, href: '#' },
         ];
       }
     }
