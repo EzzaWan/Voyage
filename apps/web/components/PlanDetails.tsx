@@ -317,7 +317,7 @@ export function PlanDetails({ plan }: { plan: any }) {
         <PriceComparison />
         
         {/* Customer Reviews */}
-        <PlanTrustReviews planId={plan.packageCode || plan.id || ''} />
+        <PlanTrustReviews planId={plan.packageCode || plan.id || 'global'} />
       </div>
 
       {/* Right Column */}
