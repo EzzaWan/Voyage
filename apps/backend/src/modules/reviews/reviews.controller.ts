@@ -18,10 +18,12 @@ export class ReviewsController {
   async getReviews(
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
+    @Query('minRating') minRating?: string,
   ) {
     const result = await this.reviewsService.getReviews(
       limit ? parseInt(limit, 10) : undefined,
       offset ? parseInt(offset, 10) : undefined,
+      minRating ? parseInt(minRating, 10) : undefined,
     );
     return result;
   }

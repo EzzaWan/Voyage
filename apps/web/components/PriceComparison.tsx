@@ -5,7 +5,7 @@ import Image from "next/image";
 
 export function PriceComparison() {
   return (
-    <div className="mt-8 pt-8 border-t border-[var(--voyage-border)]">
+    <div className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-2xl p-6 lg:p-8">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-2 mb-6">
         <div>
           <h2 className="text-xl font-bold text-white flex items-center gap-2">

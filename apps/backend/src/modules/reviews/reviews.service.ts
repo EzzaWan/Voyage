@@ -12,14 +12,20 @@ export interface CreateReviewDto {
 export class ReviewsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getReviews(limit?: number, offset?: number) {
+  async getReviews(limit?: number, offset?: number, minRating?: number) {
+    const where: any = {};
+    if (minRating) {
+      where.rating = { gte: minRating };
+    }
+
     const reviews = await this.prisma.review.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
       take: limit,
       skip: offset,
     });
 
-    const total = await this.prisma.review.count();
+    const total = await this.prisma.review.count({ where });
 
     return {
       reviews,

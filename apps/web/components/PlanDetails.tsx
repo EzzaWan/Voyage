@@ -20,6 +20,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { getPlanFlagLabels } from "@/lib/plan-flags";
 import { PlanFlags } from "./PlanFlags";
 import { PriceComparison } from "./PriceComparison";
+import { PlanTrustReviews } from "./PlanTrustReviews";
 
 const getNetworkOperator = (locationCode: string | undefined | null) => {
   if (!locationCode) return "Best Available Network";
@@ -204,7 +205,7 @@ export function PlanDetails({ plan }: { plan: any }) {
   return (
     <div className="grid gap-10 lg:grid-cols-3">
       {/* Left Column - Main Modal */}
-      <div className="lg:col-span-2">
+      <div className="lg:col-span-2 space-y-8">
         <div className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-2xl p-8 shadow-xl space-y-10">
             
             {/* Header Section */}
@@ -310,9 +311,13 @@ export function PlanDetails({ plan }: { plan: any }) {
                 </div>
             </div>
 
-            {/* Price Comparison */}
-            <PriceComparison />
         </div>
+
+        {/* Price Comparison */}
+        <PriceComparison />
+        
+        {/* Customer Reviews */}
+        <PlanTrustReviews />
       </div>
 
       {/* Right Column */}
