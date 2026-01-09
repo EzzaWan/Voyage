@@ -4,15 +4,15 @@
 
 @layer base {
   :root {
-    --voyage-bg: #0A1A2F;
-    --voyage-bg-light: #0F2540;
-    --voyage-accent: #1E90FF;
-    --voyage-accent-soft: #4BA3FF;
-    --voyage-text: #E9F1FF;
-    --voyage-muted: #A8B5C8;
-    --voyage-card: #132742;
-    --voyage-card-hover: #163054;
-    --voyage-border: #1E3555;
+    --voyo-bg: #0A1A2F;
+    --voyo-bg-light: #0F2540;
+    --voyo-accent: #1E90FF;
+    --voyo-accent-soft: #4BA3FF;
+    --voyo-text: #E9F1FF;
+    --voyo-muted: #A8B5C8;
+    --voyo-card: #132742;
+    --voyo-card-hover: #163054;
+    --voyo-border: #1E3555;
     
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
@@ -73,7 +73,8 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    /* Background and text colors are set via inline classes in layout.tsx */
+    /* Using CSS variables for dark theme: bg-[var(--voyo-bg)] text-[var(--voyo-text)] */
   }
 }
 
@@ -84,17 +85,17 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--voyage-bg);
+  background: var(--voyo-bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--voyage-border);
+  background: var(--voyo-border);
   border-radius: 5px;
-  border: 2px solid var(--voyage-bg);
+  border: 2px solid var(--voyo-bg);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--voyage-accent);
+  background: var(--voyo-accent);
 }
 
 /* Shimmer Animation */
@@ -111,9 +112,9 @@
   animation: shimmer 2s infinite linear;
   background: linear-gradient(
     to right,
-    var(--voyage-card) 4%,
-    var(--voyage-bg-light) 25%,
-    var(--voyage-card) 36%
+    var(--voyo-card) 4%,
+    var(--voyo-bg-light) 25%,
+    var(--voyo-card) 36%
   );
   background-size: 1000px 100%;
 }
@@ -121,14 +122,14 @@
 /* Clerk UI Dark Theme Overrides - Comprehensive */
 .cl-userButtonPopoverCard,
 [class*="cl-userButtonPopoverCard"] {
-  background-color: var(--voyage-card) !important;
-  border-color: var(--voyage-border) !important;
+  background-color: var(--voyo-card) !important;
+  border-color: var(--voyo-border) !important;
 }
 
 .cl-userButtonPopoverHeader,
 [class*="cl-userButtonPopoverHeader"] {
-  background-color: var(--voyage-card) !important;
-  border-bottom-color: var(--voyage-border) !important;
+  background-color: var(--voyo-card) !important;
+  border-bottom-color: var(--voyo-border) !important;
 }
 
 .cl-userButtonPopoverHeaderTitle,
@@ -140,12 +141,12 @@
 .cl-userButtonPopoverHeaderSubtitle,
 [class*="cl-userButtonPopoverHeaderSubtitle"],
 .cl-userButtonPopoverHeaderSubtitle * {
-  color: var(--voyage-muted) !important;
+  color: var(--voyo-muted) !important;
 }
 
 .cl-userButtonPopoverActions,
 [class*="cl-userButtonPopoverActions"] {
-  background-color: var(--voyage-card) !important;
+  background-color: var(--voyo-card) !important;
 }
 
 .cl-userButtonPopoverActionButton,
@@ -156,7 +157,7 @@
 
 .cl-userButtonPopoverActionButton:hover,
 [class*="cl-userButtonPopoverActionButton"]:hover {
-  background-color: var(--voyage-bg-light) !important;
+  background-color: var(--voyo-bg-light) !important;
   color: white !important;
 }
 
@@ -169,23 +170,23 @@
 .cl-userButtonPopoverActionButtonIcon,
 [class*="cl-userButtonPopoverActionButtonIcon"],
 .cl-userButtonPopoverActionButtonIcon * {
-  color: var(--voyage-muted) !important;
+  color: var(--voyo-muted) !important;
 }
 
 .cl-userButtonPopoverFooter,
 [class*="cl-userButtonPopoverFooter"] {
-  background-color: var(--voyage-card) !important;
-  border-top-color: var(--voyage-border) !important;
+  background-color: var(--voyo-card) !important;
+  border-top-color: var(--voyo-border) !important;
 }
 
 .cl-userButtonPopoverFooter *,
 [class*="cl-userButtonPopoverFooter"] * {
-  color: var(--voyage-muted) !important;
+  color: var(--voyo-muted) !important;
 }
 
 /* Force dark theme for all Clerk popover elements */
 [class*="cl-userButtonPopover"] {
-  background-color: var(--voyage-card) !important;
+  background-color: var(--voyo-card) !important;
   color: white !important;
 }
 
@@ -203,5 +204,5 @@
 /* Override for muted text */
 [class*="cl-userButtonPopover"] [class*="muted"],
 [class*="cl-userButtonPopover"] [class*="subtitle"] {
-  color: var(--voyage-muted) !important;
+  color: var(--voyo-muted) !important;
 }
