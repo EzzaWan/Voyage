@@ -80,8 +80,8 @@ export default function AdminSettingsPage() {
   if (loading || !settings) {
     return (
       <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyage-accent)] mx-auto mb-4"></div>
-        <p className="text-[var(--voyage-muted)]">Loading settings...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyo-accent)] mx-auto mb-4"></div>
+        <p className="text-[var(--voyo-muted)]">Loading settings...</p>
       </div>
     );
   }
@@ -90,12 +90,12 @@ export default function AdminSettingsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-white mb-2">Settings</h1>
-        <p className="text-[var(--voyage-muted)]">
+        <p className="text-[var(--voyo-muted)]">
           Configure admin panel and system settings
         </p>
       </div>
 
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardHeader>
           <CardTitle className="text-white">System Settings</CardTitle>
         </CardHeader>
@@ -108,11 +108,11 @@ export default function AdminSettingsPage() {
                 onChange={(e) =>
                   setSettings({ ...settings, mockMode: e.target.checked })
                 }
-                className="w-5 h-5 rounded border-[var(--voyage-border)] bg-[var(--voyage-bg-light)]"
+                className="w-5 h-5 rounded border-[var(--voyo-border)] bg-[var(--voyo-bg-light)]"
               />
               <div>
                 <p className="text-white font-medium">Mock Mode</p>
-                <p className="text-sm text-[var(--voyage-muted)]">
+                <p className="text-sm text-[var(--voyo-muted)]">
                   Enable mock mode for testing
                 </p>
               </div>
@@ -132,10 +132,10 @@ export default function AdminSettingsPage() {
                   defaultMarkupPercent: parseFloat(e.target.value) || 0,
                 })
               }
-              className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] text-white"
+              className="bg-[var(--voyo-bg-light)] border-[var(--voyo-border)] text-white"
               step="0.01"
             />
-            <p className="text-xs text-[var(--voyage-muted)] mt-1">
+            <p className="text-xs text-[var(--voyo-muted)] mt-1">
               Default markup percentage for pricing
             </p>
           </div>
@@ -150,7 +150,7 @@ export default function AdminSettingsPage() {
               onChange={(e) =>
                 setSettings({ ...settings, defaultCurrency: e.target.value })
               }
-              className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] text-white"
+              className="bg-[var(--voyo-bg-light)] border-[var(--voyo-border)] text-white"
               placeholder="USD"
             />
           </div>
@@ -170,10 +170,10 @@ export default function AdminSettingsPage() {
                     .filter(Boolean),
                 })
               }
-              className="w-full px-3 py-2 rounded-lg bg-[var(--voyage-bg-light)] border border-[var(--voyage-border)] text-white"
+              className="w-full px-3 py-2 rounded-lg bg-[var(--voyo-bg-light)] border border-[var(--voyo-border)] text-white"
               rows={4}
             />
-            <p className="text-xs text-[var(--voyage-muted)] mt-1">
+            <p className="text-xs text-[var(--voyo-muted)] mt-1">
               List of admin email addresses
             </p>
           </div>
@@ -181,14 +181,14 @@ export default function AdminSettingsPage() {
           <Button
             onClick={handleSave}
             disabled={saving}
-            className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)]"
+            className="bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)]"
           >
             {saving ? "Saving..." : "Save Settings"}
           </Button>
         </CardContent>
       </Card>
 
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardHeader>
           <CardTitle className="text-white">Email Settings</CardTitle>
         </CardHeader>
@@ -201,11 +201,11 @@ export default function AdminSettingsPage() {
                 onChange={(e) =>
                   setSettings({ ...settings, emailEnabled: e.target.checked })
                 }
-                className="w-5 h-5 rounded border-[var(--voyage-border)] bg-[var(--voyage-bg-light)]"
+                className="w-5 h-5 rounded border-[var(--voyo-border)] bg-[var(--voyo-bg-light)]"
               />
               <div>
                 <p className="text-white font-medium">Enable Email Notifications</p>
-                <p className="text-sm text-[var(--voyage-muted)]">
+                <p className="text-sm text-[var(--voyo-muted)]">
                   Send transactional emails for orders, eSIMs, and top-ups
                 </p>
               </div>
@@ -222,10 +222,10 @@ export default function AdminSettingsPage() {
               onChange={(e) =>
                 setSettings({ ...settings, emailFrom: e.target.value })
               }
-              className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] text-white"
-              placeholder="no-reply@voyage.app"
+              className="bg-[var(--voyo-bg-light)] border-[var(--voyo-border)] text-white"
+              placeholder="no-reply@voyoesim.com"
             />
-            <p className="text-xs text-[var(--voyage-muted)] mt-1">
+            <p className="text-xs text-[var(--voyo-muted)] mt-1">
               Default sender email address for all notifications
             </p>
           </div>
@@ -239,16 +239,16 @@ export default function AdminSettingsPage() {
               onChange={(e) =>
                 setSettings({ ...settings, emailProvider: e.target.value })
               }
-              className="w-full px-3 py-2 rounded-lg bg-[var(--voyage-bg-light)] border border-[var(--voyage-border)] text-white"
+              className="w-full px-3 py-2 rounded-lg bg-[var(--voyo-bg-light)] border border-[var(--voyo-border)] text-white"
             >
               <option value="resend">Resend</option>
             </select>
-            <p className="text-xs text-[var(--voyage-muted)] mt-1">
+            <p className="text-xs text-[var(--voyo-muted)] mt-1">
               Email service provider for sending transactional emails
             </p>
           </div>
 
-          <div className="pt-4 border-t border-[var(--voyage-border)]">
+          <div className="pt-4 border-t border-[var(--voyo-border)]">
             <h3 className="text-white font-medium mb-4">Test Email</h3>
             <div className="flex gap-2">
               <Input
@@ -256,7 +256,7 @@ export default function AdminSettingsPage() {
                 value={testEmailTo}
                 onChange={(e) => setTestEmailTo(e.target.value)}
                 placeholder="Enter email address to test"
-                className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] text-white flex-1"
+                className="bg-[var(--voyo-bg-light)] border-[var(--voyo-border)] text-white flex-1"
               />
               <Button
                 onClick={async () => {
@@ -306,7 +306,7 @@ export default function AdminSettingsPage() {
                   }
                 }}
                 disabled={testEmailSending || !testEmailTo}
-                className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)]"
+                className="bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)]"
               >
                 {testEmailSending ? "Sending..." : "Send Test Email"}
               </Button>

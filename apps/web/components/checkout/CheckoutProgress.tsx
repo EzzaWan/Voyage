@@ -27,10 +27,10 @@ export function CheckoutProgress({
                 <div className={cn(
                   "flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all",
                   isCompleted 
-                    ? "bg-[var(--voyage-accent)] border-[var(--voyage-accent)] text-white" 
+                    ? "bg-[var(--voyo-accent)] border-[var(--voyo-accent)] text-white" 
                     : isCurrent
-                    ? "bg-[var(--voyage-accent)]/20 border-[var(--voyage-accent)] text-[var(--voyage-accent)]"
-                    : "bg-[var(--voyage-card)] border-[var(--voyage-border)] text-[var(--voyage-muted)]"
+                    ? "bg-[var(--voyo-accent)]/20 border-[var(--voyo-accent)] text-[var(--voyo-accent)]"
+                    : "bg-[var(--voyo-card)] border-[var(--voyo-border)] text-[var(--voyo-muted)]"
                 )}>
                   {isCompleted ? (
                     <CheckCircle2 className="h-5 w-5" />
@@ -42,7 +42,7 @@ export function CheckoutProgress({
                   "mt-2 text-xs font-medium text-center",
                   isCurrent || isCompleted
                     ? "text-white"
-                    : "text-[var(--voyage-muted)]"
+                    : "text-[var(--voyo-muted)]"
                 )}>
                   {step}
                 </span>
@@ -53,8 +53,8 @@ export function CheckoutProgress({
                 <div className={cn(
                   "flex-1 h-0.5 mx-2 transition-all",
                   isCompleted
-                    ? "bg-[var(--voyage-accent)]"
-                    : "bg-[var(--voyage-border)]"
+                    ? "bg-[var(--voyo-accent)]"
+                    : "bg-[var(--voyo-border)]"
                 )} />
               )}
             </div>
@@ -63,9 +63,9 @@ export function CheckoutProgress({
       </div>
       
       {/* Progress Bar */}
-      <div className="w-full h-1 bg-[var(--voyage-border)] rounded-full overflow-hidden">
+      <div className="w-full h-1 bg-[var(--voyo-border)] rounded-full overflow-hidden">
         <div 
-          className="h-full bg-gradient-to-r from-[var(--voyage-accent)] to-purple-500 transition-all duration-500"
+          className="h-full bg-gradient-to-r from-[var(--voyo-accent)] to-purple-500 transition-all duration-500"
           style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
         />
       </div>

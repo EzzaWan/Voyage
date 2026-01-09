@@ -121,8 +121,8 @@ export default function AdminSupportTicketDetailPage() {
   if (loading || !ticket) {
     return (
       <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyage-accent)] mx-auto mb-4"></div>
-        <p className="text-[var(--voyage-muted)]">Loading ticket...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyo-accent)] mx-auto mb-4"></div>
+        <p className="text-[var(--voyo-muted)]">Loading ticket...</p>
       </div>
     );
   }
@@ -133,50 +133,50 @@ export default function AdminSupportTicketDetailPage() {
         <Button
           variant="ghost"
           onClick={() => router.push("/admin/support")}
-          className="text-[var(--voyage-muted)] hover:text-white"
+          className="text-[var(--voyo-muted)] hover:text-white"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">Support Ticket</h1>
-          <p className="text-[var(--voyage-muted)]">Ticket ID: {ticket.id.substring(0, 8)}...</p>
+          <p className="text-[var(--voyo-muted)]">Ticket ID: {ticket.id.substring(0, 8)}...</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
           <CardHeader>
             <CardTitle className="text-white">Customer Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <p className="text-sm text-[var(--voyage-muted)] flex items-center gap-2 mb-1">
+              <p className="text-sm text-[var(--voyo-muted)] flex items-center gap-2 mb-1">
                 <User className="h-4 w-4" />
                 Name
               </p>
               <p className="text-white">{ticket.name}</p>
             </div>
             <div>
-              <p className="text-sm text-[var(--voyage-muted)] flex items-center gap-2 mb-1">
+              <p className="text-sm text-[var(--voyo-muted)] flex items-center gap-2 mb-1">
                 <Mail className="h-4 w-4" />
                 Email
               </p>
-              <a href={`mailto:${ticket.email}`} className="text-[var(--voyage-accent)] hover:underline">
+              <a href={`mailto:${ticket.email}`} className="text-[var(--voyo-accent)] hover:underline">
                 {ticket.email}
               </a>
             </div>
             {ticket.orderId && (
               <div>
-                <p className="text-sm text-[var(--voyage-muted)] mb-1">Order ID</p>
-                <Link href={`/admin/orders/${ticket.orderId}`} className="text-[var(--voyage-accent)] hover:underline font-mono text-sm">
+                <p className="text-sm text-[var(--voyo-muted)] mb-1">Order ID</p>
+                <Link href={`/admin/orders/${ticket.orderId}`} className="text-[var(--voyo-accent)] hover:underline font-mono text-sm">
                   {ticket.orderId}
                 </Link>
               </div>
             )}
             {ticket.device && (
               <div>
-                <p className="text-sm text-[var(--voyage-muted)] flex items-center gap-2 mb-1">
+                <p className="text-sm text-[var(--voyo-muted)] flex items-center gap-2 mb-1">
                   <Smartphone className="h-4 w-4" />
                   Device
                 </p>
@@ -184,7 +184,7 @@ export default function AdminSupportTicketDetailPage() {
               </div>
             )}
             <div>
-              <p className="text-sm text-[var(--voyage-muted)] flex items-center gap-2 mb-1">
+              <p className="text-sm text-[var(--voyo-muted)] flex items-center gap-2 mb-1">
                 <Calendar className="h-4 w-4" />
                 Submitted
               </p>
@@ -193,12 +193,12 @@ export default function AdminSupportTicketDetailPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
           <CardHeader>
             <CardTitle className="text-white">Original Message</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="bg-[var(--voyage-bg-light)] rounded-lg p-4 border border-[var(--voyage-border)]">
+            <div className="bg-[var(--voyo-bg-light)] rounded-lg p-4 border border-[var(--voyo-border)]">
               <p className="text-white whitespace-pre-wrap">{ticket.message}</p>
             </div>
           </CardContent>
@@ -207,7 +207,7 @@ export default function AdminSupportTicketDetailPage() {
 
       {/* Conversation Thread */}
       {ticket.SupportTicketReply && ticket.SupportTicketReply.length > 0 && (
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
           <CardHeader>
             <CardTitle className="text-white">Conversation ({ticket.SupportTicketReply.length} replies)</CardTitle>
           </CardHeader>
@@ -217,16 +217,16 @@ export default function AdminSupportTicketDetailPage() {
                 key={reply.id}
                 className={`p-4 rounded-lg border ${
                   reply.isAdmin
-                    ? "bg-[var(--voyage-accent)]/10 border-[var(--voyage-accent)]/30 ml-8"
-                    : "bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] mr-8"
+                    ? "bg-[var(--voyo-accent)]/10 border-[var(--voyo-accent)]/30 ml-8"
+                    : "bg-[var(--voyo-bg-light)] border-[var(--voyo-border)] mr-8"
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <Badge className={reply.isAdmin ? "bg-[var(--voyage-accent)]" : ""}>
+                    <Badge className={reply.isAdmin ? "bg-[var(--voyo-accent)]" : ""}>
                       {reply.isAdmin ? `Admin${reply.adminEmail ? ` (${reply.adminEmail})` : ""}` : "Customer"}
                     </Badge>
-                    <span className="text-xs text-[var(--voyage-muted)]">
+                    <span className="text-xs text-[var(--voyo-muted)]">
                       {new Date(reply.createdAt).toLocaleString()}
                     </span>
                   </div>
@@ -239,7 +239,7 @@ export default function AdminSupportTicketDetailPage() {
       )}
 
       {/* Reply Form */}
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardHeader>
           <CardTitle className="text-white">Reply to Customer</CardTitle>
         </CardHeader>
@@ -248,12 +248,12 @@ export default function AdminSupportTicketDetailPage() {
             value={replyMessage}
             onChange={(e) => setReplyMessage(e.target.value)}
             placeholder="Type your reply here..."
-            className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] text-white min-h-[150px]"
+            className="bg-[var(--voyo-bg-light)] border-[var(--voyo-border)] text-white min-h-[150px]"
           />
           <Button
             onClick={handleReply}
             disabled={replying || !replyMessage.trim()}
-            className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)]"
+            className="bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)]"
           >
             {replying ? (
               <>

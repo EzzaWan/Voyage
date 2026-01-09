@@ -78,7 +78,7 @@ export function CurrencySelector() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--voyage-bg-light)] border border-[var(--voyage-border)] hover:bg-[var(--voyage-card)] transition-colors text-white"
+        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--voyo-bg-light)] border border-[var(--voyo-border)] hover:bg-[var(--voyo-card)] transition-colors text-white"
         aria-label="Select currency"
       >
         <span className="text-sm font-medium">{mounted ? selectedCurrency : 'USD'}</span>
@@ -98,7 +98,7 @@ export function CurrencySelector() {
             className="fixed inset-0 z-10"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute right-0 top-full mt-2 w-48 bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-lg shadow-xl z-20 max-h-80 overflow-y-auto">
+          <div className="absolute right-0 top-full mt-2 w-48 bg-[var(--voyo-card)] border border-[var(--voyo-border)] rounded-lg shadow-xl z-20 max-h-80 overflow-y-auto">
             {SUPPORTED_CURRENCIES.map((currency) => (
               <button
                 key={currency.code}
@@ -106,15 +106,15 @@ export function CurrencySelector() {
                   setCurrency(currency.code);
                   setIsOpen(false);
                 }}
-                className={`w-full text-left px-4 py-3 hover:bg-[var(--voyage-bg-light)] transition-colors flex items-center justify-between ${
+                className={`w-full text-left px-4 py-3 hover:bg-[var(--voyo-bg-light)] transition-colors flex items-center justify-between ${
                   selectedCurrency === currency.code
-                    ? 'bg-[var(--voyage-bg-light)] text-[var(--voyage-accent)]'
+                    ? 'bg-[var(--voyo-bg-light)] text-[var(--voyo-accent)]'
                     : 'text-white'
                 }`}
               >
                 <div className="flex flex-col">
                   <span className="font-medium">{currency.code}</span>
-                  <span className="text-xs text-[var(--voyage-muted)]">{currency.name}</span>
+                  <span className="text-xs text-[var(--voyo-muted)]">{currency.name}</span>
                 </div>
                 {selectedCurrency === currency.code && (
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">

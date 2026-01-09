@@ -232,7 +232,7 @@ export default function AffiliateDashboardPage() {
     return (
       <div className="container mx-auto px-4 py-20 text-center">
         <h1 className="text-2xl font-bold text-white mb-4">Please sign in</h1>
-        <p className="text-[var(--voyage-muted)]">You must be signed in to access the affiliate dashboard.</p>
+        <p className="text-[var(--voyo-muted)]">You must be signed in to access the affiliate dashboard.</p>
       </div>
     );
   }
@@ -243,7 +243,7 @@ export default function AffiliateDashboardPage() {
         <h1 className="text-2xl font-bold text-white mb-4">
           {loading ? 'Loading dashboard...' : 'Failed to load dashboard'}
         </h1>
-        <p className="text-[var(--voyage-muted)]">
+        <p className="text-[var(--voyo-muted)]">
           {loading ? 'Please wait...' : 'Please try refreshing the page.'}
         </p>
       </div>
@@ -255,7 +255,7 @@ export default function AffiliateDashboardPage() {
       {/* Back Button */}
       <Link
         href="/account"
-        className="inline-flex items-center text-[var(--voyage-muted)] hover:text-white transition-colors mb-4"
+        className="inline-flex items-center text-[var(--voyo-muted)] hover:text-white transition-colors mb-4"
       >
         <ArrowLeft className="h-4 w-4 mr-2" /> Back to Account
       </Link>
@@ -264,31 +264,31 @@ export default function AffiliateDashboardPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">Affiliate Dashboard</h1>
-          <p className="text-[var(--voyage-muted)]">Earn 10% lifetime commissions on all referrals</p>
+          <p className="text-[var(--voyo-muted)]">Earn 10% lifetime commissions on all referrals</p>
         </div>
       </div>
 
       {/* Top Section: Referral Link & Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Referral Link Card */}
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)] h-full">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)] h-full">
           <CardHeader>
             <CardTitle className="text-white">Your Referral Link</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-col sm:flex-row items-center gap-4">
-              <div className="w-full sm:w-1/3 p-3 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)]">
-                <p className="text-xs text-[var(--voyage-muted)] mb-1">Referral Code</p>
+              <div className="w-full sm:w-1/3 p-3 bg-[var(--voyo-bg-light)] rounded-lg border border-[var(--voyo-border)]">
+                <p className="text-xs text-[var(--voyo-muted)] mb-1">Referral Code</p>
                 <p className="text-xl font-bold text-white font-mono break-all">{dashboard?.affiliate?.referralCode || 'N/A'}</p>
               </div>
-              <div className="w-full sm:w-2/3 p-3 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)]">
-                <p className="text-xs text-[var(--voyage-muted)] mb-1">Referral Link</p>
+              <div className="w-full sm:w-2/3 p-3 bg-[var(--voyo-bg-light)] rounded-lg border border-[var(--voyo-border)]">
+                <p className="text-xs text-[var(--voyo-muted)] mb-1">Referral Link</p>
                 <p className="text-sm text-white break-all">{dashboard?.affiliate?.referralLink || 'N/A'}</p>
               </div>
             </div>
             <Button
               onClick={copyReferralLink}
-              className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white"
+              className="w-full bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white"
             >
               {copied ? (
                 <>
@@ -305,30 +305,30 @@ export default function AffiliateDashboardPage() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)] flex flex-col justify-center">
+          <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)] flex flex-col justify-center">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--voyage-muted)] mb-1">Total Commission</p>
-                  <p className="text-2xl font-bold text-[var(--voyage-accent)]">
+                  <p className="text-sm text-[var(--voyo-muted)] mb-1">Total Commission</p>
+                  <p className="text-2xl font-bold text-[var(--voyo-accent)]">
                     {formatCurrency(dashboard?.stats?.totalCommission || 0)}
                   </p>
-                  <p className="text-xs text-[var(--voyage-muted)] mt-1">All-time earnings</p>
+                  <p className="text-xs text-[var(--voyo-muted)] mt-1">All-time earnings</p>
                 </div>
-                <DollarSign className="h-8 w-8 text-[var(--voyage-accent)]" />
+                <DollarSign className="h-8 w-8 text-[var(--voyo-accent)]" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)] flex flex-col justify-center">
+          <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)] flex flex-col justify-center">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--voyage-muted)] mb-1">Total Referrals</p>
+                  <p className="text-sm text-[var(--voyo-muted)] mb-1">Total Referrals</p>
                   <p className="text-2xl font-bold text-white">
                     {dashboard?.stats?.totalReferrals || 0}
                   </p>
-                  <p className="text-xs text-[var(--voyage-muted)] mt-1">Users referred</p>
+                  <p className="text-xs text-[var(--voyo-muted)] mt-1">Users referred</p>
                 </div>
                 <Users className="h-8 w-8 text-white" />
               </div>
@@ -341,17 +341,17 @@ export default function AffiliateDashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         {/* Convert to V-Cash Section */}
         {dashboard?.remainingCommission !== undefined && dashboard.remainingCommission > 0 ? (
-          <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)] h-full">
+          <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)] h-full">
             <CardHeader>
               <CardTitle className="text-white">Convert to V-Cash</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-[var(--voyage-muted)] mb-4">
-                Convert your affiliate earnings into V-Cash (store credit). V-Cash can be used on future Voyage purchases.
+              <p className="text-sm text-[var(--voyo-muted)] mb-4">
+                Convert your affiliate earnings into V-Cash (store credit). V-Cash can be used on future Voyo purchases.
               </p>
-              <div className="p-3 bg-[var(--voyage-bg-light)] rounded-lg mb-4">
-                <p className="text-sm text-[var(--voyage-muted)]">Available to convert:</p>
-                <p className="text-xl font-bold text-[var(--voyage-accent)]">
+              <div className="p-3 bg-[var(--voyo-bg-light)] rounded-lg mb-4">
+                <p className="text-sm text-[var(--voyo-muted)]">Available to convert:</p>
+                <p className="text-xl font-bold text-[var(--voyo-accent)]">
                   {formatCurrency(dashboard?.remainingCommission || 0)}
                 </p>
               </div>
@@ -429,19 +429,19 @@ export default function AffiliateDashboardPage() {
                     placeholder={`Max: ${formatCurrency(dashboard?.remainingCommission || 0)}`}
                     value={vcashAmount}
                     onChange={(e) => setVcashAmount(e.target.value)}
-                    className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] text-white placeholder:text-[var(--voyage-muted)]"
+                    className="bg-[var(--voyo-bg-light)] border-[var(--voyo-border)] text-white placeholder:text-[var(--voyo-muted)]"
                     disabled={convertingToVCash || dashboard?.affiliate?.isFrozen}
                   />
                 </div>
                 <Button
                   type="submit"
-                  className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white"
+                  className="w-full bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white"
                   disabled={convertingToVCash || dashboard.affiliate?.isFrozen}
                 >
                   {convertingToVCash ? "Converting..." : "Convert to V-Cash"}
                 </Button>
                 <Link href="/account/vcash">
-                  <Button variant="link" className="text-[var(--voyage-accent)] w-full">
+                  <Button variant="link" className="text-[var(--voyo-accent)] w-full">
                     View V-Cash Balance →
                   </Button>
                 </Link>
@@ -449,13 +449,13 @@ export default function AffiliateDashboardPage() {
             </CardContent>
           </Card>
         ) : (
-          <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)] h-full flex items-center justify-center p-6 text-center">
+          <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)] h-full flex items-center justify-center p-6 text-center">
             <div className="space-y-2">
-              <p className="text-[var(--voyage-muted)]">
+              <p className="text-[var(--voyo-muted)]">
                 You need commission earnings to convert to V-Cash.
               </p>
               <Link href="/account/vcash">
-                <Button variant="link" className="text-[var(--voyage-accent)]">
+                <Button variant="link" className="text-[var(--voyo-accent)]">
                   View V-Cash Balance →
                 </Button>
               </Link>
@@ -464,7 +464,7 @@ export default function AffiliateDashboardPage() {
         )}
 
         {/* Cash-Out Request Form */}
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)] h-full">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)] h-full">
           <CardHeader>
             <CardTitle className="text-white">Request Cash Out</CardTitle>
           </CardHeader>
@@ -578,7 +578,7 @@ export default function AffiliateDashboardPage() {
                   onChange={(e) =>
                     setCashOutForm({ ...cashOutForm, paymentMethod: e.target.value })
                   }
-                  className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] text-white placeholder:text-[var(--voyage-muted)]"
+                  className="bg-[var(--voyo-bg-light)] border-[var(--voyo-border)] text-white placeholder:text-[var(--voyo-muted)]"
                   disabled={submittingCashOut || dashboard?.affiliate?.isFrozen}
                 />
               </div>
@@ -595,10 +595,10 @@ export default function AffiliateDashboardPage() {
                   onChange={(e) =>
                     setCashOutForm({ ...cashOutForm, affiliateCode: e.target.value.toUpperCase() })
                   }
-                  className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] text-white placeholder:text-[var(--voyage-muted)] font-mono"
+                  className="bg-[var(--voyo-bg-light)] border-[var(--voyo-border)] text-white placeholder:text-[var(--voyo-muted)] font-mono"
                   disabled={submittingCashOut || dashboard?.affiliate?.isFrozen}
                 />
-                <p className="text-xs text-[var(--voyage-muted)]">
+                <p className="text-xs text-[var(--voyo-muted)]">
                   Your affiliate code: <span className="font-mono font-bold">{dashboard?.affiliate?.referralCode || 'N/A'}</span>
                 </p>
               </div>
@@ -617,11 +617,11 @@ export default function AffiliateDashboardPage() {
                   onChange={(e) =>
                     setCashOutForm({ ...cashOutForm, amount: e.target.value })
                   }
-                  className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] text-white placeholder:text-[var(--voyage-muted)]"
+                  className="bg-[var(--voyo-bg-light)] border-[var(--voyo-border)] text-white placeholder:text-[var(--voyo-muted)]"
                   disabled={submittingCashOut || dashboard?.affiliate?.isFrozen}
                 />
                 {dashboard?.remainingCommission && dashboard.remainingCommission > 0 && (
-                  <p className="text-xs text-[var(--voyage-muted)]">
+                  <p className="text-xs text-[var(--voyo-muted)]">
                     Available: {formatCurrency(dashboard?.remainingCommission || 0)} (or request cash-out)
                   </p>
                 )}
@@ -629,7 +629,7 @@ export default function AffiliateDashboardPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white"
+                className="w-full bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white"
                 disabled={submittingCashOut || dashboard?.affiliate?.isFrozen}
               >
                 {submittingCashOut ? "Submitting..." : "Submit Cash-Out Request"}
@@ -641,42 +641,42 @@ export default function AffiliateDashboardPage() {
 
 
       {/* Recent Purchases */}
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardHeader>
           <CardTitle className="text-white">Recent Purchases</CardTitle>
         </CardHeader>
         <CardContent>
           {!dashboard?.recentPurchases || (Array.isArray(dashboard.recentPurchases) && dashboard.recentPurchases.length === 0) ? (
-            <p className="text-center text-[var(--voyage-muted)] py-8">No purchases yet from your referrals</p>
+            <p className="text-center text-[var(--voyo-muted)] py-8">No purchases yet from your referrals</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-[var(--voyage-border)]">
-                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyage-muted)]">User</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyage-muted)]">Type</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyage-muted)]">Amount</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyage-muted)]">Commission</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyage-muted)]">Date</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyage-muted)]">Status</th>
+                  <tr className="border-b border-[var(--voyo-border)]">
+                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyo-muted)]">User</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyo-muted)]">Type</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyo-muted)]">Amount</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyo-muted)]">Commission</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyo-muted)]">Date</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyo-muted)]">Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {(dashboard?.recentPurchases || []).map((purchase) => (
-                    <tr key={purchase.id} className="border-b border-[var(--voyage-border)] hover:bg-[var(--voyage-bg-light)]">
+                    <tr key={purchase.id} className="border-b border-[var(--voyo-border)] hover:bg-[var(--voyo-bg-light)]">
                       <td className="py-3 px-4 text-white">
                         <div>
                           <p className="font-medium">{purchase.userName || purchase.userEmail}</p>
-                          <p className="text-xs text-[var(--voyage-muted)]">{purchase.userEmail}</p>
+                          <p className="text-xs text-[var(--voyo-muted)]">{purchase.userEmail}</p>
                         </div>
                       </td>
                       <td className="py-3 px-4">
-                        <Badge variant="outline" className="border-[var(--voyage-border)] text-[var(--voyage-muted)]">
+                        <Badge variant="outline" className="border-[var(--voyo-border)] text-[var(--voyo-muted)]">
                           {purchase.type === "order" ? "Order" : "Top-up"}
                         </Badge>
                       </td>
                       <td className="py-3 px-4 text-white">{formatCurrency(purchase.amountCents, purchase.displayCurrency, purchase.displayAmountCents)}</td>
-                      <td className="py-3 px-4 text-[var(--voyage-accent)] font-medium">
+                      <td className="py-3 px-4 text-[var(--voyo-accent)] font-medium">
                         {(() => {
                           // Calculate commission in the same currency as the purchase
                           if (purchase.displayCurrency && purchase.displayAmountCents) {
@@ -687,7 +687,7 @@ export default function AffiliateDashboardPage() {
                           return formatCurrency(Math.round(purchase.amountCents * 0.1));
                         })()}
                       </td>
-                      <td className="py-3 px-4 text-[var(--voyage-muted)] text-sm">{formatDate(purchase.createdAt)}</td>
+                      <td className="py-3 px-4 text-[var(--voyo-muted)] text-sm">{formatDate(purchase.createdAt)}</td>
                       <td className="py-3 px-4">
                         {(() => {
                           const statusDisplay = purchase.type === "order"
@@ -710,37 +710,37 @@ export default function AffiliateDashboardPage() {
       </Card>
 
       {/* Referrals Table */}
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardHeader>
           <CardTitle className="text-white">Your Referrals</CardTitle>
         </CardHeader>
         <CardContent>
           {!dashboard?.referrals || (Array.isArray(dashboard.referrals) && dashboard.referrals.length === 0) ? (
-            <p className="text-center text-[var(--voyage-muted)] py-8">No referrals yet. Share your link to get started!</p>
+            <p className="text-center text-[var(--voyo-muted)] py-8">No referrals yet. Share your link to get started!</p>
           ) : (
             <div className="space-y-4">
               {(dashboard?.referrals || []).map((referral) => (
                 <div
                   key={referral.id}
-                  className="p-4 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)]"
+                  className="p-4 bg-[var(--voyo-bg-light)] rounded-lg border border-[var(--voyo-border)]"
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <p className="font-medium text-white">{referral.user.name || referral.user.email}</p>
-                      <p className="text-sm text-[var(--voyage-muted)]">{referral.user.email}</p>
-                      <p className="text-xs text-[var(--voyage-muted)] mt-1">Joined: {formatDate(referral.user.joinedAt)}</p>
+                      <p className="text-sm text-[var(--voyo-muted)]">{referral.user.email}</p>
+                      <p className="text-xs text-[var(--voyo-muted)] mt-1">Joined: {formatDate(referral.user.joinedAt)}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-[var(--voyage-muted)]">Orders: {referral.orders.length}</p>
-                      <p className="text-sm text-[var(--voyage-muted)]">Top-ups: {referral.topups.length}</p>
+                      <p className="text-sm text-[var(--voyo-muted)]">Orders: {referral.orders.length}</p>
+                      <p className="text-sm text-[var(--voyo-muted)]">Top-ups: {referral.topups.length}</p>
                     </div>
                   </div>
                   {(referral.orders.length > 0 || referral.topups.length > 0) && (
-                    <div className="mt-3 pt-3 border-t border-[var(--voyage-border)] space-y-2">
+                    <div className="mt-3 pt-3 border-t border-[var(--voyo-border)] space-y-2">
                       {referral.orders.map((order) => (
                         <div key={order.id} className="flex items-center justify-between text-sm">
-                          <span className="text-[var(--voyage-muted)]">Order: {formatCurrency(order.amountCents, order.displayCurrency, order.displayAmountCents)}</span>
-                          <span className="text-[var(--voyage-accent)]">
+                          <span className="text-[var(--voyo-muted)]">Order: {formatCurrency(order.amountCents, order.displayCurrency, order.displayAmountCents)}</span>
+                          <span className="text-[var(--voyo-accent)]">
                             {(() => {
                               // Calculate commission in the same currency as the order
                               if (order.displayCurrency && order.displayAmountCents) {
@@ -754,8 +754,8 @@ export default function AffiliateDashboardPage() {
                       ))}
                       {referral.topups.map((topup) => (
                         <div key={topup.id} className="flex items-center justify-between text-sm">
-                          <span className="text-[var(--voyage-muted)]">Top-up: {formatCurrency(topup.amountCents, topup.displayCurrency, topup.displayAmountCents)}</span>
-                          <span className="text-[var(--voyage-accent)]">
+                          <span className="text-[var(--voyo-muted)]">Top-up: {formatCurrency(topup.amountCents, topup.displayCurrency, topup.displayAmountCents)}</span>
+                          <span className="text-[var(--voyo-accent)]">
                             {(() => {
                               // Calculate commission in the same currency as the topup
                               if (topup.displayCurrency && topup.displayAmountCents) {
@@ -777,11 +777,11 @@ export default function AffiliateDashboardPage() {
       </Card>
 
       {/* Footer - Affiliate Terms Link */}
-      <div className="pt-4 border-t border-[var(--voyage-border)] text-center">
-        <p className="text-sm text-[var(--voyage-muted)]">
+      <div className="pt-4 border-t border-[var(--voyo-border)] text-center">
+        <p className="text-sm text-[var(--voyo-muted)]">
           By participating in the affiliate program, you agree to the{" "}
-          <Link href="/support/affiliate-terms" className="text-[var(--voyage-accent)] hover:underline">
-            Voyage Affiliate Terms of Service
+          <Link href="/support/affiliate-terms" className="text-[var(--voyo-accent)] hover:underline">
+            Voyo Affiliate Terms of Service
           </Link>
           .
         </p>

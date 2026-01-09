@@ -58,7 +58,7 @@ export function DurationSelector({
           <h2 className="text-2xl font-bold text-white mb-2">
             Step 2: Choose Your Duration
           </h2>
-          <p className="text-[var(--voyage-muted)] text-sm">
+          <p className="text-[var(--voyo-muted)] text-sm">
             Available validity periods for {selectedSize} GB plans
           </p>
         </div>
@@ -67,7 +67,7 @@ export function DurationSelector({
           <Button
             variant="ghost"
             onClick={onBack}
-            className="text-[var(--voyage-muted)] hover:text-white"
+            className="text-[var(--voyo-muted)] hover:text-white"
           >
             ← Change Size
           </Button>
@@ -96,7 +96,7 @@ export function DurationSelector({
               key={`${plan.duration}-${plan.durationUnit}-${plan.packageCode}`}
               className={cn(
                 "relative",
-                isSelected && "ring-2 ring-[var(--voyage-accent)] rounded-xl"
+                isSelected && "ring-2 ring-[var(--voyo-accent)] rounded-xl"
               )}
             >
               <div
@@ -119,18 +119,18 @@ export function DurationSelector({
                 <div
                   className={cn(
                     "flex flex-col p-6 rounded-xl border-2 transition-all",
-                    "focus:outline-none focus:ring-2 focus:ring-[var(--voyage-accent)]",
+                    "focus:outline-none focus:ring-2 focus:ring-[var(--voyo-accent)]",
                     isSelected
-                      ? "border-[var(--voyage-accent)] bg-[var(--voyage-accent)]/10"
-                      : "border-[var(--voyage-border)] bg-[var(--voyage-card)] hover:border-[var(--voyage-accent)]/50"
+                      ? "border-[var(--voyo-accent)] bg-[var(--voyo-accent)]/10"
+                      : "border-[var(--voyo-border)] bg-[var(--voyo-card)] hover:border-[var(--voyo-accent)]/50"
                   )}
                 >
                   {/* Duration Badge */}
                   <div className="flex items-center gap-2 mb-4">
-                    <Clock className="h-4 w-4 text-[var(--voyage-accent)]" />
+                    <Clock className="h-4 w-4 text-[var(--voyo-accent)]" />
                     <Badge
                       variant="outline"
-                      className="border-[var(--voyage-accent)] text-[var(--voyage-accent)]"
+                      className="border-[var(--voyo-accent)] text-[var(--voyo-accent)]"
                     >
                       {formatDuration(plan.duration, plan.durationUnit)}
                     </Badge>
@@ -140,7 +140,7 @@ export function DurationSelector({
                   <div className="mb-4">
                     <div className="flex items-baseline gap-2">
                       {hasDiscount && (
-                        <span className="text-sm text-[var(--voyage-muted)] line-through">
+                        <span className="text-sm text-[var(--voyo-muted)] line-through">
                           {formatCurrency(convert(basePriceUSD))}
                         </span>
                       )}
@@ -149,14 +149,14 @@ export function DurationSelector({
                       </span>
                     </div>
                     {hasDiscount && (
-                      <div className="text-xs text-[var(--voyage-accent)] mt-1">
+                      <div className="text-xs text-[var(--voyo-accent)] mt-1">
                         {discountPercent}% discount applied
                       </div>
                     )}
                   </div>
 
                   {/* Plan details */}
-                  <div className="text-sm text-[var(--voyage-muted)] space-y-1">
+                  <div className="text-sm text-[var(--voyo-muted)] space-y-1">
                     <div>{plan.name}</div>
                     <div className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
@@ -168,8 +168,8 @@ export function DurationSelector({
 
                   {/* Selected indicator */}
                   {isSelected && (
-                    <div className="mt-4 pt-4 border-t border-[var(--voyage-border)]">
-                      <Badge className="bg-[var(--voyage-accent)] text-white">
+                    <div className="mt-4 pt-4 border-t border-[var(--voyo-border)]">
+                      <Badge className="bg-[var(--voyo-accent)] text-white">
                         Selected
                       </Badge>
                     </div>
@@ -182,7 +182,7 @@ export function DurationSelector({
       </div>
 
       {sortedDurations.length === 0 && (
-        <div className="text-center py-8 text-[var(--voyage-muted)]">
+        <div className="text-center py-8 text-[var(--voyo-muted)]">
           No duration options available for {selectedSize} GB plans
         </div>
       )}

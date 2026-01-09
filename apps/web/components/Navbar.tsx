@@ -44,15 +44,15 @@ export function Navbar() {
   const isActive = (path: string) => pathname === path;
 
   return (
-    <nav className="sticky top-0 z-50 bg-[var(--voyage-bg)]/80 backdrop-blur-md border-b border-[var(--voyage-border)]">
+    <nav className="sticky top-0 z-50 bg-[var(--voyo-bg)]/80 backdrop-blur-md border-b border-[var(--voyo-border)]">
       <div className="max-w-6xl mx-auto px-6 h-16">
         {/* Desktop Layout - Grid with 3 equal columns */}
         <div className="hidden md:grid grid-cols-3 items-center h-full">
           {/* Left Section: Logo + Nav Links */}
           <div className="flex items-center gap-8 justify-start">
-            <Link href="/" className="text-2xl font-bold tracking-tight text-[var(--voyage-accent)] flex items-center gap-2">
+            <Link href="/" className="text-2xl font-bold tracking-tight text-[var(--voyo-accent)] flex items-center gap-2">
               <Globe className="h-6 w-6" />
-              Voyage
+              Voyo
             </Link>
             <div className="flex items-center gap-6 text-sm font-medium">
               {navLinks.map((link) => (
@@ -61,8 +61,8 @@ export function Navbar() {
                   href={link.href}
                   className={`transition-colors flex items-center gap-2 ${
                     isActive(link.href)
-                      ? "text-[var(--voyage-accent)]"
-                      : "text-[var(--voyage-muted)] hover:text-white"
+                      ? "text-[var(--voyo-accent)]"
+                      : "text-[var(--voyo-muted)] hover:text-white"
                   }`}
                 >
                   {link.name}
@@ -86,21 +86,21 @@ export function Navbar() {
 
           {/* Right Section: Currency + User Menu */}
           <div className="flex items-center gap-4 justify-end">
-            <div className="h-6 w-px bg-[var(--voyage-border)]" />
+            <div className="h-6 w-px bg-[var(--voyo-border)]" />
 
             <CurrencySelector />
             
             <SignedOut>
               <Link
                 href="/sign-in"
-                className="text-sm font-medium text-[var(--voyage-muted)] hover:text-white transition-colors"
+                className="text-sm font-medium text-[var(--voyo-muted)] hover:text-white transition-colors"
               >
                 Sign In
               </Link>
               <Link
                 href="/sign-up"
               >
-                <Button size="sm" className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white">
+                <Button size="sm" className="bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white">
                   Get Started
                 </Button>
               </Link>
@@ -114,9 +114,9 @@ export function Navbar() {
 
         {/* Mobile Layout */}
         <div className="md:hidden flex items-center justify-between h-full w-full">
-          <Link href="/" className="text-2xl font-bold tracking-tight text-[var(--voyage-accent)] flex items-center gap-2">
+          <Link href="/" className="text-2xl font-bold tracking-tight text-[var(--voyo-accent)] flex items-center gap-2">
             <Globe className="h-6 w-6" />
-            Voyage
+            Voyo
           </Link>
 
           {/* Mobile Menu Trigger */}
@@ -135,21 +135,21 @@ export function Navbar() {
             <CurrencySelector />
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-white hover:bg-[var(--voyage-bg-light)]">
+                <Button variant="ghost" size="icon" className="text-white hover:bg-[var(--voyo-bg-light)]">
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="bg-[var(--voyage-bg)] border-l border-[var(--voyage-border)] w-[300px]">
-              <SheetHeader className="text-left border-b border-[var(--voyage-border)] pb-4 mb-4">
-                <SheetTitle className="text-[var(--voyage-accent)] text-xl font-bold flex items-center gap-2">
+              <SheetContent side="right" className="bg-[var(--voyo-bg)] border-l border-[var(--voyo-border)] w-[300px]">
+              <SheetHeader className="text-left border-b border-[var(--voyo-border)] pb-4 mb-4">
+                <SheetTitle className="text-[var(--voyo-accent)] text-xl font-bold flex items-center gap-2">
                   <Globe className="h-5 w-5" />
-                  Voyage
+                  Voyo
                 </SheetTitle>
               </SheetHeader>
               
               <div className="flex flex-col gap-6">
                 <div className="flex flex-col gap-2">
-                  <h4 className="text-xs font-semibold text-[var(--voyage-muted)] uppercase tracking-wider mb-2">Menu</h4>
+                  <h4 className="text-xs font-semibold text-[var(--voyo-muted)] uppercase tracking-wider mb-2">Menu</h4>
                   {navLinks.map((link) => (
                     <Link
                       key={link.href}
@@ -157,8 +157,8 @@ export function Navbar() {
                       onClick={() => setIsOpen(false)}
                       className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                         isActive(link.href)
-                          ? "bg-[var(--voyage-accent)]/10 text-[var(--voyage-accent)]"
-                          : "text-[var(--voyage-text)] hover:bg-[var(--voyage-bg-light)]"
+                          ? "bg-[var(--voyo-accent)]/10 text-[var(--voyo-accent)]"
+                          : "text-[var(--voyo-text)] hover:bg-[var(--voyo-bg-light)]"
                       }`}
                     >
                       {link.icon}
@@ -167,19 +167,19 @@ export function Navbar() {
                   ))}
                 </div>
 
-                <div className="h-px bg-[var(--voyage-border)]" />
+                <div className="h-px bg-[var(--voyo-border)]" />
 
                 <div className="flex flex-col gap-4">
                   <SignedOut>
-                     <h4 className="text-xs font-semibold text-[var(--voyage-muted)] uppercase tracking-wider">Account</h4>
+                     <h4 className="text-xs font-semibold text-[var(--voyo-muted)] uppercase tracking-wider">Account</h4>
                     <Link href="/sign-in" onClick={() => setIsOpen(false)}>
-                      <Button variant="outline" className="w-full justify-start border-[var(--voyage-border)] text-[var(--voyage-text)] hover:bg-[var(--voyage-bg-light)] hover:text-white">
+                      <Button variant="outline" className="w-full justify-start border-[var(--voyo-border)] text-[var(--voyo-text)] hover:bg-[var(--voyo-bg-light)] hover:text-white">
                         <LogIn className="h-4 w-4 mr-2" />
                         Sign In
                       </Button>
                     </Link>
                     <Link href="/sign-up" onClick={() => setIsOpen(false)}>
-                      <Button className="w-full justify-start bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white">
+                      <Button className="w-full justify-start bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white">
                         <UserPlus className="h-4 w-4 mr-2" />
                         Sign Up
                       </Button>
@@ -187,11 +187,11 @@ export function Navbar() {
                   </SignedOut>
 
                   <SignedIn>
-                    <h4 className="text-xs font-semibold text-[var(--voyage-muted)] uppercase tracking-wider">Account</h4>
+                    <h4 className="text-xs font-semibold text-[var(--voyo-muted)] uppercase tracking-wider">Account</h4>
                     <Link 
                       href="/account" 
                       onClick={() => setIsOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-[var(--voyage-text)] hover:bg-[var(--voyage-bg-light)]"
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-[var(--voyo-text)] hover:bg-[var(--voyo-bg-light)]"
                     >
                       <User className="h-4 w-4" />
                       <span className="font-medium">My Account</span>
@@ -199,14 +199,14 @@ export function Navbar() {
                     <Link 
                       href="/my-esims" 
                       onClick={() => setIsOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-[var(--voyage-text)] hover:bg-[var(--voyage-bg-light)]"
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-[var(--voyo-text)] hover:bg-[var(--voyo-bg-light)]"
                     >
                       <Smartphone className="h-4 w-4" />
                       <span className="font-medium">My eSIMs</span>
                     </Link>
                     <button
                       onClick={handleSignOut}
-                      className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-[var(--voyage-text)] hover:bg-[var(--voyage-bg-light)] w-full text-left"
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-[var(--voyo-text)] hover:bg-[var(--voyo-bg-light)] w-full text-left"
                     >
                       <LogOut className="h-4 w-4" />
                       <span className="font-medium">Sign out</span>

@@ -9,7 +9,7 @@ export function LoadingCountryList() {
       {[...Array(6)].map((_, i) => (
         <Card
           key={i}
-          className="bg-[var(--voyage-card)] border-[var(--voyage-border)]"
+          className="bg-[var(--voyo-card)] border-[var(--voyo-border)]"
         >
           <CardHeader>
             <div className="flex items-center gap-3">

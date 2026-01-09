@@ -90,12 +90,12 @@ export function PlanTrustReviews({ planId }: PlanTrustReviewsProps) {
 
   if (loading) {
     return (
-      <div className="mt-8 bg-[var(--voyage-card)] rounded-xl p-6 border border-white/5 animate-pulse">
-        <div className="h-4 bg-[var(--voyage-bg)] rounded w-1/3 mb-6"></div>
-        <div className="h-8 bg-[var(--voyage-bg)] rounded w-1/2 mb-6"></div>
+      <div className="mt-8 bg-[var(--voyo-card)] rounded-xl p-6 border border-white/5 animate-pulse">
+        <div className="h-4 bg-[var(--voyo-bg)] rounded w-1/3 mb-6"></div>
+        <div className="h-8 bg-[var(--voyo-bg)] rounded w-1/2 mb-6"></div>
         <div className="space-y-3">
-          <div className="h-4 bg-[var(--voyage-bg)] rounded w-full"></div>
-          <div className="h-4 bg-[var(--voyage-bg)] rounded w-3/4"></div>
+          <div className="h-4 bg-[var(--voyo-bg)] rounded w-full"></div>
+          <div className="h-4 bg-[var(--voyo-bg)] rounded w-3/4"></div>
         </div>
       </div>
     );
@@ -104,28 +104,28 @@ export function PlanTrustReviews({ planId }: PlanTrustReviewsProps) {
   if (reviews.length === 0) return null;
 
   return (
-    <div className="mt-8 bg-[var(--voyage-card)] rounded-2xl p-6 border border-white/5">
+    <div className="mt-8 bg-[var(--voyo-card)] rounded-2xl p-6 border border-white/5">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-sm font-bold text-white uppercase tracking-wide flex items-center gap-2">
-            <Globe className="w-4 h-4 text-[var(--voyage-accent)]" />
+            <Globe className="w-4 h-4 text-[var(--voyo-accent)]" />
             Trusted Worldwide
           </h3>
           <div className="flex items-center gap-2 mt-1">
              <div className="flex items-center">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <Star key={i} className="w-4 h-4 fill-[var(--voyage-accent)] text-[var(--voyage-accent)]" />
+                  <Star key={i} className="w-4 h-4 fill-[var(--voyo-accent)] text-[var(--voyo-accent)]" />
                 ))}
              </div>
              <span className="text-sm font-bold text-white">4.8/5</span>
-             <span className="text-xs text-[var(--voyage-muted)]">
+             <span className="text-xs text-[var(--voyo-muted)]">
                ({totalCount.toLocaleString()} reviews)
              </span>
           </div>
         </div>
         <Link 
           href="/reviews" 
-          className="text-xs font-bold text-[var(--voyage-accent)] hover:text-[var(--voyage-accent)]/80 transition-colors flex items-center gap-1 bg-[var(--voyage-accent)]/10 px-3 py-1.5 rounded-full"
+          className="text-xs font-bold text-[var(--voyo-accent)] hover:text-[var(--voyo-accent)]/80 transition-colors flex items-center gap-1 bg-[var(--voyo-accent)]/10 px-3 py-1.5 rounded-full"
         >
           View All <ChevronRight className="w-3 h-3" />
         </Link>
@@ -133,17 +133,17 @@ export function PlanTrustReviews({ planId }: PlanTrustReviewsProps) {
       
       <div className="space-y-3">
          {reviews.map(review => (
-            <div key={review.id} className="bg-[var(--voyage-bg)]/50 p-4 rounded-xl border border-white/5 shadow-sm hover:shadow-md transition-shadow">
+            <div key={review.id} className="bg-[var(--voyo-bg)]/50 p-4 rounded-xl border border-white/5 shadow-sm hover:shadow-md transition-shadow">
                <div className="flex items-center gap-2 mb-2">
-                 <div className="bg-[var(--voyage-bg-light)] p-1 rounded-full">
-                   <User className="w-3 h-3 text-[var(--voyage-muted)]" />
+                 <div className="bg-[var(--voyo-bg-light)] p-1 rounded-full">
+                   <User className="w-3 h-3 text-[var(--voyo-muted)]" />
                  </div>
                  <span className="text-xs font-bold text-white">{review.author || "Anonymous"}</span>
                  {review.verified && (
                    <span className="text-[10px] bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded-full font-bold border border-emerald-500/20">Verified</span>
                  )}
                </div>
-               <p className="text-sm text-[var(--voyage-muted)] leading-relaxed">
+               <p className="text-sm text-[var(--voyo-muted)] leading-relaxed">
                  "{decodeHtmlEntities(review.comment || '')}"
                </p>
             </div>

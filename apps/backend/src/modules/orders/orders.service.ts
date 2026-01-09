@@ -240,7 +240,7 @@ export class OrdersService {
         });
       } else {
         // Create a temporary guest user
-        const guestEmail = `guest-${crypto.randomUUID()}@voyage.app`;
+        const guestEmail = `guest-${crypto.randomUUID()}@voyoesim.com`;
         user = await this.prisma.user.create({
           data: {
             id: crypto.randomUUID(),
@@ -529,7 +529,7 @@ export class OrdersService {
       const session = await this.stripe.stripe.checkout.sessions.create({
         mode: 'payment',
         payment_method_types: ['card'],
-        customer_email: order.User.email !== `guest-${order.User.id}@voyage.app` ? order.User.email : undefined,
+        customer_email: order.User.email !== `guest-${order.User.id}@voyoesim.com` ? order.User.email : undefined,
 
         line_items: [
           {
@@ -799,7 +799,7 @@ export class OrdersService {
     this.logger.log(`handleStripePayment start. session.id=${session?.id}`);
     this.logger.log(`session.metadata=${JSON.stringify(session?.metadata)}`);
 
-    const email = session.customer_details?.email || 'guest@voyage.app';
+    const email = session.customer_details?.email || 'guest@voyoesim.com';
     const planCode = session.metadata?.planCode || null;
     const referralCode = session.metadata?.referralCode || null;
     const existingOrderId = session.metadata?.orderId; // Check if order already exists

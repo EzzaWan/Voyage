@@ -119,7 +119,7 @@ export function QRDisplay({
       if (!response.ok) throw new Error("Failed to fetch QR image");
 
       const blob = await response.blob();
-      saveAs(blob, `voyage-esim-${iccid}.png`);
+      saveAs(blob, `Voyo-esim-${iccid}.png`);
 
       toast({
         title: "Downloaded",
@@ -137,7 +137,7 @@ export function QRDisplay({
           });
 
           const link = document.createElement("a");
-          link.download = `voyage-esim-${iccid}.png`;
+          link.download = `Voyo-esim-${iccid}.png`;
           link.href = dataUrl;
           link.click();
 
@@ -174,7 +174,7 @@ export function QRDisplay({
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Voyage eSIM QR Code - ${iccid}</title>
+          <title>Voyo eSIM QR Code - ${iccid}</title>
           <style>
             body {
               margin: 0;
@@ -218,7 +218,7 @@ export function QRDisplay({
           </style>
         </head>
         <body>
-          <h1>${planName || "Voyage eSIM"} - Installation QR Code</h1>
+          <h1>${planName || "Voyo eSIM"} - Installation QR Code</h1>
           <div class="qr-container">
             <img src="${qrCodeUrl}" alt="eSIM QR Code" />
           </div>
@@ -298,7 +298,7 @@ export function QRDisplay({
       
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = `voyage-esim-${iccid}.png`;
+      link.download = `Voyo-esim-${iccid}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -325,17 +325,17 @@ export function QRDisplay({
 
   if (isExpired) {
     return (
-      <div className="bg-[var(--voyage-card)] rounded-xl border border-red-500/30 p-6">
+      <div className="bg-[var(--voyo-card)] rounded-xl border border-red-500/30 p-6">
         <div className="flex items-start gap-4">
           <AlertTriangle className="h-6 w-6 text-red-400 flex-shrink-0 mt-1" />
           <div className="flex-1">
             <h3 className="text-lg font-bold text-white mb-2">QR Code Expired</h3>
-            <p className="text-[var(--voyage-muted)] mb-4">
+            <p className="text-[var(--voyo-muted)] mb-4">
               This eSIM QR code has expired and can no longer be used for installation.
             </p>
             <Button
               onClick={() => window.location.href = "/"}
-              className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white"
+              className="bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white"
             >
               Buy New Plan
             </Button>
@@ -347,12 +347,12 @@ export function QRDisplay({
 
   if (isAlreadyInstalled && !qrCodeUrl) {
     return (
-      <div className="bg-[var(--voyage-card)] rounded-xl border border-[var(--voyage-border)] p-6">
+      <div className="bg-[var(--voyo-card)] rounded-xl border border-[var(--voyo-border)] p-6">
         <div className="space-y-4">
           <h3 className="text-lg font-bold text-white">eSIM Already Installed</h3>
           {activationCode && (
-            <div className="p-4 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)]">
-              <p className="text-xs text-[var(--voyage-muted)] mb-2">Activation Code:</p>
+            <div className="p-4 bg-[var(--voyo-bg-light)] rounded-lg border border-[var(--voyo-border)]">
+              <p className="text-xs text-[var(--voyo-muted)] mb-2">Activation Code:</p>
               <div className="flex items-center justify-between gap-2">
                 <code className="text-sm text-white font-mono break-all flex-1">
                   {activationCode}
@@ -379,21 +379,21 @@ export function QRDisplay({
 
   if (qrError || !qrCodeUrl) {
     return (
-      <div className="bg-[var(--voyage-card)] rounded-xl border border-[var(--voyage-border)] p-6">
+      <div className="bg-[var(--voyo-card)] rounded-xl border border-[var(--voyo-border)] p-6">
         <div className="space-y-4">
           <div className="flex items-start gap-4">
             <AlertTriangle className="h-6 w-6 text-yellow-400 flex-shrink-0 mt-1" />
             <div className="flex-1">
               <h3 className="text-lg font-bold text-white mb-2">QR Code Not Available</h3>
-              <p className="text-[var(--voyage-muted)] mb-4">
+              <p className="text-[var(--voyo-muted)] mb-4">
                 The QR code could not be loaded. Please use the activation code below or contact support.
               </p>
             </div>
           </div>
 
           {activationCode && (
-            <div className="p-4 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)]">
-              <p className="text-xs text-[var(--voyage-muted)] mb-2">Activation Code:</p>
+            <div className="p-4 bg-[var(--voyo-bg-light)] rounded-lg border border-[var(--voyo-border)]">
+              <p className="text-xs text-[var(--voyo-muted)] mb-2">Activation Code:</p>
               <div className="flex items-center justify-between gap-2">
                 <code className="text-sm text-white font-mono break-all flex-1">
                   {activationCode}
@@ -431,7 +431,7 @@ export function QRDisplay({
   return (
     <div
       ref={qrContainerRef}
-      className={`bg-[var(--voyage-card)] rounded-xl border border-[var(--voyage-border)] p-6 ${
+      className={`bg-[var(--voyo-card)] rounded-xl border border-[var(--voyo-border)] p-6 ${
         isFullscreen
           ? "fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-8"
           : ""
@@ -458,7 +458,7 @@ export function QRDisplay({
         <div className="bg-white p-6 rounded-lg flex items-center justify-center relative min-h-[300px]">
           {qrLoading && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-[var(--voyage-muted)]" />
+              <Loader2 className="h-8 w-8 animate-spin text-[var(--voyo-muted)]" />
             </div>
           )}
           <Image
@@ -571,13 +571,13 @@ export function QRDisplay({
           )}
         </div>
 
-        <div className="text-center text-xs text-[var(--voyage-muted)] pt-2">
+        <div className="text-center text-xs text-[var(--voyo-muted)] pt-2">
           <p>Keyboard shortcuts: F (fullscreen) • D (download) • P (print) • C (copy activation)</p>
         </div>
 
         {activationCode && (
-          <div className="p-3 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)]">
-            <p className="text-xs text-[var(--voyage-muted)] mb-2">Activation Code:</p>
+          <div className="p-3 bg-[var(--voyo-bg-light)] rounded-lg border border-[var(--voyo-border)]">
+            <p className="text-xs text-[var(--voyo-muted)] mb-2">Activation Code:</p>
             <code className="text-sm text-white font-mono break-all block">
               {activationCode}
             </code>

@@ -123,12 +123,12 @@ export default function PayoutMethodsPage() {
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <Link
         href="/account/affiliate"
-        className="inline-flex items-center text-[var(--voyage-muted)] hover:text-white transition-colors mb-4"
+        className="inline-flex items-center text-[var(--voyo-muted)] hover:text-white transition-colors mb-4"
       >
         <ArrowLeft className="h-4 w-4 mr-2" /> Back to Affiliate Dashboard
       </Link>
 
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardHeader>
           <CardTitle className="text-white">{method ? "Update" : "Add"} Payout Method</CardTitle>
         </CardHeader>
@@ -141,7 +141,7 @@ export default function PayoutMethodsPage() {
                   type="button"
                   variant={type === "paypal" ? "default" : "outline"}
                   onClick={() => setType("paypal")}
-                  className={type === "paypal" ? "bg-[var(--voyage-accent)]" : ""}
+                  className={type === "paypal" ? "bg-[var(--voyo-accent)]" : ""}
                 >
                   PayPal
                 </Button>
@@ -149,7 +149,7 @@ export default function PayoutMethodsPage() {
                   type="button"
                   variant={type === "bank" ? "default" : "outline"}
                   onClick={() => setType("bank")}
-                  className={type === "bank" ? "bg-[var(--voyage-accent)]" : ""}
+                  className={type === "bank" ? "bg-[var(--voyo-accent)]" : ""}
                 >
                   Bank Transfer
                 </Button>
@@ -167,7 +167,7 @@ export default function PayoutMethodsPage() {
                   value={paypalEmail}
                   onChange={(e) => setPaypalEmail(e.target.value)}
                   required
-                  className="mt-2 bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] text-white"
+                  className="mt-2 bg-[var(--voyo-bg-light)] border-[var(--voyo-border)] text-white"
                   placeholder="your.email@example.com"
                 />
               </div>
@@ -182,7 +182,7 @@ export default function PayoutMethodsPage() {
                     value={bankHolderName}
                     onChange={(e) => setBankHolderName(e.target.value)}
                     required
-                    className="mt-2 bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] text-white"
+                    className="mt-2 bg-[var(--voyo-bg-light)] border-[var(--voyo-border)] text-white"
                     placeholder="John Doe"
                   />
                 </div>
@@ -195,7 +195,7 @@ export default function PayoutMethodsPage() {
                     value={bankIban}
                     onChange={(e) => setBankIban(e.target.value.toUpperCase())}
                     required
-                    className="mt-2 bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] text-white font-mono"
+                    className="mt-2 bg-[var(--voyo-bg-light)] border-[var(--voyo-border)] text-white font-mono"
                     placeholder="GB82WEST12345698765432"
                   />
                 </div>
@@ -207,7 +207,7 @@ export default function PayoutMethodsPage() {
                     id="bankSwift"
                     value={bankSwift}
                     onChange={(e) => setBankSwift(e.target.value.toUpperCase())}
-                    className="mt-2 bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] text-white font-mono"
+                    className="mt-2 bg-[var(--voyo-bg-light)] border-[var(--voyo-border)] text-white font-mono"
                     placeholder="WESTGB22"
                   />
                 </div>
@@ -218,12 +218,12 @@ export default function PayoutMethodsPage() {
               <Button
                 type="submit"
                 disabled={saving}
-                className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white"
+                className="bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white"
               >
                 {saving ? "Saving..." : method ? "Update Method" : "Save Method"}
               </Button>
               <Link href="/account/affiliate">
-                <Button type="button" variant="outline" className="border-[var(--voyage-border)]">
+                <Button type="button" variant="outline" className="border-[var(--voyo-border)]">
                   Cancel
                 </Button>
               </Link>

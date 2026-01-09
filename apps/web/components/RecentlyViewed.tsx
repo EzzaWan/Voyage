@@ -28,18 +28,18 @@ export function RecentlyViewed({ maxItems = 5, className }: RecentlyViewedProps)
   if (items.length === 0) return null;
 
   return (
-    <Card className={`bg-[var(--voyage-card)] border-[var(--voyage-border)] ${className}`}>
+    <Card className={`bg-[var(--voyo-card)] border-[var(--voyo-border)] ${className}`}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-[var(--voyage-accent)]" />
+            <Clock className="h-5 w-5 text-[var(--voyo-accent)]" />
             <CardTitle className="text-white">Recently Viewed</CardTitle>
           </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={handleClear}
-            className="bg-transparent text-[var(--voyage-muted)] hover:text-white hover:bg-[var(--voyage-bg-light)] h-8 w-8 p-0 border-0"
+            className="bg-transparent text-[var(--voyo-muted)] hover:text-white hover:bg-[var(--voyo-bg-light)] h-8 w-8 p-0 border-0"
           >
             <X className="h-4 w-4" />
           </Button>
@@ -51,7 +51,7 @@ export function RecentlyViewed({ maxItems = 5, className }: RecentlyViewedProps)
             <Link
               key={item.id}
               href={item.href}
-              className="block p-2 rounded-lg hover:bg-[var(--voyage-bg-light)] transition-colors"
+              className="block p-2 rounded-lg hover:bg-[var(--voyo-bg-light)] transition-colors"
             >
               <p className="text-sm text-white font-medium truncate">{item.name}</p>
             </Link>

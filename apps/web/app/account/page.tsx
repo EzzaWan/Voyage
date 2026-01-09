@@ -59,10 +59,10 @@ export default function AccountPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">Account</h1>
-          <p className="text-[var(--voyage-muted)]">Manage your account settings</p>
+          <p className="text-[var(--voyo-muted)]">Manage your account settings</p>
         </div>
         <Link href="/">
-          <Button variant="outline" className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-bg-light)] hover:text-white hover:border-[var(--voyage-accent)]">
+          <Button variant="outline" className="border-[var(--voyo-border)] bg-[var(--voyo-card)] text-white hover:bg-[var(--voyo-bg-light)] hover:text-white hover:border-[var(--voyo-accent)]">
             <ShoppingBag className="h-4 w-4 mr-2" />
             Continue Shopping
           </Button>
@@ -70,10 +70,10 @@ export default function AccountPage() {
       </div>
 
       {/* V-Cash Balance Card */}
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <Wallet className="h-6 w-6 text-[var(--voyage-accent)]" />
+            <Wallet className="h-6 w-6 text-[var(--voyo-accent)]" />
             <CardTitle className="text-white">V-Cash Balance</CardTitle>
           </div>
         </CardHeader>
@@ -81,15 +81,15 @@ export default function AccountPage() {
           {loadingVCash ? (
             <Skeleton className="h-8 w-32" />
           ) : (
-            <p className="text-3xl font-bold text-[var(--voyage-accent)]">
+            <p className="text-3xl font-bold text-[var(--voyo-accent)]">
               {vcashBalance ? formatCurrency(vcashBalance.balanceCents) : "$0.00"}
             </p>
           )}
-          <p className="text-sm text-[var(--voyage-muted)]">
-            V-Cash is store credit you can use on Voyage purchases. Get V-Cash from refunds or affiliate earnings.
+          <p className="text-sm text-[var(--voyo-muted)]">
+            V-Cash is store credit you can use on Voyo purchases. Get V-Cash from refunds or affiliate earnings.
           </p>
           <Link href="/account/vcash" className="inline-block">
-            <Button variant="outline" className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-bg-light)] hover:text-white hover:border-[var(--voyage-accent)] w-full sm:w-auto">
+            <Button variant="outline" className="border-[var(--voyo-border)] bg-[var(--voyo-card)] text-white hover:bg-[var(--voyo-bg-light)] hover:text-white hover:border-[var(--voyo-accent)] w-full sm:w-auto">
               View V-Cash Details
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
@@ -98,20 +98,20 @@ export default function AccountPage() {
       </Card>
 
       {/* Affiliate Program Card */}
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <DollarSign className="h-6 w-6 text-[var(--voyage-accent)]" />
+            <DollarSign className="h-6 w-6 text-[var(--voyo-accent)]" />
             <CardTitle className="text-white">Affiliate Program</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-[var(--voyage-muted)]">
+          <p className="text-[var(--voyo-muted)]">
             Earn 10% lifetime commissions on all purchases from your referrals (initial eSIM purchases and top-ups).
             Share your unique referral link and start earning today!
           </p>
           <Link href="/account/affiliate" className="inline-block">
-            <Button className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white w-full sm:w-auto">
+            <Button className="bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white w-full sm:w-auto">
               View Affiliate Dashboard
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
@@ -120,26 +120,26 @@ export default function AccountPage() {
       </Card>
 
       {/* Support Tickets Card */}
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <MessageSquare className="h-6 w-6 text-[var(--voyage-accent)]" />
+            <MessageSquare className="h-6 w-6 text-[var(--voyo-accent)]" />
             <CardTitle className="text-white">Support Tickets</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-[var(--voyage-muted)]">
+          <p className="text-[var(--voyo-muted)]">
             View all your support tickets and responses from our support team.
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
             <Link href="/account/support" className="w-full sm:w-auto">
-              <Button variant="outline" className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-bg-light)] hover:text-white hover:border-[var(--voyage-accent)] w-full sm:w-auto">
+              <Button variant="outline" className="border-[var(--voyo-border)] bg-[var(--voyo-card)] text-white hover:bg-[var(--voyo-bg-light)] hover:text-white hover:border-[var(--voyo-accent)] w-full sm:w-auto">
                 View My Tickets
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </Link>
             <Link href="/support/contact" className="w-full sm:w-auto">
-              <Button className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white w-full sm:w-auto">
+              <Button className="bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white w-full sm:w-auto">
                 Create New Ticket
               </Button>
             </Link>

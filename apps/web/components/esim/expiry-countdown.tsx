@@ -111,7 +111,7 @@ export function ExpiryCountdown({
 
   if (!expiry) {
     return (
-      <span className={cn("text-[var(--voyage-muted)]", className)}>
+      <span className={cn("text-[var(--voyo-muted)]", className)}>
         Expiry unknown
       </span>
     );
@@ -119,7 +119,7 @@ export function ExpiryCountdown({
 
   if (!time) {
     return (
-      <span className={cn("text-[var(--voyage-muted)]", className)}>
+      <span className={cn("text-[var(--voyo-muted)]", className)}>
         Invalid date
       </span>
     );
@@ -161,7 +161,7 @@ export function ExpiryCountdown({
         <TooltipContent>
           <div className="space-y-1">
             <p className="font-semibold">Expires: {fullDate}</p>
-            <p className="text-xs text-[var(--voyage-muted)]">
+            <p className="text-xs text-[var(--voyo-muted)]">
               {time.days > 0 && `${time.days} day${time.days !== 1 ? "s" : ""}, `}
               {time.hours > 0 && `${time.hours} hour${time.hours !== 1 ? "s" : ""}, `}
               {time.minutes > 0 && `${time.minutes} minute${time.minutes !== 1 ? "s" : ""}, `}

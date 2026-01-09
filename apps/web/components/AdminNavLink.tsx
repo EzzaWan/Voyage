@@ -14,7 +14,7 @@ export function AdminNavLink() {
   return (
     <Link
       href="/admin"
-      className="flex items-center gap-2 hover:text-[var(--voyage-accent)] transition-colors"
+      className="flex items-center gap-2 hover:text-[var(--voyo-accent)] transition-colors"
     >
       <Shield className="h-4 w-4" />
       <span>Admin</span>

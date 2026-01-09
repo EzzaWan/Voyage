@@ -389,7 +389,7 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
     return (
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-[var(--voyage-accent)]" />
+          <Loader2 className="h-8 w-8 animate-spin text-[var(--voyo-accent)]" />
         </div>
       </div>
     );
@@ -399,7 +399,7 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
     return (
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="text-center py-12">
-          <p className="text-[var(--voyage-muted)]">Order not found</p>
+          <p className="text-[var(--voyo-muted)]">Order not found</p>
         </div>
       </div>
     );
@@ -412,14 +412,14 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
     <div className="max-w-6xl mx-auto space-y-8">
       <Breadcrumbs />
       {/* Progress Indicator */}
-      <div className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-2xl p-6">
+      <div className="bg-[var(--voyo-card)] border border-[var(--voyo-border)] rounded-2xl p-6">
         <CheckoutProgress currentStep={currentStep} />
       </div>
 
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Left Column - Order Review */}
         <div className="lg:col-span-2 space-y-6">
-          <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+          <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <CreditCard className="h-5 w-5" />
@@ -428,11 +428,11 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="bg-[var(--voyage-bg-light)] rounded-lg p-4 border border-[var(--voyage-border)]">
-                  <p className="text-sm text-[var(--voyage-muted)] mb-2">
+                <div className="bg-[var(--voyo-bg-light)] rounded-lg p-4 border border-[var(--voyo-border)]">
+                  <p className="text-sm text-[var(--voyo-muted)] mb-2">
                     Order ID: <span className="text-white font-mono">{params.orderId}</span>
                   </p>
-                  <p className="text-sm text-[var(--voyage-muted)]">
+                  <p className="text-sm text-[var(--voyo-muted)]">
                     Plan: <span className="text-white">{planName || order.planId}</span>
                     {(() => {
                       // Check if we have all required data
@@ -467,7 +467,7 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
                 {!user && (
                   <div className="space-y-3">
                     <h3 className="text-sm font-semibold text-white">Email Address</h3>
-                    <p className="text-xs text-[var(--voyage-muted)]">
+                    <p className="text-xs text-[var(--voyo-muted)]">
                       Enter your email to receive your eSIM and order confirmation
                     </p>
                     <Input
@@ -475,7 +475,7 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
                       placeholder="your.email@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] text-white placeholder:text-[var(--voyage-muted)] focus:border-[var(--voyage-accent)]"
+                      className="bg-[var(--voyo-bg-light)] border-[var(--voyo-border)] text-white placeholder:text-[var(--voyo-muted)] focus:border-[var(--voyo-accent)]"
                       disabled={updatingEmail}
                     />
                   </div>
@@ -485,12 +485,12 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
                 {user && user.primaryEmailAddress?.emailAddress && (
                   <div className="space-y-2">
                     <h3 className="text-sm font-semibold text-white">Email Address</h3>
-                    <div className="bg-[var(--voyage-bg-light)] rounded-lg p-3 border border-[var(--voyage-border)]">
+                    <div className="bg-[var(--voyo-bg-light)] rounded-lg p-3 border border-[var(--voyo-border)]">
                       <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-[var(--voyage-accent)]" />
+                        <Mail className="h-4 w-4 text-[var(--voyo-accent)]" />
                         <span className="text-sm text-white">{user.primaryEmailAddress.emailAddress}</span>
                       </div>
-                      <p className="text-xs text-[var(--voyage-muted)] mt-1">
+                      <p className="text-xs text-[var(--voyo-muted)] mt-1">
                         Your eSIM will be sent to this email
                       </p>
                     </div>
@@ -501,14 +501,14 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
                 <div className="space-y-3">
                   <h3 className="text-sm font-semibold text-white">Promo Code</h3>
                   {appliedPromo ? (
-                    <div className="flex items-center justify-between bg-[var(--voyage-accent)]/10 border border-[var(--voyage-accent)] rounded-lg p-3">
+                    <div className="flex items-center justify-between bg-[var(--voyo-accent)]/10 border border-[var(--voyo-accent)] rounded-lg p-3">
                       <div className="flex items-center gap-2">
-                        <Tag className="h-4 w-4 text-[var(--voyage-accent)]" />
+                        <Tag className="h-4 w-4 text-[var(--voyo-accent)]" />
                         <span className="text-sm font-medium text-white">{appliedPromo}</span>
                       </div>
                       <button
                         onClick={handleRemovePromo}
-                        className="text-[var(--voyage-muted)] hover:text-white transition-colors"
+                        className="text-[var(--voyo-muted)] hover:text-white transition-colors"
                         aria-label="Remove promo code"
                       >
                         <X className="h-4 w-4" />
@@ -526,13 +526,13 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
                             handleApplyPromo();
                           }
                         }}
-                        className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] text-white placeholder:text-[var(--voyage-muted)] focus:border-[var(--voyage-accent)]"
+                        className="bg-[var(--voyo-bg-light)] border-[var(--voyo-border)] text-white placeholder:text-[var(--voyo-muted)] focus:border-[var(--voyo-accent)]"
                       />
                       <Button
                         onClick={handleApplyPromo}
                         disabled={applyingPromo || !promoCode.trim()}
                         variant="outline"
-                        className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-accent)] hover:border-[var(--voyage-accent)]"
+                        className="border-[var(--voyo-border)] bg-[var(--voyo-card)] text-white hover:bg-[var(--voyo-accent)] hover:border-[var(--voyo-accent)]"
                       >
                         {applyingPromo ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -548,7 +548,7 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
                   <h3 className="text-lg font-semibold text-white">Order Summary</h3>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-[var(--voyage-muted)]">Subtotal</span>
+                      <span className="text-[var(--voyo-muted)]">Subtotal</span>
                       <span className="text-white">
                         {promoDiscount 
                           ? formatPrice(promoDiscount.originalDisplayAmount || promoDiscount.originalAmount, displayCurrency)
@@ -557,7 +557,7 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
                       </span>
                     </div>
                     {appliedPromo && promoDiscount && (
-                      <div className="flex justify-between text-sm text-[var(--voyage-accent)]">
+                      <div className="flex justify-between text-sm text-[var(--voyo-accent)]">
                         <span>Discount ({appliedPromo})</span>
                         <span>-{formatPrice(
                           (promoDiscount.originalDisplayAmount || promoDiscount.originalAmount) - displayAmount, 
@@ -566,12 +566,12 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
                       </div>
                     )}
                     <div className="flex justify-between text-sm">
-                      <span className="text-[var(--voyage-muted)]">Tax</span>
+                      <span className="text-[var(--voyo-muted)]">Tax</span>
                       <span className="text-white">Included</span>
                     </div>
-                    <div className="pt-2 border-t border-[var(--voyage-border)] flex justify-between">
+                    <div className="pt-2 border-t border-[var(--voyo-border)] flex justify-between">
                       <span className="font-semibold text-white">Total</span>
-                      <span className="text-lg font-bold text-[var(--voyage-accent)]">
+                      <span className="text-lg font-bold text-[var(--voyo-accent)]">
                         {formatPrice(displayAmount, displayCurrency)}
                       </span>
                     </div>
@@ -582,7 +582,7 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
                   <Button
                     onClick={handleProceedToPayment}
                     disabled={processing || updatingEmail || order.status !== 'pending' || (!user && !email.trim())}
-                    className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white py-6 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white py-6 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {processing || updatingEmail ? (
                       <>
@@ -597,7 +597,7 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
                     )}
                   </Button>
                   {order.status !== 'pending' && (
-                    <p className="text-xs text-[var(--voyage-muted)] mt-2 text-center">
+                    <p className="text-xs text-[var(--voyo-muted)] mt-2 text-center">
                       This order has already been processed.
                     </p>
                   )}
@@ -610,14 +610,14 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
         {/* Right Column - Order Summary & Email Preview */}
         <div className="lg:col-span-1 space-y-6">
           {/* Order Summary Card */}
-          <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+          <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
             <CardHeader>
               <CardTitle className="text-white">Order Summary</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-[var(--voyage-muted)]">Plan</span>
+                  <span className="text-[var(--voyo-muted)]">Plan</span>
                   <span className="text-white">
                     {planName || order.planId}
                     {planDetails && order.duration && (() => {
@@ -637,7 +637,7 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
                         const speedLimit = speedMatch ? parseInt(speedMatch[1] || '1') : 1;
                         if (speedLimit === 1) {
                           return (
-                            <span className="block text-xs text-[var(--voyage-muted)] mt-1">{order.duration} {order.duration === 1 ? 'Day' : 'Days'}</span>
+                            <span className="block text-xs text-[var(--voyo-muted)] mt-1">{order.duration} {order.duration === 1 ? 'Day' : 'Days'}</span>
                           );
                         }
                       }
@@ -646,7 +646,7 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-[var(--voyage-muted)]">Subtotal</span>
+                  <span className="text-[var(--voyo-muted)]">Subtotal</span>
                   <span className="text-white">
                     {promoDiscount 
                       ? formatPrice(promoDiscount.originalDisplayAmount || promoDiscount.originalAmount, displayCurrency)
@@ -655,7 +655,7 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
                   </span>
                 </div>
                 {appliedPromo && promoDiscount && (
-                  <div className="flex justify-between text-sm text-[var(--voyage-accent)]">
+                  <div className="flex justify-between text-sm text-[var(--voyo-accent)]">
                     <span>Discount ({appliedPromo})</span>
                     <span>-{formatPrice(
                       (promoDiscount.originalDisplayAmount || promoDiscount.originalAmount) - displayAmount, 
@@ -664,12 +664,12 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
-                  <span className="text-[var(--voyage-muted)]">Tax</span>
+                  <span className="text-[var(--voyo-muted)]">Tax</span>
                   <span className="text-white">Included</span>
                 </div>
-                <div className="pt-3 border-t border-[var(--voyage-border)] flex justify-between">
+                <div className="pt-3 border-t border-[var(--voyo-border)] flex justify-between">
                   <span className="font-semibold text-white">Total</span>
-                  <span className="text-xl font-bold text-[var(--voyage-accent)]">
+                  <span className="text-xl font-bold text-[var(--voyo-accent)]">
                     {formatPrice(displayAmount, displayCurrency)}
                   </span>
                 </div>
@@ -678,11 +678,11 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
           </Card>
 
           {/* Email Preview Toggle */}
-          <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+          <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
             <CardContent className="pt-6">
               <Button
                 variant="outline"
-                className="w-full border-[var(--voyage-border)] bg-[var(--voyage-bg-light)] text-white hover:bg-[var(--voyage-card)] hover:text-white"
+                className="w-full border-[var(--voyo-border)] bg-[var(--voyo-bg-light)] text-white hover:bg-[var(--voyo-card)] hover:text-white"
                 onClick={() => setShowEmailPreview(!showEmailPreview)}
               >
                 <Mail className="mr-2 h-4 w-4" />

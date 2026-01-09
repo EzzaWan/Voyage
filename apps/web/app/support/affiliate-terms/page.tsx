@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { AffiliateTermsOfService } from "../sections/affiliate-terms";
 
 export const metadata: Metadata = {
-  title: "Affiliate Terms of Service — Voyage",
-  description: "Rules, guidelines, and payout conditions for Voyage affiliates. Learn about commission structure, referral rules, holding periods, and payout policies.",
+  title: "Affiliate Terms of Service — Voyo",
+  description: "Rules, guidelines, and payout conditions for Voyo affiliates. Learn about commission structure, referral rules, holding periods, and payout policies.",
   openGraph: {
-    title: "Affiliate Terms of Service — Voyage",
-    description: "Rules, guidelines, and payout conditions for Voyage affiliates.",
+    title: "Affiliate Terms of Service — Voyo",
+    description: "Rules, guidelines, and payout conditions for Voyo affiliates.",
   },
 };
 

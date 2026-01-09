@@ -110,7 +110,7 @@ export default function AdminEmailLogsPage() {
             {row.providerId}
           </div>
         ) : (
-          <span className="text-[var(--voyage-muted)]">—</span>
+          <span className="text-[var(--voyo-muted)]">—</span>
         ),
       className: "w-[120px]",
     },
@@ -123,7 +123,7 @@ export default function AdminEmailLogsPage() {
             {row.error}
           </div>
         ) : (
-          <span className="text-[var(--voyage-muted)]">—</span>
+          <span className="text-[var(--voyo-muted)]">—</span>
         ),
       className: "w-[150px]",
     },
@@ -138,8 +138,8 @@ export default function AdminEmailLogsPage() {
   if (loading) {
     return (
       <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyage-accent)] mx-auto mb-4"></div>
-        <p className="text-[var(--voyage-muted)]">Loading email logs...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyo-accent)] mx-auto mb-4"></div>
+        <p className="text-[var(--voyo-muted)]">Loading email logs...</p>
       </div>
     );
   }
@@ -149,14 +149,14 @@ export default function AdminEmailLogsPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">Email Logs</h1>
-          <p className="text-[var(--voyage-muted)]">
+          <p className="text-[var(--voyo-muted)]">
             View all email notification logs
           </p>
         </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 rounded-lg bg-[var(--voyage-bg-light)] border border-[var(--voyage-border)] text-white"
+          className="px-3 py-2 rounded-lg bg-[var(--voyo-bg-light)] border border-[var(--voyo-border)] text-white"
         >
           <option value="">All Statuses</option>
           <option value="sent">Sent</option>
@@ -166,11 +166,11 @@ export default function AdminEmailLogsPage() {
         </select>
       </div>
 
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardContent className="p-0">
           {logs.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-[var(--voyage-muted)]">No email logs found</p>
+              <p className="text-[var(--voyo-muted)]">No email logs found</p>
             </div>
           ) : (
             <AdminTable data={logs} columns={columns} />

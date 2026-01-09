@@ -81,8 +81,8 @@ function GuestAccessRequest({ orderId, email }: { orderId: string; email: string
   }
 
   return (
-    <div className="mt-4 pt-4 border-t border-[var(--voyage-border)]">
-      <p className="text-xs text-[var(--voyage-muted)] mb-2">
+    <div className="mt-4 pt-4 border-t border-[var(--voyo-border)]">
+      <p className="text-xs text-[var(--voyo-muted)] mb-2">
         Need to access your order later? We can send you a secure link via email.
       </p>
       <Button
@@ -90,7 +90,7 @@ function GuestAccessRequest({ orderId, email }: { orderId: string; email: string
         size="sm"
         onClick={handleRequestAccess}
         disabled={requesting}
-        className="border-[var(--voyage-border)] bg-[var(--voyage-bg-light)] text-white hover:bg-[var(--voyage-card)] hover:text-white hover:border-[var(--voyage-accent)]"
+        className="border-[var(--voyo-border)] bg-[var(--voyo-bg-light)] text-white hover:bg-[var(--voyo-card)] hover:text-white hover:border-[var(--voyo-accent)]"
       >
         {requesting ? (
           <>
@@ -196,32 +196,32 @@ function SuccessContent() {
             <CheckCircle2 className="h-10 w-10 text-green-500" />
           </div>
           <h1 className="text-4xl font-bold text-white">Payment Successful!</h1>
-          <p className="text-[var(--voyage-muted)] text-lg max-w-md">
+          <p className="text-[var(--voyo-muted)] text-lg max-w-md">
             Your eSIM order has been confirmed and is being processed.
           </p>
         </div>
 
         {/* Order Details */}
         {orderData && (
-          <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+          <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
             <CardHeader>
               <CardTitle className="text-white">Order Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-[var(--voyage-muted)] mb-1">Order Number</p>
+                  <p className="text-sm text-[var(--voyo-muted)] mb-1">Order Number</p>
                   <p className="text-lg font-mono font-semibold text-white">{orderData.id}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-[var(--voyage-muted)] mb-1">Amount Paid</p>
-                  <p className="text-lg font-semibold text-[var(--voyage-accent)]">
+                  <p className="text-sm text-[var(--voyo-muted)] mb-1">Amount Paid</p>
+                  <p className="text-lg font-semibold text-[var(--voyo-accent)]">
                     {formatCurrency(orderData.amountCents / 100, orderData.currency || 'USD')}
                   </p>
                 </div>
               </div>
               <div>
-                <p className="text-sm text-[var(--voyage-muted)] mb-1">Order Status</p>
+                <p className="text-sm text-[var(--voyo-muted)] mb-1">Order Status</p>
                 <div className="flex items-center gap-2">
                   {(() => {
                     const statusDisplay = getOrderStatusDisplay(orderData.status);
@@ -243,7 +243,7 @@ function SuccessContent() {
 
         {/* QR Code & Installation */}
         {esimProfile && esimProfile.qrCodeUrl && (
-          <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+          <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <QrCode className="h-5 w-5" />
@@ -261,7 +261,7 @@ function SuccessContent() {
               <div className="flex gap-3">
                 <Button
                   variant="outline"
-                  className="flex-1 border-[var(--voyage-border)] bg-[var(--voyage-bg-light)] text-white hover:bg-[var(--voyage-card)] hover:text-white hover:border-[var(--voyage-accent)]"
+                  className="flex-1 border-[var(--voyo-border)] bg-[var(--voyo-bg-light)] text-white hover:bg-[var(--voyo-card)] hover:text-white hover:border-[var(--voyo-accent)]"
                   onClick={() => esimProfile.qrCodeUrl && window.open(esimProfile.qrCodeUrl, '_blank')}
                 >
                   <ExternalLink className="mr-2 h-4 w-4" />
@@ -269,7 +269,7 @@ function SuccessContent() {
                 </Button>
                 <Button
                   variant="outline"
-                  className="flex-1 border-[var(--voyage-border)] bg-[var(--voyage-bg-light)] text-white hover:bg-[var(--voyage-card)] hover:text-white hover:border-[var(--voyage-accent)]"
+                  className="flex-1 border-[var(--voyo-border)] bg-[var(--voyo-bg-light)] text-white hover:bg-[var(--voyo-card)] hover:text-white hover:border-[var(--voyo-accent)]"
                   onClick={() => {
                     const link = document.createElement('a');
                     link.href = esimProfile.qrCodeUrl!;
@@ -282,7 +282,7 @@ function SuccessContent() {
                 </Button>
               </div>
               <Link href={`/my-esims/${esimProfile.iccid}`} className="block">
-                <Button className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white">
+                <Button className="w-full bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white">
                   View Full Details
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -292,7 +292,7 @@ function SuccessContent() {
         )}
 
         {/* Email Confirmation Status */}
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Mail className="h-5 w-5" />
@@ -306,7 +306,7 @@ function SuccessContent() {
                   <CheckCircle2 className="h-5 w-5 text-green-500" />
                   <div>
                     <p className="text-sm font-medium text-white">Confirmation email sent</p>
-                    <p className="text-xs text-[var(--voyage-muted)]">Check your inbox for installation instructions</p>
+                    <p className="text-xs text-[var(--voyo-muted)]">Check your inbox for installation instructions</p>
                   </div>
                 </>
               ) : (
@@ -314,7 +314,7 @@ function SuccessContent() {
                   <Clock className="h-5 w-5 text-yellow-500" />
                   <div>
                     <p className="text-sm font-medium text-white">Email will be sent shortly</p>
-                    <p className="text-xs text-[var(--voyage-muted)]">You'll receive installation instructions once your eSIM is ready</p>
+                    <p className="text-xs text-[var(--voyo-muted)]">You'll receive installation instructions once your eSIM is ready</p>
                   </div>
                 </>
               )}
@@ -323,7 +323,7 @@ function SuccessContent() {
         </Card>
 
         {/* Next Steps Guide */}
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Smartphone className="h-5 w-5" />
@@ -332,19 +332,19 @@ function SuccessContent() {
           </CardHeader>
           <CardContent>
             <ol className="space-y-3 list-decimal list-inside">
-              <li className="text-sm text-[var(--voyage-text)]">
+              <li className="text-sm text-[var(--voyo-text)]">
                 <span className="font-medium text-white">Check your email</span> - You'll receive installation instructions with your QR code
               </li>
-              <li className="text-sm text-[var(--voyage-text)]">
+              <li className="text-sm text-[var(--voyo-text)]">
                 <span className="font-medium text-white">Open Settings</span> on your device and go to Cellular/Mobile Data
               </li>
-              <li className="text-sm text-[var(--voyage-text)]">
+              <li className="text-sm text-[var(--voyo-text)]">
                 <span className="font-medium text-white">Tap "Add Cellular Plan"</span> or "Add eSIM"
               </li>
-              <li className="text-sm text-[var(--voyage-text)]">
+              <li className="text-sm text-[var(--voyo-text)]">
                 <span className="font-medium text-white">Scan the QR code</span> from your email or this page
               </li>
-              <li className="text-sm text-[var(--voyage-text)]">
+              <li className="text-sm text-[var(--voyo-text)]">
                 <span className="font-medium text-white">Follow the on-screen instructions</span> to complete activation
               </li>
             </ol>
@@ -357,7 +357,7 @@ function SuccessContent() {
             // Logged in user - show normal buttons
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/my-esims" className="flex-1">
-                <Button className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white py-6 text-lg">
+                <Button className="w-full bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white py-6 text-lg">
                   View My eSIMs
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
@@ -366,7 +366,7 @@ function SuccessContent() {
                 <Link href={`/my-esims?order=${orderData.id}`} className="flex-1">
                   <Button 
                     variant="outline" 
-                    className="w-full border-[var(--voyage-border)] bg-[var(--voyage-bg-light)] text-white hover:bg-[var(--voyage-card)] hover:text-white hover:border-[var(--voyage-accent)] py-6 text-lg"
+                    className="w-full border-[var(--voyo-border)] bg-[var(--voyo-bg-light)] text-white hover:bg-[var(--voyo-card)] hover:text-white hover:border-[var(--voyo-accent)] py-6 text-lg"
                   >
                     View Order
                   </Button>
@@ -375,14 +375,14 @@ function SuccessContent() {
             </div>
           ) : (
             // Guest user - show login prompt
-            <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+            <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
               <CardContent className="pt-6">
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
-                    <AlertCircle className="h-5 w-5 text-[var(--voyage-accent)] mt-0.5 flex-shrink-0" />
+                    <AlertCircle className="h-5 w-5 text-[var(--voyo-accent)] mt-0.5 flex-shrink-0" />
                     <div className="space-y-2">
                       <h3 className="text-lg font-semibold text-white">Login or create account to save your eSIM info</h3>
-                      <p className="text-sm text-[var(--voyage-muted)]">
+                      <p className="text-sm text-[var(--voyo-muted)]">
                         {orderEmail ? (
                           <>Use the email address <span className="text-white font-mono">{orderEmail}</span> that you used during checkout.</>
                         ) : (
@@ -393,7 +393,7 @@ function SuccessContent() {
                   </div>
                   {orderEmail && (
                     <Link href={`/my-esims?email=${encodeURIComponent(orderEmail)}`} className="block">
-                      <Button className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white py-6 text-lg mb-3">
+                      <Button className="w-full bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white py-6 text-lg mb-3">
                         View My eSIMs
                         <ArrowRight className="ml-2 h-5 w-5" />
                       </Button>
@@ -401,7 +401,7 @@ function SuccessContent() {
                   )}
                   <div className="flex flex-col sm:flex-row gap-3">
                     <Link href={`/sign-in?redirect_url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/checkout/success')}`} className="flex-1">
-                      <Button className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white py-6 text-lg">
+                      <Button className="w-full bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white py-6 text-lg">
                         <LogIn className="mr-2 h-5 w-5" />
                         Sign In
                       </Button>
@@ -409,7 +409,7 @@ function SuccessContent() {
                     <Link href={`/sign-up?redirect_url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/checkout/success')}`} className="flex-1">
                       <Button 
                         variant="outline" 
-                        className="w-full border-[var(--voyage-border)] bg-[var(--voyage-bg-light)] text-white hover:bg-[var(--voyage-card)] hover:text-white hover:border-[var(--voyage-accent)] py-6 text-lg"
+                        className="w-full border-[var(--voyo-border)] bg-[var(--voyo-bg-light)] text-white hover:bg-[var(--voyo-card)] hover:text-white hover:border-[var(--voyo-accent)] py-6 text-lg"
                       >
                         <UserPlus className="mr-2 h-5 w-5" />
                         Create Account

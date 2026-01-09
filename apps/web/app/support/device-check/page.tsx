@@ -117,26 +117,26 @@ export default function SupportDeviceCheckPage() {
   return (
     <div className="min-h-screen">
       <div className="max-w-4xl mx-auto py-10">
-        <Link href="/support" className="inline-flex items-center gap-2 text-[var(--voyage-muted)] hover:text-[var(--voyage-accent)] transition-colors mb-6">
+        <Link href="/support" className="inline-flex items-center gap-2 text-[var(--voyo-muted)] hover:text-[var(--voyo-accent)] transition-colors mb-6">
           <ArrowLeft className="h-4 w-4" />
           Back to Support
         </Link>
 
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold text-white mb-2">Device Compatibility Checker</h1>
-          <p className="text-[var(--voyage-muted)]">
+          <p className="text-[var(--voyo-muted)]">
             Check if your device supports eSIM before purchasing
           </p>
         </div>
 
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)] mb-6">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)] mb-6">
           <CardHeader>
             <CardTitle className="text-white">Search Your Device</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="relative" ref={suggestionsRef}>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--voyage-muted)]" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--voyo-muted)]" />
                 <Input
                   type="text"
                   placeholder="e.g., iPhone 15, Samsung Galaxy S24..."
@@ -148,16 +148,16 @@ export default function SupportDeviceCheckPage() {
                   onFocus={() => {
                     if (suggestions.length > 0) setShowSuggestions(true);
                   }}
-                  className="pl-10 bg-[var(--voyage-bg)] border-[var(--voyage-border)] text-white placeholder:text-[var(--voyage-muted)]"
+                  className="pl-10 bg-[var(--voyo-bg)] border-[var(--voyo-border)] text-white placeholder:text-[var(--voyo-muted)]"
                 />
               </div>
               {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute z-50 w-full mt-1 bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-md shadow-lg max-h-60 overflow-y-auto">
+                <div className="absolute z-50 w-full mt-1 bg-[var(--voyo-card)] border border-[var(--voyo-border)] rounded-md shadow-lg max-h-60 overflow-y-auto">
                   {suggestions.map((model) => (
                     <button
                       key={model}
                       onClick={() => handleSuggestionClick(model)}
-                      className="w-full text-left px-4 py-2 hover:bg-[var(--voyage-bg-light)] text-white transition-colors"
+                      className="w-full text-left px-4 py-2 hover:bg-[var(--voyo-bg-light)] text-white transition-colors"
                     >
                       {model}
                     </button>
@@ -167,11 +167,11 @@ export default function SupportDeviceCheckPage() {
             </div>
 
             <div className="relative">
-              <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--voyage-muted)]" />
+              <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--voyo-muted)]" />
               <select
                 value={selectedCountry}
                 onChange={(e) => setSelectedCountry(e.target.value)}
-                className="w-full h-10 pl-10 pr-3 rounded-md border border-[var(--voyage-border)] bg-[var(--voyage-bg)] text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--voyage-accent)]"
+                className="w-full h-10 pl-10 pr-3 rounded-md border border-[var(--voyo-border)] bg-[var(--voyo-bg)] text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--voyo-accent)]"
               >
                 <option value="">Select country (optional)</option>
                 {countries.map((country) => (
@@ -185,7 +185,7 @@ export default function SupportDeviceCheckPage() {
             <Button
               onClick={handleCheckCompatibility}
               disabled={!selectedDevice || loading}
-              className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white"
+              className="w-full bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white"
             >
               {loading ? "Checking..." : "Check Compatibility"}
             </Button>
@@ -193,7 +193,7 @@ export default function SupportDeviceCheckPage() {
         </Card>
 
         {result && (
-          <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+          <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-white">Compatibility Result</CardTitle>
@@ -220,7 +220,7 @@ export default function SupportDeviceCheckPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <p className="text-sm text-[var(--voyage-muted)]">Device</p>
+                <p className="text-sm text-[var(--voyo-muted)]">Device</p>
                 <p className="text-lg font-semibold text-white">
                   {result.brand} {result.model}
                 </p>
@@ -228,12 +228,12 @@ export default function SupportDeviceCheckPage() {
 
               {result.notes && result.notes.length > 0 && (
                 <div>
-                  <p className="text-sm text-[var(--voyage-muted)] mb-2">Important Notes</p>
+                  <p className="text-sm text-[var(--voyo-muted)] mb-2">Important Notes</p>
                   <div className="space-y-2">
                     {result.notes.map((note, index) => (
                       <div
                         key={index}
-                        className="flex items-start gap-2 p-3 bg-[var(--voyage-bg-light)] rounded-md border border-[var(--voyage-border)]"
+                        className="flex items-start gap-2 p-3 bg-[var(--voyo-bg-light)] rounded-md border border-[var(--voyo-border)]"
                       >
                         <AlertTriangle className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
                         <p className="text-sm text-white">{note}</p>
@@ -245,7 +245,7 @@ export default function SupportDeviceCheckPage() {
 
               {selectedCountry && result.regionalNotes?.[selectedCountry.toUpperCase()] && (
                 <div>
-                  <p className="text-sm text-[var(--voyage-muted)] mb-2">Country-Specific Information</p>
+                  <p className="text-sm text-[var(--voyo-muted)] mb-2">Country-Specific Information</p>
                   <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-md">
                     <p className="text-sm text-yellow-400">
                       {result.regionalNotes[selectedCountry.toUpperCase()]}
@@ -254,17 +254,17 @@ export default function SupportDeviceCheckPage() {
                 </div>
               )}
 
-              <div className="flex flex-wrap gap-3 pt-4 border-t border-[var(--voyage-border)]">
+              <div className="flex flex-wrap gap-3 pt-4 border-t border-[var(--voyo-border)]">
                 {result.supported ? (
                   <>
                     <Link href="/countries">
-                      <Button variant="outline" className="border-[var(--voyage-border)] text-white hover:bg-[var(--voyage-bg-light)]">
+                      <Button variant="outline" className="border-[var(--voyo-border)] text-white hover:bg-[var(--voyo-bg-light)]">
                         Browse Plans
                         <ExternalLink className="h-4 w-4 ml-2" />
                       </Button>
                     </Link>
                     <Link href="/support">
-                      <Button variant="secondary" className="bg-[var(--voyage-bg-light)] text-white hover:bg-[var(--voyage-bg)]">
+                      <Button variant="secondary" className="bg-[var(--voyo-bg-light)] text-white hover:bg-[var(--voyo-bg)]">
                         View Installation Guide
                         <ExternalLink className="h-4 w-4 ml-2" />
                       </Button>
@@ -273,13 +273,13 @@ export default function SupportDeviceCheckPage() {
                 ) : (
                   <>
                     <Link href="/support/contact">
-                      <Button variant="secondary" className="bg-[var(--voyage-bg-light)] text-white hover:bg-[var(--voyage-bg)]">
+                      <Button variant="secondary" className="bg-[var(--voyo-bg-light)] text-white hover:bg-[var(--voyo-bg)]">
                         Contact Support
                         <ExternalLink className="h-4 w-4 ml-2" />
                       </Button>
                     </Link>
                     <Link href="/support">
-                      <Button variant="outline" className="border-[var(--voyage-border)] text-white hover:bg-[var(--voyage-bg-light)]">
+                      <Button variant="outline" className="border-[var(--voyo-border)] text-white hover:bg-[var(--voyo-bg-light)]">
                         How to check if your phone supports eSIM
                         <ExternalLink className="h-4 w-4 ml-2" />
                       </Button>

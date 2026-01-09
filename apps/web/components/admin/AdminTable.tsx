@@ -23,7 +23,7 @@ function AdminTableComponent<T extends { id: string }>({
 }: AdminTableProps<T>) {
   if (data.length === 0) {
     return (
-      <div className="text-center py-12 text-[var(--voyage-muted)]">
+      <div className="text-center py-12 text-[var(--voyo-muted)]">
         {emptyMessage}
       </div>
     );
@@ -33,11 +33,11 @@ function AdminTableComponent<T extends { id: string }>({
     <div className="w-full overflow-x-auto">
       <table className="w-full border-collapse text-left">
         <thead>
-          <tr className="border-b border-[var(--voyage-border)]">
+          <tr className="border-b border-[var(--voyo-border)]">
             {columns.map((column, idx) => (
               <th
                 key={idx}
-                className={`text-left px-4 py-3 text-sm font-semibold text-[var(--voyage-muted)] whitespace-nowrap ${
+                className={`text-left px-4 py-3 text-sm font-semibold text-[var(--voyo-muted)] whitespace-nowrap ${
                   typeof column.className === "string" ? column.className : ""
                 }`}
               >
@@ -51,7 +51,7 @@ function AdminTableComponent<T extends { id: string }>({
             <tr
               key={row.id}
               onClick={onRowClick ? () => onRowClick(row) : undefined}
-              className={`border-b border-[var(--voyage-border)] hover:bg-[var(--voyage-bg-light)] transition-colors ${
+              className={`border-b border-[var(--voyo-border)] hover:bg-[var(--voyo-bg-light)] transition-colors ${
                 onRowClick ? "cursor-pointer" : ""
               }`}
             >

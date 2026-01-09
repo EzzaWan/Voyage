@@ -142,20 +142,20 @@ export default function ReviewsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--voyage-bg)] py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[var(--voyo-bg)] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header Section */}
-        <div className="bg-[var(--voyage-card)] rounded-2xl p-8 border border-white/5 shadow-sm space-y-4">
+        <div className="bg-[var(--voyo-card)] rounded-2xl p-8 border border-white/5 shadow-sm space-y-4">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-3xl font-bold text-white">Customer Reviews</h1>
             {isLoaded && user && (
               <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
                 <DialogTrigger asChild>
-                  <Button className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent)]/90 font-bold rounded-lg text-black">
+                  <Button className="bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent)]/90 font-bold rounded-lg text-black">
                     Write Review
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="bg-[var(--voyage-card)] border border-white/5 shadow-xl rounded-xl max-w-md sm:rounded-xl">
+                <DialogContent className="bg-[var(--voyo-card)] border border-white/5 shadow-xl rounded-xl max-w-md sm:rounded-xl">
                   <DialogHeader>
                     <DialogTitle className="text-2xl font-bold text-white">Write a Review</DialogTitle>
                   </DialogHeader>
@@ -174,7 +174,7 @@ export default function ReviewsPage() {
                               className={cn(
                                 "h-8 w-8 transition-colors",
                                 star <= rating
-                                  ? "fill-[var(--voyage-accent)] text-[var(--voyage-accent)]"
+                                  ? "fill-[var(--voyo-accent)] text-[var(--voyo-accent)]"
                                   : "text-zinc-700"
                               )}
                             />
@@ -190,7 +190,7 @@ export default function ReviewsPage() {
                         value={comment}
                         onChange={(e) => setComment(e.target.value)}
                         placeholder="Share your experience with this plan... (optional)"
-                        className="min-h-[120px] border border-white/10 rounded-lg focus:ring-2 focus:ring-[var(--voyage-accent)]/20 focus:border-[var(--voyage-accent)] resize-none text-white bg-[var(--voyage-bg)]"
+                        className="min-h-[120px] border border-white/10 rounded-lg focus:ring-2 focus:ring-[var(--voyo-accent)]/20 focus:border-[var(--voyo-accent)] resize-none text-white bg-[var(--voyo-bg)]"
                         maxLength={1000}
                       />
                       <p className="text-xs text-zinc-400 mt-1">
@@ -200,7 +200,7 @@ export default function ReviewsPage() {
                     <Button
                       onClick={handleSubmitReview}
                       disabled={submitting}
-                      className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent)]/90 text-black font-bold rounded-lg"
+                      className="w-full bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent)]/90 text-black font-bold rounded-lg"
                     >
                       {submitting ? "Submitting..." : "Submit Review"}
                     </Button>
@@ -221,7 +221,7 @@ export default function ReviewsPage() {
                       className={cn(
                         "w-6 h-6 fill-current",
                         star <= Math.round(averageRating)
-                          ? "text-[var(--voyage-accent)]"
+                          ? "text-[var(--voyo-accent)]"
                           : "text-zinc-700"
                       )}
                     />
@@ -237,7 +237,7 @@ export default function ReviewsPage() {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-wrap gap-3 items-center justify-between bg-[var(--voyage-card)] p-4 rounded-xl border border-white/5 shadow-sm sticky top-4 z-10">
+        <div className="flex flex-wrap gap-3 items-center justify-between bg-[var(--voyo-card)] p-4 rounded-xl border border-white/5 shadow-sm sticky top-4 z-10">
           <div className="flex flex-wrap gap-2">
             <Button
               variant={filterRating === null && !filterTextOnly ? "default" : "outline"}
@@ -263,7 +263,7 @@ export default function ReviewsPage() {
                   <span>Star Rating {filterRating ? `(${filterRating}★)` : ""}</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-[var(--voyage-card)] border border-white/5">
+              <DropdownMenuContent className="bg-[var(--voyo-card)] border border-white/5">
                 <DropdownMenuItem onClick={() => setFilterRating(null)} className="text-white">All Ratings</DropdownMenuItem>
                 {[5, 4, 3, 2, 1].map((rating) => (
                   <DropdownMenuItem key={rating} onClick={() => setFilterRating(rating)} className="text-white">
@@ -318,7 +318,7 @@ function ReviewCard({ review }: { review: ReviewData }) {
   });
 
   return (
-    <div className="bg-[var(--voyage-card)] p-6 rounded-xl border border-white/5 shadow-sm transition-all hover:shadow-md">
+    <div className="bg-[var(--voyo-card)] p-6 rounded-xl border border-white/5 shadow-sm transition-all hover:shadow-md">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center space-x-3">
           <div className="flex items-center">
@@ -327,7 +327,7 @@ function ReviewCard({ review }: { review: ReviewData }) {
                 key={star}
                 className={cn(
                   "w-4 h-4 fill-current",
-                  star <= review.rating ? "text-[var(--voyage-accent)]" : "text-zinc-700"
+                  star <= review.rating ? "text-[var(--voyo-accent)]" : "text-zinc-700"
                 )}
               />
             ))}

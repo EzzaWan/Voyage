@@ -26,22 +26,22 @@ export function EmptyState({
   return (
     <Card
       className={cn(
-        "bg-[var(--voyage-card)] border-[var(--voyage-border)]",
+        "bg-[var(--voyo-card)] border-[var(--voyo-border)]",
         className
       )}
     >
       <CardContent className="flex flex-col items-center justify-center py-12 px-6 text-center">
         {Icon && (
-          <Icon className="h-12 w-12 text-[var(--voyage-muted)] mb-4 opacity-50" />
+          <Icon className="h-12 w-12 text-[var(--voyo-muted)] mb-4 opacity-50" />
         )}
         <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
         {description && (
-          <p className="text-[var(--voyage-muted)] max-w-md mb-6">{description}</p>
+          <p className="text-[var(--voyo-muted)] max-w-md mb-6">{description}</p>
         )}
         {action && (
           <Button
             onClick={action.onClick}
-            className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white"
+            className="bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white"
           >
             {action.label}
           </Button>

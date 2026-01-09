@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export function LoadingEsimCard() {
   return (
-    <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+    <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
       <CardHeader>
         <Skeleton className="h-6 w-48" />
         <Skeleton className="h-4 w-32 mt-2" />

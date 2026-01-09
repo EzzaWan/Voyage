@@ -190,7 +190,7 @@ export default function AdminDiscountsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `voyage-discounts-${Date.now()}.json`;
+    a.download = `Voyo-discounts-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -286,17 +286,17 @@ export default function AdminDiscountsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-white mb-2">Admin Discounts</h1>
-        <p className="text-[var(--voyage-muted)]">
+        <p className="text-[var(--voyo-muted)]">
           Set discounts for plans. Select a country to view and edit discounts. Discounts are stored in the backend and applied globally.
         </p>
       </div>
 
       {/* Global Discounts Section */}
-      <div className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-lg p-6 space-y-4">
+      <div className="bg-[var(--voyo-card)] border border-[var(--voyo-border)] rounded-lg p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-white mb-1">Global Discounts by Data Size</h2>
-            <p className="text-sm text-[var(--voyage-muted)]">
+            <p className="text-sm text-[var(--voyo-muted)]">
               Set discounts that apply to all plans of a specific GB size across all countries. Individual plan discounts override these.
             </p>
           </div>
@@ -304,7 +304,7 @@ export default function AdminDiscountsPage() {
             variant="outline" 
             size="sm" 
             onClick={handleClearGlobal}
-            className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-accent)] hover:border-[var(--voyage-accent)]"
+            className="border-[var(--voyo-border)] bg-[var(--voyo-card)] text-white hover:bg-[var(--voyo-accent)] hover:border-[var(--voyo-accent)]"
           >
             <Trash2 className="h-4 w-4 mr-2" />
             Clear Global
@@ -317,7 +317,7 @@ export default function AdminDiscountsPage() {
             const globalDiscount = globalDiscounts[gbKey] || 0;
             return (
               <div key={gbSize} className="space-y-2">
-                <Label htmlFor={`global-${gbSize}`} className="text-sm text-[var(--voyage-muted)]">
+                <Label htmlFor={`global-${gbSize}`} className="text-sm text-[var(--voyo-muted)]">
                   {gbSize} GB
                 </Label>
                 <div className="flex items-center gap-2">
@@ -329,17 +329,17 @@ export default function AdminDiscountsPage() {
                     step="0.1"
                     value={globalDiscount || ""}
                     onChange={(e) => handleGlobalDiscountChange(gbSize, e.target.value)}
-                    className="bg-[var(--voyage-bg)] border-[var(--voyage-border)] text-white"
+                    className="bg-[var(--voyo-bg)] border-[var(--voyo-border)] text-white"
                     placeholder="0"
                   />
-                  <span className="text-[var(--voyage-muted)]">%</span>
+                  <span className="text-[var(--voyo-muted)]">%</span>
                 </div>
               </div>
             );
           })}
         </div>
         
-        <div className="text-xs text-[var(--voyage-muted)] pt-2 border-t border-[var(--voyage-border)]">
+        <div className="text-xs text-[var(--voyo-muted)] pt-2 border-t border-[var(--voyo-border)]">
           💡 Tip: Global discounts apply to all plans of that GB size. Set individual plan discounts below to override.
         </div>
       </div>
@@ -353,7 +353,7 @@ export default function AdminDiscountsPage() {
         <Button 
           variant="outline" 
           onClick={handleExport}
-          className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-accent)] hover:border-[var(--voyage-accent)]"
+          className="border-[var(--voyo-border)] bg-[var(--voyo-card)] text-white hover:bg-[var(--voyo-accent)] hover:border-[var(--voyo-accent)]"
         >
           <Download className="h-4 w-4 mr-2" />
           Export JSON
@@ -361,7 +361,7 @@ export default function AdminDiscountsPage() {
         <Button 
           variant="outline" 
           onClick={handleClear}
-          className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-accent)] hover:border-[var(--voyage-accent)]"
+          className="border-[var(--voyo-border)] bg-[var(--voyo-card)] text-white hover:bg-[var(--voyo-accent)] hover:border-[var(--voyo-accent)]"
         >
           <Trash2 className="h-4 w-4 mr-2" />
           Clear All
@@ -369,13 +369,13 @@ export default function AdminDiscountsPage() {
       </div>
 
       {/* Import Section */}
-      <div className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-lg p-4 space-y-3">
+      <div className="bg-[var(--voyo-card)] border border-[var(--voyo-border)] rounded-lg p-4 space-y-3">
         <Label htmlFor="import-json">Import Discounts (JSON)</Label>
         <textarea
           id="import-json"
           value={importText}
           onChange={(e) => setImportText(e.target.value)}
-          className="w-full h-32 bg-[var(--voyage-bg)] border border-[var(--voyage-border)] rounded-md p-3 text-white font-mono text-sm"
+          className="w-full h-32 bg-[var(--voyo-bg)] border border-[var(--voyo-border)] rounded-md p-3 text-white font-mono text-sm"
           placeholder='{"PLAN_CODE_1": 10, "PLAN_CODE_2": 15}'
         />
         {importError && (
@@ -384,7 +384,7 @@ export default function AdminDiscountsPage() {
         <Button 
           variant="outline" 
           onClick={handleImport}
-          className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-accent)] hover:border-[var(--voyage-accent)]"
+          className="border-[var(--voyo-border)] bg-[var(--voyo-card)] text-white hover:bg-[var(--voyo-accent)] hover:border-[var(--voyo-accent)]"
         >
           <Upload className="h-4 w-4 mr-2" />
           Import
@@ -395,7 +395,7 @@ export default function AdminDiscountsPage() {
       {!selectedCountry && (
         <>
           {loadingCountries ? (
-            <div className="text-center py-20 text-[var(--voyage-muted)]">
+            <div className="text-center py-20 text-[var(--voyo-muted)]">
               Loading countries...
             </div>
           ) : (
@@ -404,10 +404,10 @@ export default function AdminDiscountsPage() {
                 <button
                   key={country.code}
                   onClick={() => setSelectedCountry(country)}
-                  className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-lg p-4 hover:bg-[var(--voyage-bg-light)] hover:border-[var(--voyage-accent)] transition-colors text-left"
+                  className="bg-[var(--voyo-card)] border border-[var(--voyo-border)] rounded-lg p-4 hover:bg-[var(--voyo-bg-light)] hover:border-[var(--voyo-accent)] transition-colors text-left"
                 >
                   <div className="text-white font-medium">{country.name}</div>
-                  <div className="text-sm text-[var(--voyage-muted)] mt-1">{country.code}</div>
+                  <div className="text-sm text-[var(--voyo-muted)] mt-1">{country.code}</div>
                 </button>
               ))}
             </div>
@@ -426,14 +426,14 @@ export default function AdminDiscountsPage() {
                 setSelectedCountry(null);
                 setSearchQuery("");
               }}
-              className="text-white hover:bg-[var(--voyage-bg-light)] hover:text-white"
+              className="text-white hover:bg-[var(--voyo-bg-light)] hover:text-white"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Countries
             </Button>
             <div>
               <h2 className="text-xl font-bold text-white">{selectedCountry.name}</h2>
-              <p className="text-sm text-[var(--voyage-muted)]">
+              <p className="text-sm text-[var(--voyo-muted)]">
                 Plans: 1GB, 3GB, 5GB+ (excluding 0.5GB, 1.5GB, 2GB) • Minimum $3 USD
               </p>
             </div>
@@ -443,25 +443,25 @@ export default function AdminDiscountsPage() {
           <div className="flex gap-4 items-center flex-wrap">
             <div className="flex-1 min-w-[300px]">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--voyage-muted)]" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--voyo-muted)]" />
                 <Input
                   type="text"
                   placeholder="Search by plan code or plan name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-[var(--voyage-bg)] border-[var(--voyage-border)] text-white"
+                  className="pl-10 bg-[var(--voyo-bg)] border-[var(--voyo-border)] text-white"
                 />
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Label htmlFor="sort-select" className="text-[var(--voyage-muted)] whitespace-nowrap">
+              <Label htmlFor="sort-select" className="text-[var(--voyo-muted)] whitespace-nowrap">
                 Sort by:
               </Label>
               <select
                 id="sort-select"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                className="px-3 py-2 bg-[var(--voyage-bg)] border border-[var(--voyage-border)] rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--voyage-accent)]"
+                className="px-3 py-2 bg-[var(--voyo-bg)] border border-[var(--voyo-border)] rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--voyo-accent)]"
               >
                 <option value="code">Plan Code</option>
                 <option value="name">Plan Name</option>
@@ -474,14 +474,14 @@ export default function AdminDiscountsPage() {
 
           {/* Discount Table */}
           {loadingPlans ? (
-            <div className="text-center py-20 text-[var(--voyage-muted)]">
+            <div className="text-center py-20 text-[var(--voyo-muted)]">
               Loading plans...
             </div>
           ) : (
-        <div className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-lg overflow-hidden">
+        <div className="bg-[var(--voyo-card)] border border-[var(--voyo-border)] rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-[var(--voyage-bg-light)] border-b border-[var(--voyage-border)]">
+              <thead className="bg-[var(--voyo-bg-light)] border-b border-[var(--voyo-border)]">
                 <tr>
                   <th className="px-4 py-3 text-left text-sm font-semibold text-white">
                     Plan Code
@@ -518,7 +518,7 @@ export default function AdminDiscountsPage() {
                   return (
                     <tr
                       key={plan.packageCode}
-                      className="border-b border-[var(--voyage-border)] last:border-0 hover:bg-[var(--voyage-bg-light)]/50"
+                      className="border-b border-[var(--voyo-border)] last:border-0 hover:bg-[var(--voyo-bg-light)]/50"
                     >
                       <td className="px-4 py-3">
                         <div className="font-mono text-sm text-white">
@@ -530,11 +530,11 @@ export default function AdminDiscountsPage() {
                           <div className="text-white font-medium">
                             {planName}
                           </div>
-                          <div className="text-xs text-[var(--voyage-muted)]">
+                          <div className="text-xs text-[var(--voyo-muted)]">
                             {gb} GB • {plan.duration} {plan.durationUnit}s • ${plan.price?.toFixed(2)} USD
                           </div>
                           {isUsingGlobal && (
-                            <div className="text-xs text-[var(--voyage-accent)] mt-1">
+                            <div className="text-xs text-[var(--voyo-accent)] mt-1">
                               Using global: {globalDiscount}% for {roundedGB}GB
                             </div>
                           )}
@@ -554,13 +554,13 @@ export default function AdminDiscountsPage() {
                             step="0.1"
                             value={hasIndividualDiscount ? individualDiscount : ""}
                             onChange={(e) => handleDiscountChange(plan.packageCode, e.target.value)}
-                            className="w-24 bg-[var(--voyage-bg)] border-[var(--voyage-border)] text-white"
+                            className="w-24 bg-[var(--voyo-bg)] border-[var(--voyo-border)] text-white"
                             placeholder={isUsingGlobal ? globalDiscount.toString() : "0"}
                           />
-                          <span className="text-[var(--voyage-muted)]">%</span>
+                          <span className="text-[var(--voyo-muted)]">%</span>
                         </div>
                         {isUsingGlobal && displayDiscount > 0 && (
-                          <div className="text-xs text-[var(--voyage-muted)] mt-1">
+                          <div className="text-xs text-[var(--voyo-muted)] mt-1">
                             Global: {globalDiscount}%
                           </div>
                         )}
@@ -576,7 +576,7 @@ export default function AdminDiscountsPage() {
                               delete newDiscounts[plan.packageCode];
                               setDiscountsState(newDiscounts);
                             }}
-                            className="text-white hover:bg-[var(--voyage-bg-light)] hover:text-white"
+                            className="text-white hover:bg-[var(--voyo-bg-light)] hover:text-white"
                           >
                             Use Global
                           </Button>
@@ -592,7 +592,7 @@ export default function AdminDiscountsPage() {
           )}
 
           {filteredPlans.length === 0 && !loadingPlans && (
-            <div className="text-center py-20 text-[var(--voyage-muted)]">
+            <div className="text-center py-20 text-[var(--voyo-muted)]">
               {searchQuery ? (
                 <>No plans found matching "{searchQuery}"</>
               ) : (
@@ -602,7 +602,7 @@ export default function AdminDiscountsPage() {
           )}
 
           {filteredPlans.length > 0 && !loadingPlans && (
-            <div className="text-sm text-[var(--voyage-muted)] text-center">
+            <div className="text-sm text-[var(--voyo-muted)] text-center">
               Showing {filteredPlans.length} plan{filteredPlans.length !== 1 ? 's' : ''}
               {searchQuery && ` matching "${searchQuery}"`}
             </div>

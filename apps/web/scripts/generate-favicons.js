@@ -1,5 +1,5 @@
 /**
- * Generate simple placeholder favicon assets for Voyage
+ * Generate simple placeholder favicon assets for Voyo
  * Run with: node scripts/generate-favicons.js
  */
 
@@ -73,7 +73,7 @@ async function generateFaviconIco() {
 }
 
 async function main() {
-  console.log('Generating Voyage favicon assets...\n');
+  console.log('Generating Voyo favicon assets...\n');
   
   try {
     // Ensure app directory exists

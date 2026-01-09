@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Support Center - Voyage eSIM",
+  title: "Support Center - Voyo eSIM",
   description: "Get help with eSIM installation, troubleshooting, device compatibility, refund policy, and contact support. Comprehensive guides for iPhone and Android devices.",
   openGraph: {
-    title: "Support Center - Voyage eSIM",
+    title: "Support Center - Voyo eSIM",
     description: "Get help with eSIM installation, troubleshooting, and device compatibility.",
   },
 };

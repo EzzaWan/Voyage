@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 export function LoadingCheckout() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardHeader>
           <Skeleton className="h-8 w-48" />
         </CardHeader>
@@ -25,7 +25,7 @@ export function LoadingCheckout() {
           </div>
         </CardContent>
       </Card>
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardHeader>
           <Skeleton className="h-6 w-40" />
         </CardHeader>

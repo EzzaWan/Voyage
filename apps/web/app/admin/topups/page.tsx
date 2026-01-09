@@ -102,7 +102,7 @@ export default function AdminTopupsPage() {
           <div>
             <div className="text-white">{planName || row.planCode}</div>
             {planName && (
-              <div className="text-xs text-[var(--voyage-muted)] font-mono">{row.planCode}</div>
+              <div className="text-xs text-[var(--voyo-muted)] font-mono">{row.planCode}</div>
             )}
           </div>
         );
@@ -128,7 +128,7 @@ export default function AdminTopupsPage() {
     {
       header: "Provider Response",
       accessor: (row: TopUp) => row.rechargeOrder || "-",
-      className: (row: TopUp) => row.rechargeOrder ? "break-all min-w-[100px] font-mono text-xs text-white" : "break-all min-w-[100px] text-[var(--voyage-muted)]",
+      className: (row: TopUp) => row.rechargeOrder ? "break-all min-w-[100px] font-mono text-xs text-white" : "break-all min-w-[100px] text-[var(--voyo-muted)]",
     },
     {
       header: "User Email",
@@ -153,8 +153,8 @@ export default function AdminTopupsPage() {
   if (loading) {
     return (
       <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyage-accent)] mx-auto mb-4"></div>
-        <p className="text-[var(--voyage-muted)]">Loading top-ups...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyo-accent)] mx-auto mb-4"></div>
+        <p className="text-[var(--voyo-muted)]">Loading top-ups...</p>
       </div>
     );
   }
@@ -163,12 +163,12 @@ export default function AdminTopupsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-white mb-2">Top-ups</h1>
-        <p className="text-[var(--voyage-muted)]">
+        <p className="text-[var(--voyo-muted)]">
           Monitor all top-up transactions
         </p>
       </div>
 
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardContent className="p-0">
           <AdminTable
             data={topups}

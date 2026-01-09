@@ -44,7 +44,7 @@ export class AdminEmailController {
 
     const result = await this.emailService.sendEmail({
       to,
-      subject: `Test Email — Voyage`,
+      subject: `Test Email — Voyo`,
       template,
       variables,
       idempotencyKey: `test-${Date.now()}-${to}`,

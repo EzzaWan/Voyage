@@ -269,7 +269,7 @@ export default function AdminFraudDashboardPage() {
     {
       header: "Referral Code",
       accessor: (row: any) => row.referralCode,
-      className: "font-mono font-bold text-[var(--voyage-accent)]",
+      className: "font-mono font-bold text-[var(--voyo-accent)]",
     },
     {
       header: "Risk Level",
@@ -289,7 +289,7 @@ export default function AdminFraudDashboardPage() {
     {
       header: "Actions",
       accessor: (row: any) => row.isFrozen ? "Frozen - Click to manage" : "Active - Click to manage",
-      className: "text-xs text-[var(--voyage-muted)]",
+      className: "text-xs text-[var(--voyo-muted)]",
     },
   ], []);
 
@@ -301,11 +301,11 @@ export default function AdminFraudDashboardPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-white mb-2">Affiliate Fraud Dashboard</h1>
-        <p className="text-[var(--voyage-muted)]">Monitor and manage affiliate fraud detection</p>
+        <p className="text-[var(--voyo-muted)]">Monitor and manage affiliate fraud detection</p>
       </div>
 
       {/* Search and Filters */}
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardHeader>
           <CardTitle className="text-white">Search Affiliates</CardTitle>
         </CardHeader>
@@ -321,13 +321,13 @@ export default function AdminFraudDashboardPage() {
                     searchAffiliates();
                   }
                 }}
-                className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)]"
+                className="bg-[var(--voyo-bg-light)] border-[var(--voyo-border)]"
               />
             </div>
             <select
               value={riskFilter}
               onChange={(e) => setRiskFilter(e.target.value)}
-              className="px-4 py-2 rounded-lg bg-[var(--voyage-bg-light)] border border-[var(--voyage-border)] text-white"
+              className="px-4 py-2 rounded-lg bg-[var(--voyo-bg-light)] border border-[var(--voyo-border)] text-white"
             >
               <option value="">All Risk Levels</option>
               <option value="low">Low</option>
@@ -338,13 +338,13 @@ export default function AdminFraudDashboardPage() {
             <select
               value={frozenFilter}
               onChange={(e) => setFrozenFilter(e.target.value)}
-              className="px-4 py-2 rounded-lg bg-[var(--voyage-bg-light)] border border-[var(--voyage-border)] text-white"
+              className="px-4 py-2 rounded-lg bg-[var(--voyo-bg-light)] border border-[var(--voyo-border)] text-white"
             >
               <option value="">All Statuses</option>
               <option value="true">Frozen Only</option>
               <option value="false">Active Only</option>
             </select>
-            <Button onClick={searchAffiliates} className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)]">
+            <Button onClick={searchAffiliates} className="bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)]">
               <Search className="h-4 w-4 mr-2" />
               Search
             </Button>
@@ -353,15 +353,15 @@ export default function AdminFraudDashboardPage() {
       </Card>
 
       {/* Affiliates List */}
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardHeader>
           <CardTitle className="text-white">Affiliates</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-[var(--voyage-muted)]">Loading...</p>
+            <p className="text-[var(--voyo-muted)]">Loading...</p>
           ) : affiliates.length === 0 ? (
-            <p className="text-[var(--voyage-muted)] text-center py-8">No affiliates found</p>
+            <p className="text-[var(--voyo-muted)] text-center py-8">No affiliates found</p>
           ) : (
             <AdminTable
               data={affiliates}
@@ -375,7 +375,7 @@ export default function AdminFraudDashboardPage() {
 
       {/* Fraud Details */}
       {selectedAffiliate && (
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
           <CardHeader>
             <CardTitle className="text-white flex items-center justify-between">
               <span>Fraud Details</span>
@@ -393,14 +393,14 @@ export default function AdminFraudDashboardPage() {
           </CardHeader>
           <CardContent>
             {detailsLoading ? (
-              <p className="text-[var(--voyage-muted)]">Loading details...</p>
+              <p className="text-[var(--voyo-muted)]">Loading details...</p>
             ) : fraudDetails ? (
               <div className="space-y-6">
                 {/* Fraud Score Overview */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Card className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)]">
+                  <Card className="bg-[var(--voyo-bg-light)] border-[var(--voyo-border)]">
                     <CardContent className="p-4">
-                      <p className="text-sm text-[var(--voyage-muted)] mb-1">Fraud Score</p>
+                      <p className="text-sm text-[var(--voyo-muted)] mb-1">Fraud Score</p>
                       <p className={`text-3xl font-bold ${fraudDetails.fraudScore.totalScore >= 60 ? "text-red-400" : fraudDetails.fraudScore.totalScore >= 40 ? "text-orange-400" : "text-white"}`}>
                         {fraudDetails.fraudScore.totalScore}
                       </p>
@@ -409,15 +409,15 @@ export default function AdminFraudDashboardPage() {
                       </Badge>
                     </CardContent>
                   </Card>
-                  <Card className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)]">
+                  <Card className="bg-[var(--voyo-bg-light)] border-[var(--voyo-border)]">
                     <CardContent className="p-4">
-                      <p className="text-sm text-[var(--voyage-muted)] mb-1">Total Events</p>
+                      <p className="text-sm text-[var(--voyo-muted)] mb-1">Total Events</p>
                       <p className="text-3xl font-bold text-white">{fraudDetails.events.length}</p>
                     </CardContent>
                   </Card>
-                  <Card className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)]">
+                  <Card className="bg-[var(--voyo-bg-light)] border-[var(--voyo-border)]">
                     <CardContent className="p-4">
-                      <p className="text-sm text-[var(--voyage-muted)] mb-1">Signups</p>
+                      <p className="text-sm text-[var(--voyo-muted)] mb-1">Signups</p>
                       <p className="text-3xl font-bold text-white">{fraudDetails.stats.totalSignups}</p>
                     </CardContent>
                   </Card>
@@ -427,20 +427,20 @@ export default function AdminFraudDashboardPage() {
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-4">Statistics</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-[var(--voyage-bg-light)] rounded-lg p-4">
-                      <p className="text-sm text-[var(--voyage-muted)]">Unique IPs</p>
+                    <div className="bg-[var(--voyo-bg-light)] rounded-lg p-4">
+                      <p className="text-sm text-[var(--voyo-muted)]">Unique IPs</p>
                       <p className="text-xl font-bold text-white">{fraudDetails.stats.uniqueIPs}</p>
                     </div>
-                    <div className="bg-[var(--voyage-bg-light)] rounded-lg p-4">
-                      <p className="text-sm text-[var(--voyage-muted)]">Unique Devices</p>
+                    <div className="bg-[var(--voyo-bg-light)] rounded-lg p-4">
+                      <p className="text-sm text-[var(--voyo-muted)]">Unique Devices</p>
                       <p className="text-xl font-bold text-white">{fraudDetails.stats.uniqueDevices}</p>
                     </div>
-                    <div className="bg-[var(--voyage-bg-light)] rounded-lg p-4">
-                      <p className="text-sm text-[var(--voyage-muted)]">Countries</p>
+                    <div className="bg-[var(--voyo-bg-light)] rounded-lg p-4">
+                      <p className="text-sm text-[var(--voyo-muted)]">Countries</p>
                       <p className="text-xl font-bold text-white">{fraudDetails.stats.uniqueCountries}</p>
                     </div>
-                    <div className="bg-[var(--voyage-bg-light)] rounded-lg p-4">
-                      <p className="text-sm text-[var(--voyage-muted)]">Total Clicks</p>
+                    <div className="bg-[var(--voyo-bg-light)] rounded-lg p-4">
+                      <p className="text-sm text-[var(--voyo-muted)]">Total Clicks</p>
                       <p className="text-xl font-bold text-white">{fraudDetails.stats.totalClicks}</p>
                     </div>
                   </div>
@@ -450,13 +450,13 @@ export default function AdminFraudDashboardPage() {
                 {fraudDetails.stats.deviceCounts.length > 0 && (
                   <div>
                     <h3 className="text-lg font-semibold text-white mb-4">Device Fingerprints</h3>
-                    <div className="bg-[var(--voyage-bg-light)] rounded-lg p-4 space-y-2">
+                    <div className="bg-[var(--voyo-bg-light)] rounded-lg p-4 space-y-2">
                       {fraudDetails.stats.deviceCounts
                         .sort((a, b) => b.count - a.count)
                         .slice(0, 10)
                         .map((device, idx) => (
                           <div key={idx} className="flex items-center justify-between text-sm">
-                            <code className="text-[var(--voyage-muted)] font-mono text-xs truncate flex-1">
+                            <code className="text-[var(--voyo-muted)] font-mono text-xs truncate flex-1">
                               {device.fingerprint.substring(0, 32)}...
                             </code>
                             <Badge variant="outline" className="ml-4">
@@ -471,9 +471,9 @@ export default function AdminFraudDashboardPage() {
                 {/* Fraud Events */}
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-4">Fraud Events</h3>
-                  <div className="bg-[var(--voyage-bg-light)] rounded-lg overflow-hidden">
+                  <div className="bg-[var(--voyo-bg-light)] rounded-lg overflow-hidden">
                     <table className="w-full">
-                      <thead className="bg-[var(--voyage-card)] border-b border-[var(--voyage-border)]">
+                      <thead className="bg-[var(--voyo-card)] border-b border-[var(--voyo-border)]">
                         <tr>
                           <th className="px-4 py-2 text-left text-sm text-white">Date</th>
                           <th className="px-4 py-2 text-left text-sm text-white">Type</th>
@@ -483,8 +483,8 @@ export default function AdminFraudDashboardPage() {
                       </thead>
                       <tbody>
                         {fraudDetails.events.slice(0, 50).map((event) => (
-                          <tr key={event.id} className="border-b border-[var(--voyage-border)]">
-                            <td className="px-4 py-2 text-sm text-[var(--voyage-muted)]">
+                          <tr key={event.id} className="border-b border-[var(--voyo-border)]">
+                            <td className="px-4 py-2 text-sm text-[var(--voyo-muted)]">
                               {new Date(event.createdAt).toLocaleString()}
                             </td>
                             <td className="px-4 py-2 text-sm">
@@ -493,7 +493,7 @@ export default function AdminFraudDashboardPage() {
                               </Badge>
                             </td>
                             <td className="px-4 py-2 text-sm text-white font-medium">{event.score}</td>
-                            <td className="px-4 py-2 text-sm text-[var(--voyage-muted)] max-w-md">
+                            <td className="px-4 py-2 text-sm text-[var(--voyo-muted)] max-w-md">
                               <div className="text-xs whitespace-normal break-words">
                                 {formatFraudEventDetails(event.metadata)}
                               </div>
@@ -509,9 +509,9 @@ export default function AdminFraudDashboardPage() {
                 {fraudDetails.signups.length > 0 && (
                   <div>
                     <h3 className="text-lg font-semibold text-white mb-4">Recent Signups</h3>
-                    <div className="bg-[var(--voyage-bg-light)] rounded-lg overflow-hidden">
+                    <div className="bg-[var(--voyo-bg-light)] rounded-lg overflow-hidden">
                       <table className="w-full">
-                        <thead className="bg-[var(--voyage-card)] border-b border-[var(--voyage-border)]">
+                        <thead className="bg-[var(--voyo-card)] border-b border-[var(--voyo-border)]">
                           <tr>
                             <th className="px-4 py-2 text-left text-sm text-white">Email</th>
                             <th className="px-4 py-2 text-left text-sm text-white">IP</th>
@@ -521,13 +521,13 @@ export default function AdminFraudDashboardPage() {
                         </thead>
                         <tbody>
                           {fraudDetails.signups.slice(0, 20).map((signup) => (
-                            <tr key={signup.userId} className="border-b border-[var(--voyage-border)]">
+                            <tr key={signup.userId} className="border-b border-[var(--voyo-border)]">
                               <td className="px-4 py-2 text-sm text-white">{signup.userEmail}</td>
-                              <td className="px-4 py-2 text-sm text-[var(--voyage-muted)] font-mono text-xs">
+                              <td className="px-4 py-2 text-sm text-[var(--voyo-muted)] font-mono text-xs">
                                 {signup.ipAddress || "N/A"}
                               </td>
-                              <td className="px-4 py-2 text-sm text-[var(--voyage-muted)]">{signup.country || "N/A"}</td>
-                              <td className="px-4 py-2 text-sm text-[var(--voyage-muted)]">
+                              <td className="px-4 py-2 text-sm text-[var(--voyo-muted)]">{signup.country || "N/A"}</td>
+                              <td className="px-4 py-2 text-sm text-[var(--voyo-muted)]">
                                 {new Date(signup.createdAt).toLocaleDateString()}
                               </td>
                             </tr>
@@ -539,7 +539,7 @@ export default function AdminFraudDashboardPage() {
                 )}
               </div>
             ) : (
-              <p className="text-[var(--voyage-muted)]">Failed to load fraud details</p>
+              <p className="text-[var(--voyo-muted)]">Failed to load fraud details</p>
             )}
           </CardContent>
         </Card>

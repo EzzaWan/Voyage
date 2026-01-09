@@ -70,46 +70,46 @@ export default function PayoutHistoryPage() {
     <div className="container mx-auto px-4 py-8">
       <Link
         href="/account/affiliate"
-        className="inline-flex items-center text-[var(--voyage-muted)] hover:text-white transition-colors mb-4"
+        className="inline-flex items-center text-[var(--voyo-muted)] hover:text-white transition-colors mb-4"
       >
         <ArrowLeft className="h-4 w-4 mr-2" /> Back to Affiliate Dashboard
       </Link>
 
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardHeader>
           <CardTitle className="text-white">Payout History</CardTitle>
         </CardHeader>
         <CardContent>
           {history.length === 0 ? (
-            <p className="text-center text-[var(--voyage-muted)] py-8">No payout requests yet</p>
+            <p className="text-center text-[var(--voyo-muted)] py-8">No payout requests yet</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-[var(--voyage-border)]">
-                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyage-muted)]">Amount</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyage-muted)]">Status</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyage-muted)]">Requested</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyage-muted)]">Processed</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyage-muted)]">Note</th>
+                  <tr className="border-b border-[var(--voyo-border)]">
+                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyo-muted)]">Amount</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyo-muted)]">Status</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyo-muted)]">Requested</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyo-muted)]">Processed</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyo-muted)]">Note</th>
                   </tr>
                 </thead>
                 <tbody>
                   {history.map((payout) => (
-                    <tr key={payout.id} className="border-b border-[var(--voyage-border)] hover:bg-[var(--voyage-bg-light)]">
+                    <tr key={payout.id} className="border-b border-[var(--voyo-border)] hover:bg-[var(--voyo-bg-light)]">
                       <td className="py-3 px-4 text-white font-medium">
                         {formatCurrency(payout.amountCents / 100)}
                       </td>
                       <td className="py-3 px-4">
                         {getStatusBadge(payout.status)}
                       </td>
-                      <td className="py-3 px-4 text-[var(--voyage-muted)] text-sm">
+                      <td className="py-3 px-4 text-[var(--voyo-muted)] text-sm">
                         {formatDate(payout.createdAt)}
                       </td>
-                      <td className="py-3 px-4 text-[var(--voyage-muted)] text-sm">
+                      <td className="py-3 px-4 text-[var(--voyo-muted)] text-sm">
                         {payout.processedAt ? formatDate(payout.processedAt) : "-"}
                       </td>
-                      <td className="py-3 px-4 text-[var(--voyage-muted)] text-sm">
+                      <td className="py-3 px-4 text-[var(--voyo-muted)] text-sm">
                         {payout.adminNote || "-"}
                       </td>
                     </tr>

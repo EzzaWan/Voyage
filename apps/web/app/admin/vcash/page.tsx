@@ -155,13 +155,13 @@ export default function AdminVCashPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-white mb-2">V-Cash Management</h1>
-        <p className="text-[var(--voyage-muted)]">
+        <p className="text-[var(--voyo-muted)]">
           Add V-Cash to any user account
         </p>
       </div>
 
       {/* Search User */}
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
             <Search className="h-5 w-5" />
@@ -185,14 +185,14 @@ export default function AdminVCashPage() {
                     handleSearch();
                   }
                 }}
-                className="bg-[var(--voyage-bg)] border-[var(--voyage-border)] text-white"
+                className="bg-[var(--voyo-bg)] border-[var(--voyo-border)] text-white"
               />
             </div>
             <div className="flex items-end">
               <Button
                 onClick={handleSearch}
                 disabled={searching}
-                className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)]"
+                className="bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)]"
               >
                 {searching ? (
                   <>
@@ -213,7 +213,7 @@ export default function AdminVCashPage() {
 
       {/* Selected User Info */}
       {selectedUser && (
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Wallet className="h-5 w-5" />
@@ -223,32 +223,32 @@ export default function AdminVCashPage() {
           <CardContent>
             <div className="space-y-3">
               <div>
-                <Label className="text-[var(--voyage-muted)] text-sm">Email</Label>
+                <Label className="text-[var(--voyo-muted)] text-sm">Email</Label>
                 <p className="text-white font-medium">{selectedUser.email}</p>
               </div>
               {selectedUser.name && (
                 <div>
-                  <Label className="text-[var(--voyage-muted)] text-sm">Name</Label>
+                  <Label className="text-[var(--voyo-muted)] text-sm">Name</Label>
                   <p className="text-white font-medium">{selectedUser.name}</p>
                 </div>
               )}
               <div>
-                <Label className="text-[var(--voyage-muted)] text-sm">User ID</Label>
+                <Label className="text-[var(--voyo-muted)] text-sm">User ID</Label>
                 <p className="text-white font-mono text-sm">{selectedUser.id}</p>
               </div>
-              <div className="pt-2 border-t border-[var(--voyage-border)]">
-                <Label className="text-[var(--voyage-muted)] text-sm">V-Cash Balance</Label>
+              <div className="pt-2 border-t border-[var(--voyo-border)]">
+                <Label className="text-[var(--voyo-muted)] text-sm">V-Cash Balance</Label>
                 {loadingBalance ? (
                   <div className="flex items-center gap-2 mt-1">
-                    <Loader2 className="h-4 w-4 animate-spin text-[var(--voyage-accent)]" />
-                    <span className="text-[var(--voyage-muted)]">Loading...</span>
+                    <Loader2 className="h-4 w-4 animate-spin text-[var(--voyo-accent)]" />
+                    <span className="text-[var(--voyo-muted)]">Loading...</span>
                   </div>
                 ) : balance !== null ? (
                   <p className="text-2xl font-bold text-white mt-1">
                     ${(balance / 100).toFixed(2)}
                   </p>
                 ) : (
-                  <p className="text-[var(--voyage-muted)] mt-1">Unable to load balance</p>
+                  <p className="text-[var(--voyo-muted)] mt-1">Unable to load balance</p>
                 )}
               </div>
             </div>
@@ -258,7 +258,7 @@ export default function AdminVCashPage() {
 
       {/* Credit Form */}
       {selectedUser && (
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Plus className="h-5 w-5" />
@@ -279,9 +279,9 @@ export default function AdminVCashPage() {
                   placeholder="0.00"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="bg-[var(--voyage-bg)] border-[var(--voyage-border)] text-white"
+                  className="bg-[var(--voyo-bg)] border-[var(--voyo-border)] text-white"
                 />
-                <p className="text-xs text-[var(--voyage-muted)] mt-1">
+                <p className="text-xs text-[var(--voyo-muted)] mt-1">
                   Enter amount in dollars (e.g., 10.50 for $10.50)
                 </p>
               </div>
@@ -296,14 +296,14 @@ export default function AdminVCashPage() {
                   placeholder="Manual credit, refund, etc."
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  className="bg-[var(--voyage-bg)] border-[var(--voyage-border)] text-white"
+                  className="bg-[var(--voyo-bg)] border-[var(--voyo-border)] text-white"
                 />
               </div>
 
               <Button
                 onClick={handleCredit}
                 disabled={crediting || !amount}
-                className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)]"
+                className="w-full bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)]"
               >
                 {crediting ? (
                   <>
@@ -323,9 +323,9 @@ export default function AdminVCashPage() {
       )}
 
       {!selectedUser && (
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
           <CardContent className="py-8 text-center">
-            <p className="text-[var(--voyage-muted)]">
+            <p className="text-[var(--voyo-muted)]">
               Search for a user by email to view their V-Cash balance and add credits
             </p>
           </CardContent>

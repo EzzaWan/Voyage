@@ -94,7 +94,7 @@ export default function AdminOrdersPage() {
           <div>
             <div className="text-white">{planName || row.planId}</div>
             {planName && (
-              <div className="text-xs text-[var(--voyage-muted)] font-mono">{row.planId}</div>
+              <div className="text-xs text-[var(--voyo-muted)] font-mono">{row.planId}</div>
             )}
           </div>
         );
@@ -120,12 +120,12 @@ export default function AdminOrdersPage() {
     {
       header: "Provider Order",
       accessor: (row: Order) => row.esimOrderNo || "-",
-      className: (row: Order) => row.esimOrderNo ? "break-all min-w-[100px] font-mono text-xs text-white" : "break-all min-w-[100px] text-[var(--voyage-muted)]",
+      className: (row: Order) => row.esimOrderNo ? "break-all min-w-[100px] font-mono text-xs text-white" : "break-all min-w-[100px] text-[var(--voyo-muted)]",
     },
     {
       header: "Payment Ref",
       accessor: (row: Order) => row.paymentRef || "-",
-      className: (row: Order) => row.paymentRef ? "break-all min-w-[100px] font-mono text-xs text-white" : "break-all min-w-[100px] text-[var(--voyage-muted)]",
+      className: (row: Order) => row.paymentRef ? "break-all min-w-[100px] font-mono text-xs text-white" : "break-all min-w-[100px] text-[var(--voyo-muted)]",
     },
     {
       header: "Created",
@@ -144,8 +144,8 @@ export default function AdminOrdersPage() {
   if (loading) {
     return (
       <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyage-accent)] mx-auto mb-4"></div>
-        <p className="text-[var(--voyage-muted)]">Loading orders...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyo-accent)] mx-auto mb-4"></div>
+        <p className="text-[var(--voyo-muted)]">Loading orders...</p>
       </div>
     );
   }
@@ -155,13 +155,13 @@ export default function AdminOrdersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">Orders</h1>
-          <p className="text-[var(--voyage-muted)]">
+          <p className="text-[var(--voyo-muted)]">
             Manage and monitor all orders
           </p>
         </div>
       </div>
 
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardContent className="p-0">
           <AdminTable
             data={orders}

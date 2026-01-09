@@ -195,8 +195,8 @@ export default function AdminOrderDetailPage() {
   if (loading || !order) {
     return (
       <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyage-accent)] mx-auto mb-4"></div>
-        <p className="text-[var(--voyage-muted)]">Loading order...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyo-accent)] mx-auto mb-4"></div>
+        <p className="text-[var(--voyo-muted)]">Loading order...</p>
       </div>
     );
   }
@@ -207,37 +207,37 @@ export default function AdminOrderDetailPage() {
         <Button
           variant="ghost"
           onClick={() => router.push("/admin/orders")}
-          className="text-[var(--voyage-muted)] hover:text-white"
+          className="text-[var(--voyo-muted)] hover:text-white"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">Order Details</h1>
-          <p className="text-[var(--voyage-muted)]">Order ID: {order.id}</p>
+          <p className="text-[var(--voyo-muted)]">Order ID: {order.id}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
           <CardHeader>
             <CardTitle className="text-white">Order Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <p className="text-sm text-[var(--voyage-muted)]">Status</p>
+              <p className="text-sm text-[var(--voyo-muted)]">Status</p>
               {(() => {
                 const statusDisplay = getOrderStatusDisplay(order.status);
                 return <Badge className={`mt-1 ${statusDisplay.className}`}>{statusDisplay.label}</Badge>;
               })()}
             </div>
             <div>
-              <p className="text-sm text-[var(--voyage-muted)]">Plan</p>
+              <p className="text-sm text-[var(--voyo-muted)]">Plan</p>
               <div className="text-white">
                 {planName && planName !== order.planId ? (
                   <>
                     <div>{planName}</div>
-                    <div className="text-xs text-[var(--voyage-muted)] font-mono">{order.planId}</div>
+                    <div className="text-xs text-[var(--voyo-muted)] font-mono">{order.planId}</div>
                   </>
                 ) : (
                   <span className="font-mono">{order.planId}</span>
@@ -245,27 +245,27 @@ export default function AdminOrderDetailPage() {
               </div>
             </div>
             <div>
-              <p className="text-sm text-[var(--voyage-muted)]">Amount</p>
+              <p className="text-sm text-[var(--voyo-muted)]">Amount</p>
               <p className="text-white">{formatUsdDollars(order.amountCents / 100)}</p>
             </div>
             <div>
-              <p className="text-sm text-[var(--voyage-muted)]">Payment Method</p>
+              <p className="text-sm text-[var(--voyo-muted)]">Payment Method</p>
               <p className="text-white">{order.paymentMethod}</p>
             </div>
             {order.paymentRef && (
               <div>
-                <p className="text-sm text-[var(--voyage-muted)]">Payment Ref</p>
+                <p className="text-sm text-[var(--voyo-muted)]">Payment Ref</p>
                 <p className="text-white font-mono text-xs">{order.paymentRef}</p>
               </div>
             )}
             {order.esimOrderNo && (
               <div>
-                <p className="text-sm text-[var(--voyage-muted)]">Provider Order No</p>
+                <p className="text-sm text-[var(--voyo-muted)]">Provider Order No</p>
                 <p className="text-white font-mono text-xs">{order.esimOrderNo}</p>
               </div>
             )}
             <div>
-              <p className="text-sm text-[var(--voyage-muted)]">Created</p>
+              <p className="text-sm text-[var(--voyo-muted)]">Created</p>
               <p className="text-white">
                 {new Date(order.createdAt).toLocaleString()}
               </p>
@@ -273,23 +273,23 @@ export default function AdminOrderDetailPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
           <CardHeader>
             <CardTitle className="text-white">User Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <p className="text-sm text-[var(--voyage-muted)]">Email</p>
+              <p className="text-sm text-[var(--voyo-muted)]">Email</p>
               <p className="text-white">{order.user.email}</p>
             </div>
             {order.user.name && (
               <div>
-                <p className="text-sm text-[var(--voyage-muted)]">Name</p>
+                <p className="text-sm text-[var(--voyo-muted)]">Name</p>
                 <p className="text-white">{order.user.name}</p>
               </div>
             )}
             <div>
-              <p className="text-sm text-[var(--voyage-muted)]">User ID</p>
+              <p className="text-sm text-[var(--voyo-muted)]">User ID</p>
               <p className="text-white font-mono text-xs">{order.user.id}</p>
             </div>
           </CardContent>
@@ -297,7 +297,7 @@ export default function AdminOrderDetailPage() {
       </div>
 
       {order.profiles && order.profiles.length > 0 && (
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
           <CardHeader>
             <CardTitle className="text-white">eSIM Profiles</CardTitle>
           </CardHeader>
@@ -306,11 +306,11 @@ export default function AdminOrderDetailPage() {
               {order.profiles.map((profile) => (
                 <div
                   key={profile.id}
-                  className="p-4 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)]"
+                  className="p-4 bg-[var(--voyo-bg-light)] rounded-lg border border-[var(--voyo-border)]"
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-[var(--voyage-muted)]">ICCID</p>
+                      <p className="text-sm text-[var(--voyo-muted)]">ICCID</p>
                       <p className="text-white font-mono text-xs">{profile.iccid}</p>
                     </div>
                     <Button
@@ -336,7 +336,7 @@ export default function AdminOrderDetailPage() {
         </Card>
       )}
 
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-white">Actions</CardTitle>
@@ -344,7 +344,7 @@ export default function AdminOrderDetailPage() {
               <Button
                 onClick={handleRetry}
                 disabled={actionLoading !== null}
-                className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)]"
+                className="bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)]"
               >
                 {actionLoading === "retry" ? (
                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
@@ -357,7 +357,7 @@ export default function AdminOrderDetailPage() {
                 onClick={handleSync}
                 disabled={actionLoading !== null}
                 variant="outline"
-                className="border-[var(--voyage-border)] hover:bg-[var(--voyage-bg-light)]"
+                className="border-[var(--voyo-border)] hover:bg-[var(--voyo-bg-light)]"
               >
                 {actionLoading === "sync" ? (
                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
@@ -370,7 +370,7 @@ export default function AdminOrderDetailPage() {
                 onClick={handleResendReceipt}
                 disabled={actionLoading !== null}
                 variant="outline"
-                className="border-[var(--voyage-border)] hover:bg-[var(--voyage-bg-light)]"
+                className="border-[var(--voyo-border)] hover:bg-[var(--voyo-bg-light)]"
               >
                 {actionLoading === "resend" ? (
                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
@@ -385,16 +385,16 @@ export default function AdminOrderDetailPage() {
         {order.webhookEvents && order.webhookEvents.length > 0 && (
           <CardContent>
             <div className="space-y-2">
-              <p className="text-sm text-[var(--voyage-muted)] mb-2">Webhook Events</p>
+              <p className="text-sm text-[var(--voyo-muted)] mb-2">Webhook Events</p>
               {order.webhookEvents.map((event) => (
                 <details
                   key={event.id}
-                  className="p-3 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)]"
+                  className="p-3 bg-[var(--voyo-bg-light)] rounded-lg border border-[var(--voyo-border)]"
                 >
                   <summary className="cursor-pointer text-sm text-white">
                     {event.source} - {new Date(event.createdAt).toLocaleString()}
                   </summary>
-                  <pre className="mt-2 text-xs text-[var(--voyage-muted)] overflow-auto">
+                  <pre className="mt-2 text-xs text-[var(--voyo-muted)] overflow-auto">
                     {JSON.stringify(event.payload, null, 2)}
                   </pre>
                 </details>
@@ -405,14 +405,14 @@ export default function AdminOrderDetailPage() {
       </Card>
 
       {/* Receipt Section */}
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardHeader>
           <h3 className="text-lg font-semibold text-white">Receipt</h3>
         </CardHeader>
         <CardContent>
           <Button
             variant="secondary"
-            className="border-[var(--voyage-border)] hover:bg-[var(--voyage-bg-light)]"
+            className="border-[var(--voyo-border)] hover:bg-[var(--voyo-bg-light)]"
             onClick={async () => {
               const receiptUrl = `${apiUrl}/orders/${order.id}/receipt`;
               const adminEmail = user?.primaryEmailAddress?.emailAddress || '';

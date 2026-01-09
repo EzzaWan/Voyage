@@ -104,7 +104,7 @@ const SHORT_REVIEWS_FR = [
   "Super pratique",
   "Connexion rapide",
   "Aucun problème",
-  "Parfait pour le voyage",
+  "Parfait pour le Voyo",
   "Très satisfait"
 ];
 

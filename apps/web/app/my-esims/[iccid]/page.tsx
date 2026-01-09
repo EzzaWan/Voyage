@@ -201,7 +201,7 @@ export default function EsimDetailPage() {
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
       {/* Back Button */}
-      <Link href="/my-esims" className="inline-flex items-center text-[var(--voyage-muted)] hover:text-white transition-colors mb-4">
+      <Link href="/my-esims" className="inline-flex items-center text-[var(--voyo-muted)] hover:text-white transition-colors mb-4">
         <ArrowLeft className="h-4 w-4 mr-2" /> Back to My eSIMs
       </Link>
 
@@ -213,9 +213,9 @@ export default function EsimDetailPage() {
       </div>
 
       {/* Header Card (Matching PlanDetails) */}
-      <div className="bg-[var(--voyage-card)]/70 backdrop-blur-lg rounded-2xl p-8 shadow-xl border border-[var(--voyage-border)] relative overflow-hidden">
+      <div className="bg-[var(--voyo-card)]/70 backdrop-blur-lg rounded-2xl p-8 shadow-xl border border-[var(--voyo-border)] relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-10">
-              <Wifi className="h-64 w-64 text-[var(--voyage-accent)]" />
+              <Wifi className="h-64 w-64 text-[var(--voyo-accent)]" />
           </div>
           
           <div className="relative z-10">
@@ -230,13 +230,13 @@ export default function EsimDetailPage() {
               <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
                 {profile.planDetails?.name || profile.iccid}
               </h1>
-              <div className="flex flex-wrap gap-6 text-[var(--voyage-muted)]">
+              <div className="flex flex-wrap gap-6 text-[var(--voyo-muted)]">
                  <div className="flex items-center gap-2">
-                    <Globe className="h-5 w-5 text-[var(--voyage-accent)]" />
+                    <Globe className="h-5 w-5 text-[var(--voyo-accent)]" />
                     <span>{profile.planDetails?.location || "Global"} Region</span>
                  </div>
                  <div className="flex items-center gap-2">
-                    <Wifi className="h-5 w-5 text-[var(--voyage-accent)]" />
+                    <Wifi className="h-5 w-5 text-[var(--voyo-accent)]" />
                     <span>4G/LTE Speed</span>
                  </div>
               </div>
@@ -245,14 +245,14 @@ export default function EsimDetailPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-         <div className="bg-[var(--voyage-card)] rounded-xl p-5 border border-[var(--voyage-border)] flex flex-col items-center justify-center text-center">
-            <HardDrive className="h-5 w-5 text-[var(--voyage-accent)] mb-2" />
-            <span className="text-[var(--voyage-muted)] text-sm mb-1">Data Balance</span>
+         <div className="bg-[var(--voyo-card)] rounded-xl p-5 border border-[var(--voyo-border)] flex flex-col items-center justify-center text-center">
+            <HardDrive className="h-5 w-5 text-[var(--voyo-accent)] mb-2" />
+            <span className="text-[var(--voyo-muted)] text-sm mb-1">Data Balance</span>
             <span className="text-2xl font-bold text-white">{sizeGB}</span>
          </div>
-         <div className="bg-[var(--voyage-card)] rounded-xl p-5 border border-[var(--voyage-border)] flex flex-col items-center justify-center text-center">
-            <Calendar className="h-5 w-5 text-[var(--voyage-accent)] mb-2" />
-            <span className="text-[var(--voyage-muted)] text-sm mb-1">Expires</span>
+         <div className="bg-[var(--voyo-card)] rounded-xl p-5 border border-[var(--voyo-border)] flex flex-col items-center justify-center text-center">
+            <Calendar className="h-5 w-5 text-[var(--voyo-accent)] mb-2" />
+            <span className="text-[var(--voyo-muted)] text-sm mb-1">Expires</span>
             <ExpiryCountdown 
               expiry={profile.expiredTime} 
               iccid={profile.iccid}
@@ -260,26 +260,26 @@ export default function EsimDetailPage() {
               className="text-2xl font-bold"
             />
          </div>
-         <div className="bg-[var(--voyage-card)] rounded-xl p-5 border border-[var(--voyage-border)] flex flex-col items-center justify-center text-center">
-            <span className="text-[var(--voyage-muted)] text-sm mb-1">Status</span>
+         <div className="bg-[var(--voyo-card)] rounded-xl p-5 border border-[var(--voyo-border)] flex flex-col items-center justify-center text-center">
+            <span className="text-[var(--voyo-muted)] text-sm mb-1">Status</span>
             <span className="text-xl font-bold text-white">{statusDisplay.label}</span>
          </div>
-         <div className="bg-[var(--voyage-card)] rounded-xl p-5 border border-[var(--voyage-border)] flex flex-col items-center justify-center text-center">
-            <span className="text-[var(--voyage-muted)] text-sm mb-1">ICCID</span>
+         <div className="bg-[var(--voyo-card)] rounded-xl p-5 border border-[var(--voyo-border)] flex flex-col items-center justify-center text-center">
+            <span className="text-[var(--voyo-muted)] text-sm mb-1">ICCID</span>
             <span className="text-sm font-mono text-white truncate max-w-full px-2">{profile.iccid}</span>
          </div>
       </div>
 
       {/* QR Code Display Section */}
       {(profile.qrCodeUrl || profile.ac || polling) && (
-        <div className="bg-[var(--voyage-card)] rounded-2xl p-8 border border-[var(--voyage-border)]">
+        <div className="bg-[var(--voyo-card)] rounded-2xl p-8 border border-[var(--voyo-border)]">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
                 <QrCode className="h-6 w-6" />
                 Install eSIM
               </h3>
-              <p className="text-[var(--voyage-muted)]">
+              <p className="text-[var(--voyo-muted)]">
                 {polling && !profile.qrCodeUrl && !profile.ac
                   ? "Your eSIM is being prepared. This may take a few moments..."
                   : "Scan the QR code with your device to install the eSIM profile"}
@@ -294,12 +294,12 @@ export default function EsimDetailPage() {
           </div>
           
           {polling && !profile.qrCodeUrl && !profile.ac ? (
-            <div className="bg-[var(--voyage-card)] rounded-xl border border-[var(--voyage-border)] p-12">
+            <div className="bg-[var(--voyo-card)] rounded-xl border border-[var(--voyo-border)] p-12">
               <div className="flex flex-col items-center justify-center text-center space-y-4">
-                <RefreshCw className="h-12 w-12 animate-spin text-[var(--voyage-accent)]" />
+                <RefreshCw className="h-12 w-12 animate-spin text-[var(--voyo-accent)]" />
                 <div>
                   <h4 className="text-lg font-semibold text-white mb-2">Preparing Your eSIM</h4>
-                  <p className="text-[var(--voyage-muted)]">
+                  <p className="text-[var(--voyo-muted)]">
                     We're preparing your eSIM QR code. This usually takes less than a minute.
                     <br />
                     The page will update automatically when ready.
@@ -326,7 +326,7 @@ export default function EsimDetailPage() {
         {profile.order?.id && (
           <Button 
             variant="secondary"
-            className="h-14 px-8 text-lg font-bold border-[var(--voyage-border)] hover:bg-[var(--voyage-bg-light)] text-white"
+            className="h-14 px-8 text-lg font-bold border-[var(--voyo-border)] hover:bg-[var(--voyo-bg-light)] text-white"
             onClick={async () => {
               const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
               const userEmail = user?.primaryEmailAddress?.emailAddress || '';
@@ -358,7 +358,7 @@ export default function EsimDetailPage() {
         )}
         <Link href={`/my-esims/${iccid}/topup`}>
           <Button 
-             className="h-14 px-8 text-lg font-bold bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white shadow-[0_0_20px_rgba(30,144,255,0.3)] transition-all"
+             className="h-14 px-8 text-lg font-bold bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white shadow-[0_0_20px_rgba(30,144,255,0.3)] transition-all"
           >
              Top Up Now
           </Button>
@@ -367,7 +367,7 @@ export default function EsimDetailPage() {
 
       {/* Data Usage History Graph */}
       {usageHistory.length > 0 && (
-        <div className="bg-[var(--voyage-card)] rounded-2xl p-8 border border-[var(--voyage-border)]">
+        <div className="bg-[var(--voyo-card)] rounded-2xl p-8 border border-[var(--voyo-border)]">
           <h3 className="text-xl font-bold text-white mb-6">Data Usage History</h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -389,8 +389,8 @@ export default function EsimDetailPage() {
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: 'var(--voyage-bg-light)',
-                    border: '1px solid var(--voyage-border)',
+                    backgroundColor: 'var(--voyo-bg-light)',
+                    border: '1px solid var(--voyo-border)',
                     borderRadius: '8px',
                     color: 'white',
                   }}
@@ -399,9 +399,9 @@ export default function EsimDetailPage() {
                 <Line 
                   type="monotone" 
                   dataKey="usedGB" 
-                  stroke="var(--voyage-accent)" 
+                  stroke="var(--voyo-accent)" 
                   strokeWidth={2}
-                  dot={{ fill: 'var(--voyage-accent)', r: 4 }}
+                  dot={{ fill: 'var(--voyo-accent)', r: 4 }}
                   activeDot={{ r: 6 }}
                 />
               </LineChart>
@@ -411,7 +411,7 @@ export default function EsimDetailPage() {
       )}
 
       {/* Top-Up History */}
-      <div className="bg-[var(--voyage-card)] rounded-2xl p-8 border border-[var(--voyage-border)]">
+      <div className="bg-[var(--voyo-card)] rounded-2xl p-8 border border-[var(--voyo-border)]">
          <h3 className="text-xl font-bold text-white mb-6">Top-Up History</h3>
          {history.length > 0 ? (
              <div className="space-y-4">
@@ -420,14 +420,14 @@ export default function EsimDetailPage() {
                    const planName = planDetails?.name || item.planCode;
                    
                    return (
-                     <div key={item.id} className="flex items-center justify-between p-4 rounded-lg bg-[var(--voyage-bg-light)] border border-[var(--voyage-border)]">
+                     <div key={item.id} className="flex items-center justify-between p-4 rounded-lg bg-[var(--voyo-bg-light)] border border-[var(--voyo-border)]">
                          <div className="flex items-center gap-4">
-                             <div className="h-10 w-10 rounded-full bg-[var(--voyage-bg)] flex items-center justify-center border border-[var(--voyage-border)]">
-                                 <Clock className="h-5 w-5 text-[var(--voyage-accent)]" />
+                             <div className="h-10 w-10 rounded-full bg-[var(--voyo-bg)] flex items-center justify-center border border-[var(--voyo-border)]">
+                                 <Clock className="h-5 w-5 text-[var(--voyo-accent)]" />
                              </div>
                              <div>
                                <p className="font-bold text-white">{planName}</p>
-                               <p className="text-sm text-[var(--voyage-muted)]">
+                               <p className="text-sm text-[var(--voyo-muted)]">
                                  {(() => {
                                    if (!item.createdAt) return 'N/A';
                                    try {
@@ -460,7 +460,7 @@ export default function EsimDetailPage() {
                  })}
              </div>
          ) : (
-             <div className="flex items-center gap-3 p-4 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)] text-[var(--voyage-muted)]">
+             <div className="flex items-center gap-3 p-4 bg-[var(--voyo-bg-light)] rounded-lg border border-[var(--voyo-border)] text-[var(--voyo-muted)]">
                 No top-up history found.
              </div>
          )}

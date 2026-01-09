@@ -78,7 +78,7 @@ export default function AdminAffiliatesPage() {
       {
         header: "Referral Code",
         accessor: (row: Affiliate) => row.referralCode || "N/A",
-        className: "font-mono font-bold text-[var(--voyage-accent)]",
+        className: "font-mono font-bold text-[var(--voyo-accent)]",
       },
       {
         header: "Total Commission",
@@ -103,8 +103,8 @@ export default function AdminAffiliatesPage() {
   if (loading) {
     return (
       <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyage-accent)] mx-auto mb-4"></div>
-        <p className="text-[var(--voyage-muted)]">Loading affiliates...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyo-accent)] mx-auto mb-4"></div>
+        <p className="text-[var(--voyo-muted)]">Loading affiliates...</p>
       </div>
     );
   }
@@ -114,25 +114,25 @@ export default function AdminAffiliatesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">Affiliates</h1>
-          <p className="text-[var(--voyage-muted)]">View all affiliates and their performance</p>
+          <p className="text-[var(--voyo-muted)]">View all affiliates and their performance</p>
         </div>
         <Link 
           href="/support/affiliate-terms" 
           target="_blank"
-          className="text-sm text-[var(--voyage-accent)] hover:underline flex items-center gap-1"
+          className="text-sm text-[var(--voyo-accent)] hover:underline flex items-center gap-1"
         >
           <FileText className="h-4 w-4" />
           Affiliate Terms
         </Link>
       </div>
 
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardHeader>
           <CardTitle className="text-white">All Affiliates</CardTitle>
         </CardHeader>
         <CardContent>
           {affiliates.length === 0 ? (
-            <p className="text-center text-[var(--voyage-muted)] py-8">No affiliates found</p>
+            <p className="text-center text-[var(--voyo-muted)] py-8">No affiliates found</p>
           ) : (
             <AdminTable data={affiliates} columns={columns} emptyMessage="No affiliates found" />
           )}

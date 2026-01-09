@@ -187,18 +187,18 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
     <div className="space-y-8">
       <div className="mb-8 flex items-center justify-between">
         <Link href="/">
-          <Button variant="ghost" className="pl-0 hover:pl-2 transition-all text-[var(--voyage-muted)] hover:text-white hover:bg-transparent">
+          <Button variant="ghost" className="pl-0 hover:pl-2 transition-all text-[var(--voyo-muted)] hover:text-white hover:bg-transparent">
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Store
           </Button>
         </Link>
       </div>
 
       {/* Region Header */}
-      <div className="relative bg-gradient-to-r from-[var(--voyage-accent)]/20 to-purple-500/20 rounded-3xl p-8 md:p-12 border border-[var(--voyage-border)] overflow-hidden">
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-[var(--voyage-accent)]/20 blur-3xl" />
+      <div className="relative bg-gradient-to-r from-[var(--voyo-accent)]/20 to-purple-500/20 rounded-3xl p-8 md:p-12 border border-[var(--voyo-border)] overflow-hidden">
+        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-[var(--voyo-accent)]/20 blur-3xl" />
         
         <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center">
-          <div className="h-24 w-32 md:h-32 md:w-44 rounded-xl bg-white p-1 shadow-2xl shadow-[var(--voyage-accent)]/30">
+          <div className="h-24 w-32 md:h-32 md:w-44 rounded-xl bg-white p-1 shadow-2xl shadow-[var(--voyo-accent)]/30">
             <div className="h-full w-full rounded-lg overflow-hidden bg-gray-100 relative">
               <FlagIcon logoUrl={flagUrl} alt={countryCode} className="h-full w-full border-none rounded-none object-cover" />
             </div>
@@ -208,12 +208,12 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
             <h1 className="text-4xl md:text-5xl font-bold text-white">
               {countryName} eSIM
             </h1>
-            <div className="flex items-center justify-center md:justify-start gap-2 text-[var(--voyage-muted)]">
+            <div className="flex items-center justify-center md:justify-start gap-2 text-[var(--voyo-muted)]">
               <MapPin className="h-4 w-4" />
               <span>Popular destination</span>
             </div>
             {lowestPriceUSD > 0 && (
-              <div className="inline-block mt-2 px-4 py-1 rounded-full bg-[var(--voyage-accent)] text-white font-bold text-sm shadow-lg shadow-[var(--voyage-accent)]/30">
+              <div className="inline-block mt-2 px-4 py-1 rounded-full bg-[var(--voyo-accent)] text-white font-bold text-sm shadow-lg shadow-[var(--voyo-accent)]/30">
                 Plans starting from {formatCurrency(lowestPriceConverted)}
               </div>
             )}
@@ -224,9 +224,9 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
       {/* Plans Display */}
       <div className="space-y-6">
         {redirecting ? (
-          <div className="text-center py-20 text-[var(--voyage-muted)]">Redirecting...</div>
+          <div className="text-center py-20 text-[var(--voyo-muted)]">Redirecting...</div>
         ) : loading ? (
-          <div className="text-center py-20 text-[var(--voyage-muted)]">Loading plans...</div>
+          <div className="text-center py-20 text-[var(--voyo-muted)]">Loading plans...</div>
         ) : paginatedPlans.length === 0 ? (
           <EmptyState
             title="No plans available"
@@ -240,23 +240,23 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
         ) : (
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "standard" | "unlimited")} className="space-y-6">
             {/* Tab Headers */}
-            <div className="flex items-center justify-between border-b border-[var(--voyage-border)]">
+            <div className="flex items-center justify-between border-b border-[var(--voyo-border)]">
               <TabsList className="bg-transparent p-0 h-auto gap-0">
                 <TabsTrigger 
                   value="standard" 
-                  className="data-[state=active]:border-b-2 data-[state=active]:border-[var(--voyage-accent)] data-[state=active]:text-[var(--voyage-accent)] rounded-none px-6 py-3 font-semibold text-[var(--voyage-muted)] data-[state=active]:text-white"
+                  className="data-[state=active]:border-b-2 data-[state=active]:border-[var(--voyo-accent)] data-[state=active]:text-[var(--voyo-accent)] rounded-none px-6 py-3 font-semibold text-[var(--voyo-muted)] data-[state=active]:text-white"
                 >
                   Standard
-                  <span className="ml-2 text-sm font-normal text-[var(--voyage-muted)]">
+                  <span className="ml-2 text-sm font-normal text-[var(--voyo-muted)]">
                     ({standardPlans.length})
                   </span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="unlimited" 
-                  className="data-[state=active]:border-b-2 data-[state=active]:border-[var(--voyage-accent)] data-[state=active]:text-[var(--voyage-accent)] rounded-none px-6 py-3 font-semibold text-[var(--voyage-muted)] data-[state=active]:text-white"
+                  className="data-[state=active]:border-b-2 data-[state=active]:border-[var(--voyo-accent)] data-[state=active]:text-[var(--voyo-accent)] rounded-none px-6 py-3 font-semibold text-[var(--voyo-muted)] data-[state=active]:text-white"
                 >
                   Unlimited
-                  <span className="ml-2 text-sm font-normal text-[var(--voyage-muted)]">
+                  <span className="ml-2 text-sm font-normal text-[var(--voyo-muted)]">
                     ({unlimitedPlans.length})
                   </span>
                 </TabsTrigger>
@@ -267,7 +267,7 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
             <TabsContent value="standard" className="space-y-6 mt-6">
               {/* Sort Filter and Comparison */}
               <div className="flex items-center justify-between mb-6">
-                <div className="text-sm text-[var(--voyage-muted)]">
+                <div className="text-sm text-[var(--voyo-muted)]">
                   {filteredAndSortedPlans.length} plan{filteredAndSortedPlans.length !== 1 ? 's' : ''} available
                   {totalPages > 1 && ` • Page ${currentPage} of ${totalPages}`}
                 </div>
@@ -277,18 +277,18 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
                     variant="outline"
                     size="sm"
                     onClick={() => setShowComparison(true)}
-                    className="border-[var(--voyage-accent)] bg-[var(--voyage-accent)]/10 text-[var(--voyage-accent)] hover:bg-[var(--voyage-accent)] hover:text-white"
+                    className="border-[var(--voyo-accent)] bg-[var(--voyo-accent)]/10 text-[var(--voyo-accent)] hover:bg-[var(--voyo-accent)] hover:text-white"
                   >
                     <GitCompare className="h-4 w-4 mr-2" />
                     Compare ({comparisonPlans.length})
                   </Button>
                 )}
                 <div className="flex items-center gap-2">
-                  <label className="text-sm text-[var(--voyage-muted)]">Sort by:</label>
+                  <label className="text-sm text-[var(--voyo-muted)]">Sort by:</label>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as "days" | "price" | "dataSize" | "name")}
-                    className="px-3 py-1.5 rounded-lg bg-[var(--voyage-card)] border border-[var(--voyage-border)] text-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--voyage-accent)]"
+                    className="px-3 py-1.5 rounded-lg bg-[var(--voyo-card)] border border-[var(--voyo-border)] text-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--voyo-accent)]"
                   >
                     <option value="days">Duration (Days)</option>
                     <option value="price">Price (Low to High)</option>
@@ -314,8 +314,8 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
                     }}
                     className={`absolute top-6 right-[120px] z-10 h-10 w-10 rounded-full flex items-center justify-center transition-all ${
                       comparisonPlans.some(p => p.packageCode === plan.packageCode)
-                        ? "bg-[var(--voyage-accent)] text-white"
-                        : "bg-[var(--voyage-bg-light)] text-[var(--voyage-muted)] hover:bg-[var(--voyage-accent)]/20 hover:text-[var(--voyage-accent)]"
+                        ? "bg-[var(--voyo-accent)] text-white"
+                        : "bg-[var(--voyo-bg-light)] text-[var(--voyo-muted)] hover:bg-[var(--voyo-accent)]/20 hover:text-[var(--voyo-accent)]"
                     }`}
                     title={
                       comparisonPlans.some(p => p.packageCode === plan.packageCode)
@@ -339,7 +339,7 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
                   size="sm"
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-bg-light)] disabled:opacity-50"
+                  className="border-[var(--voyo-border)] bg-[var(--voyo-card)] text-white hover:bg-[var(--voyo-bg-light)] disabled:opacity-50"
                 >
                   Previous
                 </Button>
@@ -361,8 +361,8 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
                         onClick={() => setCurrentPage(pageNum)}
                         className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                           currentPage === pageNum
-                            ? "bg-[var(--voyage-accent)] text-white"
-                            : "bg-[var(--voyage-card)] border border-[var(--voyage-border)] text-[var(--voyage-text)] hover:border-[var(--voyage-accent)]"
+                            ? "bg-[var(--voyo-accent)] text-white"
+                            : "bg-[var(--voyo-card)] border border-[var(--voyo-border)] text-[var(--voyo-text)] hover:border-[var(--voyo-accent)]"
                         }`}
                       >
                         {pageNum}
@@ -375,7 +375,7 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
                   size="sm"
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-bg-light)] disabled:opacity-50"
+                  className="border-[var(--voyo-border)] bg-[var(--voyo-card)] text-white hover:bg-[var(--voyo-bg-light)] disabled:opacity-50"
                 >
                   Next
                 </Button>
@@ -386,14 +386,14 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
             {/* Unlimited Tab Content */}
             <TabsContent value="unlimited" className="mt-6">
               {unlimitedPlans.length === 0 ? (
-                <div className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl p-12 text-center">
-                  <p className="text-[var(--voyage-muted)] font-medium">No unlimited plans available at this time.</p>
+                <div className="bg-[var(--voyo-card)] border border-[var(--voyo-border)] rounded-xl p-12 text-center">
+                  <p className="text-[var(--voyo-muted)] font-medium">No unlimited plans available at this time.</p>
                 </div>
               ) : (
                 <>
                   {/* Sort Filter and Comparison */}
                   <div className="flex items-center justify-between mb-6">
-                    <div className="text-sm text-[var(--voyage-muted)]">
+                    <div className="text-sm text-[var(--voyo-muted)]">
                       {filteredAndSortedPlans.length} plan{filteredAndSortedPlans.length !== 1 ? 's' : ''} available
                       {totalPages > 1 && ` • Page ${currentPage} of ${totalPages}`}
                     </div>
@@ -403,18 +403,18 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
                           variant="outline"
                           size="sm"
                           onClick={() => setShowComparison(true)}
-                          className="border-[var(--voyage-accent)] bg-[var(--voyage-accent)]/10 text-[var(--voyage-accent)] hover:bg-[var(--voyage-accent)] hover:text-white"
+                          className="border-[var(--voyo-accent)] bg-[var(--voyo-accent)]/10 text-[var(--voyo-accent)] hover:bg-[var(--voyo-accent)] hover:text-white"
                         >
                           <GitCompare className="h-4 w-4 mr-2" />
                           Compare ({comparisonPlans.length})
                         </Button>
                       )}
                       <div className="flex items-center gap-2">
-                        <label className="text-sm text-[var(--voyage-muted)]">Sort by:</label>
+                        <label className="text-sm text-[var(--voyo-muted)]">Sort by:</label>
                         <select
                           value={sortBy}
                           onChange={(e) => setSortBy(e.target.value as "days" | "price" | "dataSize" | "name")}
-                          className="px-3 py-1.5 rounded-lg bg-[var(--voyage-card)] border border-[var(--voyage-border)] text-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--voyage-accent)]"
+                          className="px-3 py-1.5 rounded-lg bg-[var(--voyo-card)] border border-[var(--voyo-border)] text-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--voyo-accent)]"
                         >
                           <option value="days">Duration (Days)</option>
                           <option value="price">Price (Low to High)</option>
@@ -440,8 +440,8 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
                           }}
                           className={`absolute top-6 right-[120px] z-10 h-10 w-10 rounded-full flex items-center justify-center transition-all ${
                             comparisonPlans.some(p => p.packageCode === plan.packageCode)
-                              ? "bg-[var(--voyage-accent)] text-white"
-                              : "bg-[var(--voyage-bg-light)] text-[var(--voyage-muted)] hover:bg-[var(--voyage-accent)]/20 hover:text-[var(--voyage-accent)]"
+                              ? "bg-[var(--voyo-accent)] text-white"
+                              : "bg-[var(--voyo-bg-light)] text-[var(--voyo-muted)] hover:bg-[var(--voyo-accent)]/20 hover:text-[var(--voyo-accent)]"
                           }`}
                           title={
                             comparisonPlans.some(p => p.packageCode === plan.packageCode)
@@ -465,7 +465,7 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
                         size="sm"
                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                         disabled={currentPage === 1}
-                        className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-bg-light)] disabled:opacity-50"
+                        className="border-[var(--voyo-border)] bg-[var(--voyo-card)] text-white hover:bg-[var(--voyo-bg-light)] disabled:opacity-50"
                       >
                         Previous
                       </Button>
@@ -487,8 +487,8 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
                               onClick={() => setCurrentPage(pageNum)}
                               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                                 currentPage === pageNum
-                                  ? "bg-[var(--voyage-accent)] text-white"
-                                  : "bg-[var(--voyage-card)] border border-[var(--voyage-border)] text-[var(--voyage-text)] hover:border-[var(--voyage-accent)]"
+                                  ? "bg-[var(--voyo-accent)] text-white"
+                                  : "bg-[var(--voyo-card)] border border-[var(--voyo-border)] text-[var(--voyo-text)] hover:border-[var(--voyo-accent)]"
                               }`}
                             >
                               {pageNum}
@@ -501,7 +501,7 @@ export default function CountryPlansPageSlug({ params }: { params: { slug: strin
                         size="sm"
                         onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                         disabled={currentPage === totalPages}
-                        className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-bg-light)] disabled:opacity-50"
+                        className="border-[var(--voyo-border)] bg-[var(--voyo-card)] text-white hover:bg-[var(--voyo-bg-light)] disabled:opacity-50"
                       >
                         Next
                       </Button>

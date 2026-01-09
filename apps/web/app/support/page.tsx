@@ -27,7 +27,7 @@ function SupportContent() {
       <div className="max-w-6xl mx-auto px-4 md:px-6">
         <div className="mb-6 md:mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Help Center</h1>
-          <p className="text-sm md:text-base text-[var(--voyage-muted)]">
+          <p className="text-sm md:text-base text-[var(--voyo-muted)]">
             Find answers, installation guides, and get support
           </p>
         </div>
@@ -83,7 +83,7 @@ function SupportContent() {
           </TabsContent>
 
           <TabsContent value="device">
-            <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+            <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <Smartphone className="h-5 w-5" />
@@ -91,11 +91,11 @@ function SupportContent() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-[var(--voyage-muted)] mb-4">
+                <p className="text-[var(--voyo-muted)] mb-4">
                   Check if your device supports eSIM before purchasing a plan.
                 </p>
                 <Link href="/support/device-check">
-                  <button className="px-6 py-3 bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white rounded-lg font-medium transition-colors">
+                  <button className="px-6 py-3 bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white rounded-lg font-medium transition-colors">
                     Check Device Compatibility
                   </button>
                 </Link>
@@ -112,7 +112,7 @@ function SupportContent() {
           </TabsContent>
 
           <TabsContent value="affiliate-terms">
-            <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+            <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <Users className="h-5 w-5" />
@@ -120,11 +120,11 @@ function SupportContent() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-[var(--voyage-muted)] mb-4">
-                  Rules, guidelines, and payout conditions for Voyage affiliates. Learn about commission structure, referral rules, holding periods, and payout policies.
+                <p className="text-[var(--voyo-muted)] mb-4">
+                  Rules, guidelines, and payout conditions for Voyo affiliates. Learn about commission structure, referral rules, holding periods, and payout policies.
                 </p>
                 <Link href="/support/affiliate-terms">
-                  <button className="px-6 py-3 bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white rounded-lg font-medium transition-colors">
+                  <button className="px-6 py-3 bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white rounded-lg font-medium transition-colors">
                     View Affiliate Terms of Service
                   </button>
                 </Link>
@@ -133,7 +133,7 @@ function SupportContent() {
           </TabsContent>
 
           <TabsContent value="contact">
-            <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+            <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <Mail className="h-5 w-5" />
@@ -141,11 +141,11 @@ function SupportContent() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-[var(--voyage-muted)] mb-4">
+                <p className="text-[var(--voyo-muted)] mb-4">
                   Need help? Send us a message and we'll get back to you as soon as possible.
                 </p>
                 <Link href="/support/contact">
-                  <button className="px-6 py-3 bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white rounded-lg font-medium transition-colors">
+                  <button className="px-6 py-3 bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white rounded-lg font-medium transition-colors">
                     Open Contact Form
                   </button>
                 </Link>
@@ -165,7 +165,7 @@ export default function SupportPage() {
         <div className="max-w-6xl mx-auto px-4 md:px-6">
           <div className="mb-6 md:mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Help Center</h1>
-            <p className="text-sm md:text-base text-[var(--voyage-muted)]">
+            <p className="text-sm md:text-base text-[var(--voyo-muted)]">
               Find answers, installation guides, and get support
             </p>
           </div>

@@ -108,11 +108,11 @@ export function HomeReviewsSection() {
   const totalCount = 3242;
 
   return (
-    <div className="bg-[var(--voyage-card)] border border-white/5 rounded-xl p-8 shadow-sm">
+    <div className="bg-[var(--voyo-card)] border border-white/5 rounded-xl p-8 shadow-sm">
       <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-4">
         <div className="flex items-center gap-4">
-          <div className="bg-[var(--voyage-bg)] p-3 border border-white/5 rounded-full shadow-sm">
-            <MessageSquare className="h-6 w-6 text-[var(--voyage-accent)]" />
+          <div className="bg-[var(--voyo-bg)] p-3 border border-white/5 rounded-full shadow-sm">
+            <MessageSquare className="h-6 w-6 text-[var(--voyo-accent)]" />
           </div>
           <div>
             <h2 className="text-3xl font-bold tracking-tight text-white">Customer Reviews</h2>
@@ -123,13 +123,13 @@ export function HomeReviewsSection() {
                     key={star}
                     className={`h-4 w-4 ${
                       star <= Math.round(averageRating)
-                        ? "fill-[var(--voyage-accent)] text-[var(--voyage-accent)]"
+                        ? "fill-[var(--voyo-accent)] text-[var(--voyo-accent)]"
                         : "text-zinc-700"
                     }`}
                   />
                 ))}
               </div>
-              <span className="text-sm font-medium text-[var(--voyage-muted)]">
+              <span className="text-sm font-medium text-[var(--voyo-muted)]">
                 {averageRating.toFixed(1)} ({totalCount.toLocaleString()} reviews)
               </span>
             </div>
@@ -140,11 +140,11 @@ export function HomeReviewsSection() {
           {isLoaded && user && (
             <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
               <DialogTrigger asChild>
-                <Button className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent)]/90 text-black rounded-lg font-bold">
+                <Button className="bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent)]/90 text-black rounded-lg font-bold">
                   Write Review
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-[var(--voyage-card)] border border-white/5 shadow-xl rounded-xl max-w-md sm:rounded-xl">
+              <DialogContent className="bg-[var(--voyo-card)] border border-white/5 shadow-xl rounded-xl max-w-md sm:rounded-xl">
                 <DialogHeader>
                   <DialogTitle className="text-2xl font-bold text-white">Write a Review</DialogTitle>
                 </DialogHeader>
@@ -156,7 +156,7 @@ export function HomeReviewsSection() {
                       value={planId}
                       onChange={(e) => setPlanId(e.target.value)}
                       placeholder="Enter plan package code..."
-                      className="w-full px-4 py-2 border border-white/10 rounded-lg focus:ring-2 focus:ring-[var(--voyage-accent)]/20 focus:border-[var(--voyage-accent)] transition-all text-sm bg-[var(--voyage-bg)] text-white"
+                      className="w-full px-4 py-2 border border-white/10 rounded-lg focus:ring-2 focus:ring-[var(--voyo-accent)]/20 focus:border-[var(--voyo-accent)] transition-all text-sm bg-[var(--voyo-bg)] text-white"
                     />
                   </div>
                   <div>
@@ -172,7 +172,7 @@ export function HomeReviewsSection() {
                           <Star
                             className={`h-8 w-8 ${
                               star <= rating
-                                ? "fill-[var(--voyage-accent)] text-[var(--voyage-accent)]"
+                                ? "fill-[var(--voyo-accent)] text-[var(--voyo-accent)]"
                                 : "text-zinc-700"
                             } transition-colors`}
                           />
@@ -182,27 +182,27 @@ export function HomeReviewsSection() {
                   </div>
                   <div>
                     <label className="text-sm font-semibold mb-2 block text-white">
-                      Comment <span className="text-[var(--voyage-muted)] font-normal">(optional)</span>
+                      Comment <span className="text-[var(--voyo-muted)] font-normal">(optional)</span>
                     </label>
                     <Textarea
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
                       placeholder="Share your experience with this plan... (optional)"
-                      className="min-h-[120px] border border-white/10 rounded-lg focus:ring-2 focus:ring-[var(--voyage-accent)]/20 focus:border-[var(--voyage-accent)] resize-none bg-[var(--voyage-bg)] text-white"
+                      className="min-h-[120px] border border-white/10 rounded-lg focus:ring-2 focus:ring-[var(--voyo-accent)]/20 focus:border-[var(--voyo-accent)] resize-none bg-[var(--voyo-bg)] text-white"
                       maxLength={1000}
                     />
-                    <p className="text-xs text-[var(--voyage-muted)] mt-1">
+                    <p className="text-xs text-[var(--voyo-muted)] mt-1">
                       {comment.length}/1000 characters - Star-only reviews are welcome!
                     </p>
                   </div>
                   <div>
                     <label className="text-sm font-semibold mb-2 block text-white">
-                      Language <span className="text-[var(--voyage-muted)] font-normal">(optional)</span>
+                      Language <span className="text-[var(--voyo-muted)] font-normal">(optional)</span>
                     </label>
                     <select
                       value={language}
                       onChange={(e) => setLanguage(e.target.value)}
-                      className="w-full px-4 py-2 border border-white/10 rounded-lg focus:ring-2 focus:ring-[var(--voyage-accent)]/20 focus:border-[var(--voyage-accent)] transition-all text-sm bg-[var(--voyage-bg)] text-white"
+                      className="w-full px-4 py-2 border border-white/10 rounded-lg focus:ring-2 focus:ring-[var(--voyo-accent)]/20 focus:border-[var(--voyo-accent)] transition-all text-sm bg-[var(--voyo-bg)] text-white"
                     >
                       <option value="en">English</option>
                       <option value="es">Spanish</option>
@@ -222,7 +222,7 @@ export function HomeReviewsSection() {
                   <Button
                     onClick={handleSubmitReview}
                     disabled={submitting || !planId.trim()}
-                    className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent)]/90 text-black font-bold rounded-lg"
+                    className="w-full bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent)]/90 text-black font-bold rounded-lg"
                   >
                     {submitting ? "Submitting..." : "Submit Review"}
                   </Button>
@@ -239,11 +239,11 @@ export function HomeReviewsSection() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-[var(--voyage-muted)]">Loading reviews...</div>
+        <div className="text-center py-12 text-[var(--voyo-muted)]">Loading reviews...</div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {reviews.map((review) => (
-            <div key={review.id} className="bg-[var(--voyage-bg)] border border-white/5 p-6 rounded-xl hover:shadow-md transition-all">
+            <div key={review.id} className="bg-[var(--voyo-bg)] border border-white/5 p-6 rounded-xl hover:shadow-md transition-all">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-bold text-lg text-white">{review.userName}</span>
@@ -260,16 +260,16 @@ export function HomeReviewsSection() {
                       key={star}
                       className={`h-4 w-4 ${
                         star <= review.rating
-                          ? "fill-[var(--voyage-accent)] text-[var(--voyage-accent)]"
+                          ? "fill-[var(--voyo-accent)] text-[var(--voyo-accent)]"
                           : "text-zinc-700"
                       }`}
                     />
                   ))}
                 </div>
               </div>
-              <p className="text-sm text-[var(--voyage-muted)] mb-3 line-clamp-4 leading-relaxed">{review.comment}</p>
+              <p className="text-sm text-[var(--voyo-muted)] mb-3 line-clamp-4 leading-relaxed">{review.comment}</p>
               <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/5">
-                <p className="text-xs text-[var(--voyage-muted)] font-medium">
+                <p className="text-xs text-[var(--voyo-muted)] font-medium">
                   {new Date(review.date).toLocaleDateString()}
                 </p>
               </div>

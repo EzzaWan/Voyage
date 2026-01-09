@@ -65,8 +65,8 @@ export default function MySupportTicketsPage() {
   if (loading) {
     return (
       <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyage-accent)] mx-auto mb-4"></div>
-        <p className="text-[var(--voyage-muted)]">Loading your support tickets...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyo-accent)] mx-auto mb-4"></div>
+        <p className="text-[var(--voyo-muted)]">Loading your support tickets...</p>
       </div>
     );
   }
@@ -79,12 +79,12 @@ export default function MySupportTicketsPage() {
             <MessageSquare className="h-8 w-8" />
             My Support Tickets
           </h1>
-          <p className="text-[var(--voyage-muted)]">
+          <p className="text-[var(--voyo-muted)]">
             View all your support tickets and responses from our team
           </p>
         </div>
         <Link href="/support/contact">
-          <Button className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)]">
+          <Button className="bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)]">
             <Mail className="h-4 w-4 mr-2" />
             New Ticket
           </Button>
@@ -92,12 +92,12 @@ export default function MySupportTicketsPage() {
       </div>
 
       {tickets.length === 0 ? (
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
           <CardContent className="p-12 text-center">
-            <MessageSquare className="h-16 w-16 text-[var(--voyage-muted)] mx-auto mb-4 opacity-50" />
-            <p className="text-[var(--voyage-muted)] mb-4">You don't have any support tickets yet.</p>
+            <MessageSquare className="h-16 w-16 text-[var(--voyo-muted)] mx-auto mb-4 opacity-50" />
+            <p className="text-[var(--voyo-muted)] mb-4">You don't have any support tickets yet.</p>
             <Link href="/support/contact">
-              <Button className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)]">
+              <Button className="bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)]">
                 Create Support Ticket
               </Button>
             </Link>
@@ -108,7 +108,7 @@ export default function MySupportTicketsPage() {
           {tickets.map((ticket) => (
             <Card
               key={ticket.id}
-              className="bg-[var(--voyage-card)] border-[var(--voyage-border)] hover:border-[var(--voyage-accent)]/50 transition-colors cursor-pointer"
+              className="bg-[var(--voyo-card)] border-[var(--voyo-border)] hover:border-[var(--voyo-accent)]/50 transition-colors cursor-pointer"
               onClick={() => router.push(`/account/support/${ticket.id}`)}
             >
               <CardContent className="p-6">
@@ -117,19 +117,19 @@ export default function MySupportTicketsPage() {
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-lg font-semibold text-white">Ticket #{ticket.id.substring(0, 8)}</h3>
                       {ticket.SupportTicketReply && ticket.SupportTicketReply.length > 0 && (
-                        <Badge className="bg-[var(--voyage-accent)]">
+                        <Badge className="bg-[var(--voyo-accent)]">
                           <MessageCircle className="h-3 w-3 mr-1" />
                           {ticket.SupportTicketReply.length} {ticket.SupportTicketReply.length === 1 ? "reply" : "replies"}
                         </Badge>
                       )}
                       {ticket.orderId && (
-                        <Badge variant="outline" className="border-[var(--voyage-border)]">
+                        <Badge variant="outline" className="border-[var(--voyo-border)]">
                           Order: {ticket.orderId.substring(0, 8)}...
                         </Badge>
                       )}
                     </div>
-                    <p className="text-[var(--voyage-muted)] mb-2 line-clamp-2">{ticket.message}</p>
-                    <div className="flex items-center gap-4 text-sm text-[var(--voyage-muted)]">
+                    <p className="text-[var(--voyo-muted)] mb-2 line-clamp-2">{ticket.message}</p>
+                    <div className="flex items-center gap-4 text-sm text-[var(--voyo-muted)]">
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
                         {new Date(ticket.createdAt).toLocaleDateString()}
@@ -141,7 +141,7 @@ export default function MySupportTicketsPage() {
                       )}
                     </div>
                   </div>
-                  <ArrowRight className="h-5 w-5 text-[var(--voyage-muted)] flex-shrink-0 ml-4" />
+                  <ArrowRight className="h-5 w-5 text-[var(--voyo-muted)] flex-shrink-0 ml-4" />
                 </div>
               </CardContent>
             </Card>

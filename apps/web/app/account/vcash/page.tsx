@@ -159,7 +159,7 @@ export default function VCashPage() {
     return (
       <div className="container mx-auto px-4 py-20 text-center">
         <h1 className="text-2xl font-bold text-white mb-4">Please sign in</h1>
-        <p className="text-[var(--voyage-muted)]">You must be signed in to access your V-Cash.</p>
+        <p className="text-[var(--voyo-muted)]">You must be signed in to access your V-Cash.</p>
       </div>
     );
   }
@@ -169,7 +169,7 @@ export default function VCashPage() {
       {/* Back Button */}
       <Link
         href="/account"
-        className="inline-flex items-center text-[var(--voyage-muted)] hover:text-white transition-colors mb-4"
+        className="inline-flex items-center text-[var(--voyo-muted)] hover:text-white transition-colors mb-4"
       >
         <ArrowLeft className="h-4 w-4 mr-2" /> Back to Account
       </Link>
@@ -177,52 +177,52 @@ export default function VCashPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-white mb-2">V-Cash</h1>
-        <p className="text-[var(--voyage-muted)]">
-          V-Cash is store credit you can use on Voyage in the future. You can get V-Cash from refunds or affiliate earnings.
+        <p className="text-[var(--voyo-muted)]">
+          V-Cash is store credit you can use on Voyo in the future. You can get V-Cash from refunds or affiliate earnings.
         </p>
       </div>
 
       {/* Balance Card */}
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardHeader>
           <CardTitle className="text-white">Your V-Cash Balance</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[var(--voyage-muted)] mb-1">Available Balance</p>
-              <p className="text-4xl font-bold text-[var(--voyage-accent)]">
+              <p className="text-sm text-[var(--voyo-muted)] mb-1">Available Balance</p>
+              <p className="text-4xl font-bold text-[var(--voyo-accent)]">
                 {balance ? formatCurrency(balance.balanceCents) : "$0.00"}
               </p>
             </div>
-            <DollarSign className="h-12 w-12 text-[var(--voyage-accent)]" />
+            <DollarSign className="h-12 w-12 text-[var(--voyo-accent)]" />
           </div>
         </CardContent>
       </Card>
 
       {/* Transactions */}
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardHeader>
           <CardTitle className="text-white">Transaction History</CardTitle>
         </CardHeader>
         <CardContent>
           {transactions.length === 0 ? (
-            <p className="text-center text-[var(--voyage-muted)] py-8">No transactions yet</p>
+            <p className="text-center text-[var(--voyo-muted)] py-8">No transactions yet</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-[var(--voyage-border)]">
-                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyage-muted)]">Date</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyage-muted)]">Type</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyage-muted)]">Amount</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyage-muted)]">Reason</th>
+                  <tr className="border-b border-[var(--voyo-border)]">
+                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyo-muted)]">Date</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyo-muted)]">Type</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyo-muted)]">Amount</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyo-muted)]">Reason</th>
                   </tr>
                 </thead>
                 <tbody>
                   {transactions.map((transaction) => (
-                    <tr key={transaction.id} className="border-b border-[var(--voyage-border)] hover:bg-[var(--voyage-bg-light)]">
-                      <td className="py-3 px-4 text-[var(--voyage-muted)] text-sm">
+                    <tr key={transaction.id} className="border-b border-[var(--voyo-border)] hover:bg-[var(--voyo-bg-light)]">
+                      <td className="py-3 px-4 text-[var(--voyo-muted)] text-sm">
                         {formatDate(transaction.createdAt)}
                       </td>
                       <td className="py-3 px-4">
@@ -253,7 +253,7 @@ export default function VCashPage() {
                         <div className="flex flex-col">
                           <span>{getReasonLabel(transaction.reason, transaction.metadata)}</span>
                           {transaction.metadata?.orderId && !transaction.metadata?.planName && (
-                            <span className="text-xs text-[var(--voyage-muted)] font-mono mt-1">
+                            <span className="text-xs text-[var(--voyo-muted)] font-mono mt-1">
                               Order: {transaction.metadata.orderId.substring(0, 8)}...
                             </span>
                           )}
@@ -268,23 +268,23 @@ export default function VCashPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--voyage-border)]">
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--voyo-border)]">
               <Button
                 variant="outline"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="border-[var(--voyage-border)]"
+                className="border-[var(--voyo-border)]"
               >
                 Previous
               </Button>
-              <span className="text-sm text-[var(--voyage-muted)]">
+              <span className="text-sm text-[var(--voyo-muted)]">
                 Page {page} of {totalPages}
               </span>
               <Button
                 variant="outline"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="border-[var(--voyage-border)]"
+                className="border-[var(--voyo-border)]"
               >
                 Next
               </Button>

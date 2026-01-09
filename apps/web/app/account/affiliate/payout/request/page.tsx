@@ -117,15 +117,15 @@ export default function PayoutRequestPage() {
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <Link
           href="/account/affiliate"
-          className="inline-flex items-center text-[var(--voyage-muted)] hover:text-white transition-colors mb-4"
+          className="inline-flex items-center text-[var(--voyo-muted)] hover:text-white transition-colors mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" /> Back to Affiliate Dashboard
         </Link>
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
           <CardContent className="pt-6">
             <p className="text-white mb-4">You need to configure a payout method first.</p>
             <Link href="/account/affiliate/payout/methods">
-              <Button className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)]">
+              <Button className="bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)]">
                 Add Payout Method
               </Button>
             </Link>
@@ -140,14 +140,14 @@ export default function PayoutRequestPage() {
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <Link
           href="/account/affiliate"
-          className="inline-flex items-center text-[var(--voyage-muted)] hover:text-white transition-colors mb-4"
+          className="inline-flex items-center text-[var(--voyo-muted)] hover:text-white transition-colors mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" /> Back to Affiliate Dashboard
         </Link>
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
           <CardContent className="pt-6">
             <p className="text-white mb-2">Available Balance: {formatCurrency(availableBalance / 100)}</p>
-            <p className="text-[var(--voyage-muted)]">
+            <p className="text-[var(--voyo-muted)]">
               Minimum payout is {formatCurrency(MIN_PAYOUT / 100)}. You need {formatCurrency((MIN_PAYOUT - availableBalance) / 100)} more.
             </p>
           </CardContent>
@@ -160,25 +160,25 @@ export default function PayoutRequestPage() {
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <Link
         href="/account/affiliate"
-        className="inline-flex items-center text-[var(--voyage-muted)] hover:text-white transition-colors mb-4"
+        className="inline-flex items-center text-[var(--voyo-muted)] hover:text-white transition-colors mb-4"
       >
         <ArrowLeft className="h-4 w-4 mr-2" /> Back to Affiliate Dashboard
       </Link>
 
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardHeader>
           <CardTitle className="text-white">Request Payout</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="mb-6 p-4 bg-[var(--voyage-bg-light)] rounded-lg">
-            <p className="text-sm text-[var(--voyage-muted)] mb-1">Available Balance</p>
-            <p className="text-2xl font-bold text-[var(--voyage-accent)]">
+          <div className="mb-6 p-4 bg-[var(--voyo-bg-light)] rounded-lg">
+            <p className="text-sm text-[var(--voyo-muted)] mb-1">Available Balance</p>
+            <p className="text-2xl font-bold text-[var(--voyo-accent)]">
               {formatCurrency(availableBalance / 100)}
             </p>
-            <p className="text-sm text-[var(--voyage-muted)] mt-2">
+            <p className="text-sm text-[var(--voyo-muted)] mt-2">
               Payout Method: {payoutMethod.type === "paypal" ? `PayPal (${payoutMethod.paypalEmail})` : `Bank (${payoutMethod.bankHolderName})`}
             </p>
-            <p className="text-xs text-[var(--voyage-muted)] mt-2">
+            <p className="text-xs text-[var(--voyo-muted)] mt-2">
               Minimum payout: {formatCurrency(MIN_PAYOUT / 100)}
             </p>
           </div>
@@ -197,10 +197,10 @@ export default function PayoutRequestPage() {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 required
-                className="mt-2 bg-[var(--voyage-bg-light)] border-[var(--voyage-border)] text-white"
+                className="mt-2 bg-[var(--voyo-bg-light)] border-[var(--voyo-border)] text-white"
                 placeholder="20.00"
               />
-              <p className="text-xs text-[var(--voyage-muted)] mt-1">
+              <p className="text-xs text-[var(--voyo-muted)] mt-1">
                 Enter amount between {formatCurrency(MIN_PAYOUT / 100)} and {formatCurrency(availableBalance / 100)}
               </p>
             </div>
@@ -209,12 +209,12 @@ export default function PayoutRequestPage() {
               <Button
                 type="submit"
                 disabled={submitting}
-                className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white"
+                className="bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white"
               >
                 {submitting ? "Submitting..." : "Submit Request"}
               </Button>
               <Link href="/account/affiliate">
-                <Button type="button" variant="outline" className="border-[var(--voyage-border)]">
+                <Button type="button" variant="outline" className="border-[var(--voyo-border)]">
                   Cancel
                 </Button>
               </Link>

@@ -63,26 +63,26 @@ export default function RegionPage({ params }: { params: { region: string } }) {
     <div className="space-y-8">
       <div className="mb-8 flex items-center justify-between">
         <Link href="/">
-          <Button variant="ghost" className="pl-0 hover:pl-2 transition-all text-[var(--voyage-muted)] hover:text-white hover:bg-transparent">
+          <Button variant="ghost" className="pl-0 hover:pl-2 transition-all text-[var(--voyo-muted)] hover:text-white hover:bg-transparent">
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Home
           </Button>
         </Link>
       </div>
 
       {/* Region Header */}
-      <div className="relative bg-gradient-to-r from-[var(--voyage-accent)]/20 to-purple-500/20 rounded-3xl p-8 md:p-12 border border-[var(--voyage-border)] overflow-hidden">
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-[var(--voyage-accent)]/20 blur-3xl" />
+      <div className="relative bg-gradient-to-r from-[var(--voyo-accent)]/20 to-purple-500/20 rounded-3xl p-8 md:p-12 border border-[var(--voyo-border)] overflow-hidden">
+        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-[var(--voyo-accent)]/20 blur-3xl" />
         
         <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center">
-          <div className="h-24 w-24 rounded-full bg-[var(--voyage-bg-light)] flex items-center justify-center border-2 border-[var(--voyage-accent)]/30">
-            <Globe className="h-12 w-12 text-[var(--voyage-accent)]" />
+          <div className="h-24 w-24 rounded-full bg-[var(--voyo-bg-light)] flex items-center justify-center border-2 border-[var(--voyo-accent)]/30">
+            <Globe className="h-12 w-12 text-[var(--voyo-accent)]" />
           </div>
           
           <div className="text-center md:text-left space-y-2">
             <h1 className="text-4xl md:text-5xl font-bold text-white">
               {regionName} eSIM Plans
             </h1>
-            <p className="text-[var(--voyage-muted)]">
+            <p className="text-[var(--voyo-muted)]">
               {regionSlug === "global" 
                 ? "Choose from our global coverage plans"
                 : `Browse eSIM plans for countries in ${regionName}`}
@@ -100,38 +100,38 @@ export default function RegionPage({ params }: { params: { region: string } }) {
             {/* GL-120 Card */}
             <Link
               href="/countries/global-120-esim"
-              className="group bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl p-6 hover:border-[var(--voyage-accent)] transition-all"
+              className="group bg-[var(--voyo-card)] border border-[var(--voyo-border)] rounded-xl p-6 hover:border-[var(--voyo-accent)] transition-all"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-lg bg-[var(--voyage-bg-light)] flex items-center justify-center border border-[var(--voyage-border)]">
-                    <span className="text-xs font-bold text-[var(--voyage-muted)]">GL</span>
+                  <div className="h-12 w-12 rounded-lg bg-[var(--voyo-bg-light)] flex items-center justify-center border border-[var(--voyo-border)]">
+                    <span className="text-xs font-bold text-[var(--voyo-muted)]">GL</span>
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-white mb-1">Global (120+ areas)</h3>
-                    <p className="text-sm text-[var(--voyage-muted)]">120+ countries coverage</p>
+                    <p className="text-sm text-[var(--voyo-muted)]">120+ countries coverage</p>
                   </div>
                 </div>
-                <ArrowRight className="h-5 w-5 text-[var(--voyage-muted)] group-hover:text-[var(--voyage-accent)] transition-colors" />
+                <ArrowRight className="h-5 w-5 text-[var(--voyo-muted)] group-hover:text-[var(--voyo-accent)] transition-colors" />
               </div>
             </Link>
 
             {/* GL-139 Card */}
             <Link
               href="/countries/global-139-esim"
-              className="group bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl p-6 hover:border-[var(--voyage-accent)] transition-all"
+              className="group bg-[var(--voyo-card)] border border-[var(--voyo-border)] rounded-xl p-6 hover:border-[var(--voyo-accent)] transition-all"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-lg bg-[var(--voyage-bg-light)] flex items-center justify-center border border-[var(--voyage-border)]">
-                    <span className="text-xs font-bold text-[var(--voyage-muted)]">GL</span>
+                  <div className="h-12 w-12 rounded-lg bg-[var(--voyo-bg-light)] flex items-center justify-center border border-[var(--voyo-border)]">
+                    <span className="text-xs font-bold text-[var(--voyo-muted)]">GL</span>
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-white mb-1">Global (130+ areas)</h3>
-                    <p className="text-sm text-[var(--voyage-muted)]">130+ countries coverage</p>
+                    <p className="text-sm text-[var(--voyo-muted)]">130+ countries coverage</p>
                   </div>
                 </div>
-                <ArrowRight className="h-5 w-5 text-[var(--voyage-muted)] group-hover:text-[var(--voyage-accent)] transition-colors" />
+                <ArrowRight className="h-5 w-5 text-[var(--voyo-muted)] group-hover:text-[var(--voyo-accent)] transition-colors" />
               </div>
             </Link>
           </div>
@@ -150,7 +150,7 @@ export default function RegionPage({ params }: { params: { region: string } }) {
               ))}
             </div>
           ) : countries.length === 0 ? (
-            <div className="text-center py-20 text-[var(--voyage-muted)]">
+            <div className="text-center py-20 text-[var(--voyo-muted)]">
               No countries found for this region
             </div>
           ) : (

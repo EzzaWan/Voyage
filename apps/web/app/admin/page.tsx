@@ -87,8 +87,8 @@ export default function AdminDashboard() {
   if (loading || !stats) {
     return (
       <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyage-accent)] mx-auto mb-4"></div>
-        <p className="text-[var(--voyage-muted)]">Loading dashboard...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyo-accent)] mx-auto mb-4"></div>
+        <p className="text-[var(--voyo-muted)]">Loading dashboard...</p>
       </div>
     );
   }
@@ -97,63 +97,63 @@ export default function AdminDashboard() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-white mb-2">Admin Dashboard</h1>
-        <p className="text-[var(--voyage-muted)]">
+        <p className="text-[var(--voyo-muted)]">
           Welcome back, {user?.firstName || "Admin"}
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-[var(--voyage-muted)]">
+            <CardTitle className="text-sm font-medium text-[var(--voyo-muted)]">
               Total Orders
             </CardTitle>
-            <ShoppingCart className="h-4 w-4 text-[var(--voyage-muted)]" />
+            <ShoppingCart className="h-4 w-4 text-[var(--voyo-muted)]" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{stats.orders.total}</div>
-            <p className="text-xs text-[var(--voyage-muted)] mt-1">
+            <p className="text-xs text-[var(--voyo-muted)] mt-1">
               {stats.orders.pending} pending
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-[var(--voyage-muted)]">
+            <CardTitle className="text-sm font-medium text-[var(--voyo-muted)]">
               eSIM Profiles
             </CardTitle>
-            <Smartphone className="h-4 w-4 text-[var(--voyage-muted)]" />
+            <Smartphone className="h-4 w-4 text-[var(--voyo-muted)]" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{stats.esims.total}</div>
-            <p className="text-xs text-[var(--voyage-muted)] mt-1">
+            <p className="text-xs text-[var(--voyo-muted)] mt-1">
               {stats.esims.active} active
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-[var(--voyage-muted)]">
+            <CardTitle className="text-sm font-medium text-[var(--voyo-muted)]">
               Top-ups
             </CardTitle>
-            <CreditCard className="h-4 w-4 text-[var(--voyage-muted)]" />
+            <CreditCard className="h-4 w-4 text-[var(--voyo-muted)]" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{stats.topups.total}</div>
-            <p className="text-xs text-[var(--voyage-muted)] mt-1">
+            <p className="text-xs text-[var(--voyo-muted)] mt-1">
               {stats.topups.completed} completed
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-[var(--voyage-muted)]">
+            <CardTitle className="text-sm font-medium text-[var(--voyo-muted)]">
               Total Users
             </CardTitle>
-            <Users className="h-4 w-4 text-[var(--voyage-muted)]" />
+            <Users className="h-4 w-4 text-[var(--voyo-muted)]" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{stats.users.total}</div>

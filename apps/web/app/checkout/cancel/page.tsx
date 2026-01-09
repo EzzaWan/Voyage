@@ -9,11 +9,11 @@ export default function CancelPage() {
         <XCircle className="h-10 w-10 text-red-500" />
       </div>
       <h1 className="text-4xl font-bold text-white">Payment Cancelled</h1>
-      <p className="text-[var(--voyage-muted)] text-lg max-w-md">
+      <p className="text-[var(--voyo-muted)] text-lg max-w-md">
         Your payment was cancelled. You have not been charged. You can try again whenever you're ready.
       </p>
       <Link href="/">
-        <Button variant="outline" className="border-[var(--voyage-border)] text-white hover:bg-[var(--voyage-card)] px-8 py-6 text-lg rounded-full">
+        <Button variant="outline" className="border-[var(--voyo-border)] text-white hover:bg-[var(--voyo-card)] px-8 py-6 text-lg rounded-full">
           Return to Store
         </Button>
       </Link>

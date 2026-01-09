@@ -30,11 +30,11 @@ export function PlanFlags({ plan, className = "", variant = 'colored', showIP = 
   
   // Neutral styling for list pages (no color coding)
   const ipBadgeClass = isNeutral
-    ? "border-[var(--voyage-border)] bg-transparent text-[var(--voyage-muted)]"
+    ? "border-[var(--voyo-border)] bg-transparent text-[var(--voyo-muted)]"
     : "border-purple-500/30 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20";
   
   const fupBadgeClass = isNeutral
-    ? "border-[var(--voyage-border)] bg-transparent text-[var(--voyage-muted)] cursor-help flex items-center gap-1 pointer-events-auto"
+    ? "border-[var(--voyo-border)] bg-transparent text-[var(--voyo-muted)] cursor-help flex items-center gap-1 pointer-events-auto"
     : "border-yellow-500/30 bg-yellow-500/10 text-yellow-300 hover:bg-yellow-500/20 cursor-help flex items-center gap-1 pointer-events-auto";
 
   return (
@@ -66,7 +66,7 @@ export function PlanFlags({ plan, className = "", variant = 'colored', showIP = 
             </TooltipTrigger>
             <TooltipContent 
               side="top"
-              className="max-w-sm bg-[var(--voyage-card)] border-[var(--voyage-border)] text-white p-3 z-[100]"
+              className="max-w-sm bg-[var(--voyo-card)] border-[var(--voyo-border)] text-white p-3 z-[100]"
               sideOffset={8}
             >
               <p className="text-sm leading-relaxed whitespace-normal">{flagInfo.fup.description}</p>

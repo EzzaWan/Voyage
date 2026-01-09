@@ -97,7 +97,7 @@ export default function AdminReviewsPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <p className="text-[var(--voyage-muted)] font-mono">Loading...</p>
+          <p className="text-[var(--voyo-muted)] font-mono">Loading...</p>
         </div>
       </div>
     );
@@ -114,38 +114,38 @@ export default function AdminReviewsPage() {
         <h1 className="text-3xl font-bold tracking-tight text-white">Reviews Management</h1>
       </div>
 
-      <Card className="bg-[var(--voyage-card)] border border-white/5 text-white">
+      <Card className="bg-[var(--voyo-card)] border border-white/5 text-white">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">All Reviews ({reviews.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {loading ? (
-              <div className="text-[var(--voyage-muted)] font-mono">Loading reviews...</div>
+              <div className="text-[var(--voyo-muted)] font-mono">Loading reviews...</div>
             ) : reviews.length === 0 ? (
-              <div className="text-[var(--voyage-muted)] font-mono">No reviews found.</div>
+              <div className="text-[var(--voyo-muted)] font-mono">No reviews found.</div>
             ) : (
               reviews.map((review) => (
-                <div key={review.id} className="flex items-start justify-between p-4 bg-[var(--voyage-bg)]/50 border border-white/5 rounded-lg hover:border-[var(--voyage-accent)]/20 transition-colors">
+                <div key={review.id} className="flex items-start justify-between p-4 bg-[var(--voyo-bg)]/50 border border-white/5 rounded-lg hover:border-[var(--voyo-accent)]/20 transition-colors">
                   <div className="space-y-2 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-bold text-lg text-white">{review.userName}</span>
-                      <span className="text-xs text-[var(--voyage-muted)] font-mono">({review.date})</span>
+                      <span className="text-xs text-[var(--voyo-muted)] font-mono">({review.date})</span>
                       {review.verified && (
                         <span className="flex items-center gap-1 text-emerald-500 text-xs bg-emerald-500/10 px-2 py-0.5 border border-emerald-500/20 font-bold uppercase">
                           <CheckCircle2 className="h-3 w-3" /> Verified
                         </span>
                       )}
                     </div>
-                    <div className="flex text-[var(--voyage-accent)]">
+                    <div className="flex text-[var(--voyo-accent)]">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star key={star} className={`h-4 w-4 ${star <= review.rating ? "fill-current" : "text-zinc-700"}`} />
                       ))}
                     </div>
                     {review.comment && (
-                      <p className="text-[var(--voyage-muted)] mt-2 font-mono text-sm">{review.comment}</p>
+                      <p className="text-[var(--voyo-muted)] mt-2 font-mono text-sm">{review.comment}</p>
                     )}
-                    <div className="flex gap-4 text-xs text-[var(--voyage-muted)] font-mono uppercase mt-2">
+                    <div className="flex gap-4 text-xs text-[var(--voyo-muted)] font-mono uppercase mt-2">
                       {review.planId && <span>Plan: {review.planId}</span>}
                       {review.userEmail && <span>Email: {review.userEmail}</span>}
                       {review.language && <span>Lang: {review.language}</span>}

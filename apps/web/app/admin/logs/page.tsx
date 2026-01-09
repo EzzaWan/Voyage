@@ -63,8 +63,8 @@ export default function AdminLogsPage() {
   if (loading || !logs) {
     return (
       <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyage-accent)] mx-auto mb-4"></div>
-        <p className="text-[var(--voyage-muted)]">Loading logs...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyo-accent)] mx-auto mb-4"></div>
+        <p className="text-[var(--voyo-muted)]">Loading logs...</p>
       </div>
     );
   }
@@ -73,18 +73,18 @@ export default function AdminLogsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-white mb-2">Logs</h1>
-        <p className="text-[var(--voyage-muted)]">
+        <p className="text-[var(--voyo-muted)]">
           View admin actions and webhook events
         </p>
       </div>
 
-      <div className="flex gap-2 border-b border-[var(--voyage-border)]">
+      <div className="flex gap-2 border-b border-[var(--voyo-border)]">
         <button
           onClick={() => setActiveTab("admin")}
           className={`px-4 py-2 font-medium transition-colors ${
             activeTab === "admin"
-              ? "text-[var(--voyage-accent)] border-b-2 border-[var(--voyage-accent)]"
-              : "text-[var(--voyage-muted)] hover:text-white"
+              ? "text-[var(--voyo-accent)] border-b-2 border-[var(--voyo-accent)]"
+              : "text-[var(--voyo-muted)] hover:text-white"
           }`}
         >
           Admin Logs ({logs.adminLogs.length})
@@ -93,44 +93,44 @@ export default function AdminLogsPage() {
           onClick={() => setActiveTab("webhooks")}
           className={`px-4 py-2 font-medium transition-colors ${
             activeTab === "webhooks"
-              ? "text-[var(--voyage-accent)] border-b-2 border-[var(--voyage-accent)]"
-              : "text-[var(--voyage-muted)] hover:text-white"
+              ? "text-[var(--voyo-accent)] border-b-2 border-[var(--voyo-accent)]"
+              : "text-[var(--voyo-muted)] hover:text-white"
           }`}
         >
           Webhook Events ({logs.webhookEvents.length})
         </button>
       </div>
 
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardContent className="p-0">
           <div className="max-h-[600px] overflow-y-auto">
             {activeTab === "admin" ? (
               <div className="space-y-2 p-4">
                 {logs.adminLogs.length === 0 ? (
-                  <p className="text-center text-[var(--voyage-muted)] py-8">
+                  <p className="text-center text-[var(--voyo-muted)] py-8">
                     No admin logs found
                   </p>
                 ) : (
                   logs.adminLogs.map((log) => (
                     <details
                       key={log.id}
-                      className="p-4 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)]"
+                      className="p-4 bg-[var(--voyo-bg-light)] rounded-lg border border-[var(--voyo-border)]"
                     >
                       <summary className="cursor-pointer flex items-center justify-between">
                         <div>
                           <span className="text-white font-medium">{log.action}</span>
-                          <span className="text-[var(--voyage-muted)] text-sm ml-2">
+                          <span className="text-[var(--voyo-muted)] text-sm ml-2">
                             {log.entityType} • {log.entityId.substring(0, 8)}...
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge className="text-xs">{log.adminEmail}</Badge>
-                          <span className="text-xs text-[var(--voyage-muted)]">
+                          <span className="text-xs text-[var(--voyo-muted)]">
                             {new Date(log.createdAt).toLocaleString()}
                           </span>
                         </div>
                       </summary>
-                      <pre className="mt-3 text-xs text-[var(--voyage-muted)] overflow-auto p-2 bg-[var(--voyage-bg)] rounded">
+                      <pre className="mt-3 text-xs text-[var(--voyo-muted)] overflow-auto p-2 bg-[var(--voyo-bg)] rounded">
                         {JSON.stringify(log.data, null, 2)}
                       </pre>
                     </details>
@@ -140,14 +140,14 @@ export default function AdminLogsPage() {
             ) : (
               <div className="space-y-2 p-4">
                 {logs.webhookEvents.length === 0 ? (
-                  <p className="text-center text-[var(--voyage-muted)] py-8">
+                  <p className="text-center text-[var(--voyo-muted)] py-8">
                     No webhook events found
                   </p>
                 ) : (
                   logs.webhookEvents.map((event) => (
                     <details
                       key={event.id}
-                      className="p-4 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)]"
+                      className="p-4 bg-[var(--voyo-bg-light)] rounded-lg border border-[var(--voyo-border)]"
                     >
                       <summary className="cursor-pointer flex items-center justify-between">
                         <div>
@@ -162,11 +162,11 @@ export default function AdminLogsPage() {
                             {event.processed ? "Processed" : "Pending"}
                           </Badge>
                         </div>
-                        <span className="text-xs text-[var(--voyage-muted)]">
+                        <span className="text-xs text-[var(--voyo-muted)]">
                           {new Date(event.createdAt).toLocaleString()}
                         </span>
                       </summary>
-                      <pre className="mt-3 text-xs text-[var(--voyage-muted)] overflow-auto p-2 bg-[var(--voyage-bg)] rounded">
+                      <pre className="mt-3 text-xs text-[var(--voyo-muted)] overflow-auto p-2 bg-[var(--voyo-bg)] rounded">
                         {JSON.stringify(event.payload, null, 2)}
                       </pre>
                     </details>

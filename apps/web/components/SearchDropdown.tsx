@@ -129,32 +129,32 @@ export function SearchDropdown({
   return (
     <div className={cn("relative w-full", className)}>
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--voyage-muted)]" />
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--voyo-muted)]" />
         <input
           ref={inputRef}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onFocus={() => value.trim().length >= 2 && setIsOpen(true)}
           onKeyDown={handleKeyDown}
-          className="bg-[var(--voyage-bg-light)] border border-[var(--voyage-border)] rounded-lg pl-10 pr-3 py-2 w-full text-sm text-[var(--voyage-text)] placeholder-[var(--voyage-muted)] focus:ring-2 focus:ring-[var(--voyage-accent)] focus:border-transparent outline-none transition-all"
+          className="bg-[var(--voyo-bg-light)] border border-[var(--voyo-border)] rounded-lg pl-10 pr-3 py-2 w-full text-sm text-[var(--voyo-text)] placeholder-[var(--voyo-muted)] focus:ring-2 focus:ring-[var(--voyo-accent)] focus:border-transparent outline-none transition-all"
           placeholder={placeholder}
         />
         {loading && (
-          <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-[var(--voyage-muted)]" />
+          <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-[var(--voyo-muted)]" />
         )}
       </div>
 
       {isOpen && (results.length > 0 || loading) && (
         <div
           ref={dropdownRef}
-          className="absolute top-full left-0 right-0 mt-1 bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto"
+          className="absolute top-full left-0 right-0 mt-1 bg-[var(--voyo-card)] border border-[var(--voyo-border)] rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto"
         >
           {loading ? (
-            <div className="p-4 text-center text-[var(--voyage-muted)] text-sm">
+            <div className="p-4 text-center text-[var(--voyo-muted)] text-sm">
               Searching...
             </div>
           ) : results.length === 0 ? (
-            <div className="p-4 text-center text-[var(--voyage-muted)] text-sm">
+            <div className="p-4 text-center text-[var(--voyo-muted)] text-sm">
               No results found
             </div>
           ) : (
@@ -165,8 +165,8 @@ export function SearchDropdown({
                   href={`/countries/${result.code}`}
                   onClick={() => handleSelect(result)}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-2 hover:bg-[var(--voyage-bg-light)] transition-colors cursor-pointer",
-                    selectedIndex === index && "bg-[var(--voyage-bg-light)]"
+                    "flex items-center gap-3 px-4 py-2 hover:bg-[var(--voyo-bg-light)] transition-colors cursor-pointer",
+                    selectedIndex === index && "bg-[var(--voyo-bg-light)]"
                   )}
                 >
                   {result.locationLogo ? (
@@ -176,7 +176,7 @@ export function SearchDropdown({
                       className="w-6 h-4 object-cover rounded"
                     />
                   ) : (
-                    <Globe className="h-4 w-4 text-[var(--voyage-muted)]" />
+                    <Globe className="h-4 w-4 text-[var(--voyo-muted)]" />
                   )}
                   <span className="text-sm text-white flex-1">{result.name}</span>
                 </Link>

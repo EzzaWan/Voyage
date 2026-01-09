@@ -43,7 +43,7 @@ export function NavigationUserMenu() {
       {esimCount !== null && esimCount > 0 && (
         <Badge 
           variant="outline" 
-          className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-[var(--voyage-muted)] text-xs"
+          className="border-[var(--voyo-border)] bg-[var(--voyo-card)] text-[var(--voyo-muted)] text-xs"
         >
           <Smartphone className="h-3 w-3 mr-1" />
           {esimCount} eSIM{esimCount !== 1 ? "s" : ""}
@@ -54,25 +54,25 @@ export function NavigationUserMenu() {
         appearance={{
           elements: {
             avatarBox: "w-8 h-8",
-            userButtonPopoverCard: "bg-[var(--voyage-card)] border-[var(--voyage-border)] shadow-lg",
-            userButtonPopoverHeader: "bg-[var(--voyage-card)] border-b border-[var(--voyage-border)] !bg-[var(--voyage-card)]",
+            userButtonPopoverCard: "bg-[var(--voyo-card)] border-[var(--voyo-border)] shadow-lg",
+            userButtonPopoverHeader: "bg-[var(--voyo-card)] border-b border-[var(--voyo-border)] !bg-[var(--voyo-card)]",
             userButtonPopoverHeaderTitle: "!text-white text-white",
-            userButtonPopoverHeaderSubtitle: "!text-[var(--voyage-muted)] text-[var(--voyage-muted)]",
-            userButtonPopoverActions: "bg-[var(--voyage-card)] !bg-[var(--voyage-card)]",
-            userButtonPopoverActionButton: "!text-white text-white hover:!bg-[var(--voyage-bg-light)] hover:bg-[var(--voyage-bg-light)] hover:!text-white hover:text-white",
+            userButtonPopoverHeaderSubtitle: "!text-[var(--voyo-muted)] text-[var(--voyo-muted)]",
+            userButtonPopoverActions: "bg-[var(--voyo-card)] !bg-[var(--voyo-card)]",
+            userButtonPopoverActionButton: "!text-white text-white hover:!bg-[var(--voyo-bg-light)] hover:bg-[var(--voyo-bg-light)] hover:!text-white hover:text-white",
             userButtonPopoverActionButtonText: "!text-white text-white",
-            userButtonPopoverActionButtonIcon: "!text-[var(--voyage-muted)] text-[var(--voyage-muted)]",
-            userButtonPopoverFooter: "!bg-[var(--voyage-card)] bg-[var(--voyage-card)] border-t border-[var(--voyage-border)] !text-[var(--voyage-muted)] text-[var(--voyage-muted)]",
-            userButtonPopoverFooterText: "!text-[var(--voyage-muted)] text-[var(--voyage-muted)]",
-            userButtonPopoverActionButton__manageAccount: "!text-white text-white hover:!bg-[var(--voyage-bg-light)] hover:bg-[var(--voyage-bg-light)] hover:!text-white hover:text-white",
+            userButtonPopoverActionButtonIcon: "!text-[var(--voyo-muted)] text-[var(--voyo-muted)]",
+            userButtonPopoverFooter: "!bg-[var(--voyo-card)] bg-[var(--voyo-card)] border-t border-[var(--voyo-border)] !text-[var(--voyo-muted)] text-[var(--voyo-muted)]",
+            userButtonPopoverFooterText: "!text-[var(--voyo-muted)] text-[var(--voyo-muted)]",
+            userButtonPopoverActionButton__manageAccount: "!text-white text-white hover:!bg-[var(--voyo-bg-light)] hover:bg-[var(--voyo-bg-light)] hover:!text-white hover:text-white",
           },
           variables: {
-            colorBackground: "var(--voyage-card)",
+            colorBackground: "var(--voyo-card)",
             colorText: "white",
-            colorTextSecondary: "var(--voyage-muted)",
-            colorInputBackground: "var(--voyage-card)",
+            colorTextSecondary: "var(--voyo-muted)",
+            colorInputBackground: "var(--voyo-card)",
             colorInputText: "white",
-            colorPrimary: "var(--voyage-accent)",
+            colorPrimary: "var(--voyo-accent)",
           },
         }}
       >

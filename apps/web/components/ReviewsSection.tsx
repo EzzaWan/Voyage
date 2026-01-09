@@ -77,7 +77,7 @@ export function ReviewsSection({ limit }: { limit?: number }) {
       <div>
         <div className="flex items-center justify-between flex-wrap gap-4 mb-4">
           <h2 className="text-2xl font-bold text-white">Customer Reviews</h2>
-          <Button onClick={() => setShowForm(!showForm)} variant="outline" className="bg-transparent border-[var(--voyage-accent)] text-[var(--voyage-accent)] hover:bg-[var(--voyage-accent)] hover:text-white transition-all">
+          <Button onClick={() => setShowForm(!showForm)} variant="outline" className="bg-transparent border-[var(--voyo-accent)] text-[var(--voyo-accent)] hover:bg-[var(--voyo-accent)] hover:text-white transition-all">
             Write a Review
           </Button>
         </div>
@@ -87,12 +87,12 @@ export function ReviewsSection({ limit }: { limit?: number }) {
                <Star key={star} className={cn("h-5 w-5", star <= Math.round(averageRating) ? "fill-current" : "text-gray-600")} />
              ))}
            </div>
-           <span className="text-[var(--voyage-muted)]">{averageRating.toFixed(1)} out of 5 ({reviews.length} reviews)</span>
+           <span className="text-[var(--voyo-muted)]">{averageRating.toFixed(1)} out of 5 ({reviews.length} reviews)</span>
         </div>
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-[var(--voyage-card)] p-6 rounded-xl border border-[var(--voyage-border)] space-y-4 animate-in slide-in-from-top-2">
+        <form onSubmit={handleSubmit} className="bg-[var(--voyo-card)] p-6 rounded-xl border border-[var(--voyo-border)] space-y-4 animate-in slide-in-from-top-2">
            <div>
              <label className="block text-sm font-medium text-white mb-1">Name</label>
              <Input 
@@ -100,7 +100,7 @@ export function ReviewsSection({ limit }: { limit?: number }) {
                onChange={(e) => setNewReview(prev => ({ ...prev, userName: e.target.value }))}
                placeholder="Your name"
                required
-               className="bg-[var(--voyage-bg)] border-[var(--voyage-border)] text-white"
+               className="bg-[var(--voyo-bg)] border-[var(--voyo-border)] text-white"
              />
            </div>
            <div>
@@ -125,12 +125,12 @@ export function ReviewsSection({ limit }: { limit?: number }) {
                onChange={(e) => setNewReview(prev => ({ ...prev, comment: e.target.value }))}
                placeholder="Share your experience..."
                required
-               className="bg-[var(--voyage-bg)] border-[var(--voyage-border)] text-white"
+               className="bg-[var(--voyo-bg)] border-[var(--voyo-border)] text-white"
              />
            </div>
            <div className="flex justify-end gap-2">
-             <Button type="button" variant="ghost" onClick={() => setShowForm(false)} className="text-white hover:bg-[var(--voyage-bg-light)]">Cancel</Button>
-             <Button type="submit" disabled={submitting} className="bg-[var(--voyage-accent)] text-white hover:bg-[var(--voyage-accent-soft)]">
+             <Button type="button" variant="ghost" onClick={() => setShowForm(false)} className="text-white hover:bg-[var(--voyo-bg-light)]">Cancel</Button>
+             <Button type="submit" disabled={submitting} className="bg-[var(--voyo-accent)] text-white hover:bg-[var(--voyo-accent-soft)]">
                {submitting ? 'Submitting...' : 'Submit Review'}
              </Button>
            </div>
@@ -139,17 +139,17 @@ export function ReviewsSection({ limit }: { limit?: number }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {loading ? (
-           <div className="col-span-full text-center text-[var(--voyage-muted)]">Loading reviews...</div>
+           <div className="col-span-full text-center text-[var(--voyo-muted)]">Loading reviews...</div>
         ) : displayedReviews.map((review) => (
-          <div key={review.id} className="bg-[var(--voyage-card)] p-5 rounded-xl border border-[var(--voyage-border)] hover:border-[var(--voyage-accent)]/30 transition-colors">
+          <div key={review.id} className="bg-[var(--voyo-card)] p-5 rounded-xl border border-[var(--voyo-border)] hover:border-[var(--voyo-accent)]/30 transition-colors">
             <div className="flex justify-between items-start mb-3">
               <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-[var(--voyage-accent)]/20 flex items-center justify-center text-[var(--voyage-accent)]">
+                <div className="h-8 w-8 rounded-full bg-[var(--voyo-accent)]/20 flex items-center justify-center text-[var(--voyo-accent)]">
                   <User className="h-4 w-4" />
                 </div>
                 <div>
                   <div className="font-semibold text-white text-sm">{review.userName}</div>
-                  <div className="text-xs text-[var(--voyage-muted)]">{review.date}</div>
+                  <div className="text-xs text-[var(--voyo-muted)]">{review.date}</div>
                 </div>
               </div>
               {review.verified && (
@@ -164,7 +164,7 @@ export function ReviewsSection({ limit }: { limit?: number }) {
                 <Star key={star} className={cn("h-3 w-3", star <= review.rating ? "fill-current" : "text-gray-600")} />
               ))}
             </div>
-            <p className="text-sm text-[var(--voyage-muted)] leading-relaxed">{review.comment}</p>
+            <p className="text-sm text-[var(--voyo-muted)] leading-relaxed">{review.comment}</p>
           </div>
         ))}
       </div>

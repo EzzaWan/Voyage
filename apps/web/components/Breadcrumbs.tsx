@@ -39,8 +39,8 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
                   className={cn(
                     "flex items-center gap-1 transition-colors",
                     isLast
-                      ? "text-[var(--voyage-text)]"
-                      : "text-[var(--voyage-muted)] hover:text-white"
+                      ? "text-[var(--voyo-text)]"
+                      : "text-[var(--voyo-muted)] hover:text-white"
                   )}
                 >
                   <Home className="h-4 w-4" />
@@ -48,15 +48,15 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
                 </Link>
               ) : (
                 <>
-                  <ChevronRight className="h-4 w-4 text-[var(--voyage-muted)]" />
+                  <ChevronRight className="h-4 w-4 text-[var(--voyo-muted)]" />
                   {isLast ? (
-                    <span className="text-[var(--voyage-text)] font-medium">
+                    <span className="text-[var(--voyo-text)] font-medium">
                       {item.label}
                     </span>
                   ) : (
                     <Link
                       href={item.href}
-                      className="text-[var(--voyage-muted)] hover:text-white transition-colors"
+                      className="text-[var(--voyo-muted)] hover:text-white transition-colors"
                     >
                       {item.label}
                     </Link>

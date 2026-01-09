@@ -117,22 +117,22 @@ export function InstallStepsDialog({
           </div>
 
           {(!activeDevice || activeDevice === "ios") && (
-            <Card className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)]">
+            <Card className="bg-[var(--voyo-bg-light)] border-[var(--voyo-border)]">
               <CardContent className="p-6 space-y-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <Smartphone className="h-6 w-6 text-[var(--voyage-accent)]" />
+                  <Smartphone className="h-6 w-6 text-[var(--voyo-accent)]" />
                   <h3 className="text-xl font-bold text-white">iPhone Installation</h3>
                 </div>
 
                 <div className="space-y-6">
                   {/* Step 1 */}
                   <div className="flex gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyo-accent)] text-white flex items-center justify-center font-bold">
                       1
                     </div>
                     <div className="flex-1 space-y-2">
                       <h4 className="text-white font-semibold">Access Cellular Settings</h4>
-                      <p className="text-[var(--voyage-muted)]">
+                      <p className="text-[var(--voyo-muted)]">
                         Go to <strong className="text-white">Settings</strong> &gt; <strong className="text-white">Cellular</strong> (or Mobile Data) &gt; <strong className="text-white">Add eSIM</strong>.
                       </p>
                     </div>
@@ -140,22 +140,22 @@ export function InstallStepsDialog({
 
                   {/* Step 2 */}
                   <div className="flex gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyo-accent)] text-white flex items-center justify-center font-bold">
                       2
                     </div>
                     <div className="flex-1 space-y-2">
                       <h4 className="text-white font-semibold">Scan QR Code</h4>
-                      <p className="text-[var(--voyage-muted)]">
+                      <p className="text-[var(--voyo-muted)]">
                         Select <strong className="text-white">Use QR Code</strong> and scan the code.
                       </p>
                       <div className="mt-2">
-                         <p className="text-xs text-[var(--voyage-muted)] mb-1">
+                         <p className="text-xs text-[var(--voyo-muted)] mb-1">
                            Can't scan? <strong className="text-white">Enter Details Manually</strong>:
                          </p>
-                         <div className="bg-[var(--voyage-bg)] p-2 rounded border border-[var(--voyage-border)]">
+                         <div className="bg-[var(--voyo-bg)] p-2 rounded border border-[var(--voyo-border)]">
                            <div className="flex justify-between items-center mb-1">
-                             <span className="text-xs text-[var(--voyage-muted)]">SM-DP+:</span>
-                             <button onClick={() => handleCopy(displaySmdp, "smdp")} className="text-xs text-[var(--voyage-accent)] hover:underline">
+                             <span className="text-xs text-[var(--voyo-muted)]">SM-DP+:</span>
+                             <button onClick={() => handleCopy(displaySmdp, "smdp")} className="text-xs text-[var(--voyo-accent)] hover:underline">
                                {copied === "smdp" ? "Copied" : "Copy"}
                              </button>
                            </div>
@@ -164,8 +164,8 @@ export function InstallStepsDialog({
                            {activationCodeOnly && (
                              <>
                                <div className="flex justify-between items-center mb-1">
-                                 <span className="text-xs text-[var(--voyage-muted)]">Code:</span>
-                                 <button onClick={() => handleCopy(activationCodeOnly, "ac")} className="text-xs text-[var(--voyage-accent)] hover:underline">
+                                 <span className="text-xs text-[var(--voyo-muted)]">Code:</span>
+                                 <button onClick={() => handleCopy(activationCodeOnly, "ac")} className="text-xs text-[var(--voyo-accent)] hover:underline">
                                    {copied === "ac" ? "Copied" : "Copy"}
                                  </button>
                                </div>
@@ -179,25 +179,25 @@ export function InstallStepsDialog({
 
                   {/* Step 3 */}
                   <div className="flex gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyo-accent)] text-white flex items-center justify-center font-bold">
                       3
                     </div>
                     <div className="flex-1 space-y-2">
                       <h4 className="text-white font-semibold">Label Your eSIM</h4>
-                      <p className="text-[var(--voyage-muted)]">
-                        Name your new plan (e.g., "Voyage") to easily identify it.
+                      <p className="text-[var(--voyo-muted)]">
+                        Name your new plan (e.g., "Voyo") to easily identify it.
                       </p>
                     </div>
                   </div>
 
                   {/* Step 4 */}
                   <div className="flex gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyo-accent)] text-white flex items-center justify-center font-bold">
                       4
                     </div>
                     <div className="flex-1 space-y-2">
                       <h4 className="text-white font-semibold">Set Default Line</h4>
-                      <ul className="list-disc list-inside text-sm text-[var(--voyage-muted)] space-y-1">
+                      <ul className="list-disc list-inside text-sm text-[var(--voyo-muted)] space-y-1">
                         <li><strong className="text-white">Default Line:</strong> Primary (keep for calls/SMS)</li>
                         <li><strong className="text-white">Cellular Data:</strong> Select your new eSIM</li>
                       </ul>
@@ -206,15 +206,15 @@ export function InstallStepsDialog({
 
                   {/* Step 5 */}
                   <div className="flex gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyo-accent)] text-white flex items-center justify-center font-bold">
                       5
                     </div>
                     <div className="flex-1 space-y-2">
                       <h4 className="text-white font-semibold">Configure Network</h4>
-                      <p className="text-[var(--voyage-muted)] mb-1">
+                      <p className="text-[var(--voyo-muted)] mb-1">
                         In <strong className="text-white">Settings</strong> &gt; <strong className="text-white">Cellular</strong> &gt; Your eSIM:
                       </p>
-                      <ul className="list-disc list-inside text-sm text-[var(--voyage-muted)] space-y-1">
+                      <ul className="list-disc list-inside text-sm text-[var(--voyo-muted)] space-y-1">
                         <li>Toggle <strong className="text-white">Data Roaming</strong> ON</li>
                         <li>Set <strong className="text-white">Network Selection</strong> to Automatic</li>
                         <li>Ensure <strong className="text-white">Voice & Data</strong> is LTE or 5G</li>
@@ -227,72 +227,72 @@ export function InstallStepsDialog({
           )}
 
           {(!activeDevice || activeDevice === "android") && (
-            <Card className="bg-[var(--voyage-bg-light)] border-[var(--voyage-border)]">
+            <Card className="bg-[var(--voyo-bg-light)] border-[var(--voyo-border)]">
               <CardContent className="p-6 space-y-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <Smartphone className="h-6 w-6 text-[var(--voyage-accent)]" />
+                  <Smartphone className="h-6 w-6 text-[var(--voyo-accent)]" />
                   <h3 className="text-xl font-bold text-white">Android Installation (Samsung / Pixel)</h3>
                 </div>
 
                 <div className="space-y-6">
                   <div className="flex gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyo-accent)] text-white flex items-center justify-center font-bold">
                       1
                     </div>
                     <div className="flex-1 space-y-2">
                       <h4 className="text-white font-semibold">Open Settings</h4>
-                      <p className="text-[var(--voyage-muted)]">
+                      <p className="text-[var(--voyo-muted)]">
                         Open the <strong className="text-white">Settings</strong> app on your Android device.
                       </p>
                     </div>
                   </div>
 
                   <div className="flex gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyo-accent)] text-white flex items-center justify-center font-bold">
                       2
                     </div>
                     <div className="flex-1 space-y-2">
                       <h4 className="text-white font-semibold">Navigate to Connections</h4>
-                      <p className="text-[var(--voyage-muted)]">
+                      <p className="text-[var(--voyo-muted)]">
                         Tap <strong className="text-white">Connections</strong> (Samsung) or <strong className="text-white">Network & internet</strong> (Pixel).
                       </p>
                     </div>
                   </div>
 
                   <div className="flex gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyo-accent)] text-white flex items-center justify-center font-bold">
                       3
                     </div>
                     <div className="flex-1 space-y-2">
                       <h4 className="text-white font-semibold">SIM Manager</h4>
-                      <p className="text-[var(--voyage-muted)]">
+                      <p className="text-[var(--voyo-muted)]">
                         Tap <strong className="text-white">SIM Manager</strong> or <strong className="text-white">SIMs</strong>.
                       </p>
                     </div>
                   </div>
 
                   <div className="flex gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyo-accent)] text-white flex items-center justify-center font-bold">
                       4
                     </div>
                     <div className="flex-1 space-y-2">
                       <h4 className="text-white font-semibold">Add eSIM</h4>
-                      <p className="text-[var(--voyage-muted)]">
+                      <p className="text-[var(--voyo-muted)]">
                         Tap <strong className="text-white">Add eSIM</strong> or <strong className="text-white">Add mobile plan</strong>.
                       </p>
                     </div>
                   </div>
 
                   <div className="flex gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyo-accent)] text-white flex items-center justify-center font-bold">
                       5
                     </div>
                     <div className="flex-1 space-y-2">
                       <h4 className="text-white font-semibold">Scan QR Code or Enter Code</h4>
-                      <p className="text-[var(--voyage-muted)] mb-2">
+                      <p className="text-[var(--voyo-muted)] mb-2">
                         Choose one of these options:
                       </p>
-                      <ul className="list-disc list-inside space-y-2 text-[var(--voyage-muted)] ml-2">
+                      <ul className="list-disc list-inside space-y-2 text-[var(--voyo-muted)] ml-2">
                         <li>
                           <strong className="text-white">Scan QR Code:</strong> Point your camera at the QR code
                         </li>
@@ -302,7 +302,7 @@ export function InstallStepsDialog({
                       </ul>
                       {activationCodeOnly && (
                         <div className="mt-3">
-                          <div className="p-3 bg-[var(--voyage-bg)] rounded-lg border border-[var(--voyage-border)]">
+                          <div className="p-3 bg-[var(--voyo-bg)] rounded-lg border border-[var(--voyo-border)]">
                             <div className="flex items-center justify-between gap-2">
                               <code className="text-xs text-white font-mono break-all flex-1">
                                 {activationCodeOnly}
@@ -326,12 +326,12 @@ export function InstallStepsDialog({
                   </div>
 
                   <div className="flex gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyage-accent)] text-white flex items-center justify-center font-bold">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--voyo-accent)] text-white flex items-center justify-center font-bold">
                       6
                     </div>
                     <div className="flex-1 space-y-2">
                       <h4 className="text-white font-semibold">Complete Setup</h4>
-                      <p className="text-[var(--voyage-muted)]">
+                      <p className="text-[var(--voyo-muted)]">
                         Follow the on-screen prompts to complete the installation. Your eSIM will be activated once the download is complete.
                       </p>
                     </div>

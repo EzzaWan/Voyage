@@ -53,8 +53,27 @@ export default function RootLayout({
       >
         <CurrencyProvider>
           <ErrorToastProvider>
-            <html lang="en" style={{ backgroundColor: 'var(--voyo-bg)' }}>
-              <body className={`${inter.className} bg-[var(--voyo-bg)] text-[var(--voyo-text)] min-h-screen antialiased selection:bg-[var(--voyo-accent)] selection:text-white`} style={{ backgroundColor: 'var(--voyo-bg)', color: 'var(--voyo-text)' }}>
+            <html lang="en" style={{ backgroundColor: '#0A1A2F', color: '#E9F1FF' }}>
+              <head>
+                <style dangerouslySetInnerHTML={{ __html: `
+                  :root {
+                    --voyo-bg: #0A1A2F;
+                    --voyo-bg-light: #0F2540;
+                    --voyo-accent: #1E90FF;
+                    --voyo-accent-soft: #4BA3FF;
+                    --voyo-text: #E9F1FF;
+                    --voyo-muted: #A8B5C8;
+                    --voyo-card: #132742;
+                    --voyo-card-hover: #163054;
+                    --voyo-border: #1E3555;
+                  }
+                  html, body {
+                    background-color: #0A1A2F !important;
+                    color: #E9F1FF !important;
+                  }
+                `}} />
+              </head>
+              <body className={`${inter.className} bg-[var(--voyo-bg)] text-[var(--voyo-text)] min-h-screen antialiased selection:bg-[var(--voyo-accent)] selection:text-white`} style={{ backgroundColor: '#0A1A2F', color: '#E9F1FF' }}>
                 {/* Google tag (gtag.js) */}
                 <Script
                   src="https://www.googletagmanager.com/gtag/js?id=AW-17806579060"

@@ -171,7 +171,7 @@ export default function AdminPayoutsPage() {
     <div className="p-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-white mb-2">Affiliate Payout Requests</h1>
-        <p className="text-[var(--voyage-muted)]">Manage affiliate payout requests</p>
+        <p className="text-[var(--voyo-muted)]">Manage affiliate payout requests</p>
       </div>
 
       <div className="mb-4 flex gap-4 items-center">
@@ -181,7 +181,7 @@ export default function AdminPayoutsPage() {
             setStatusFilter(e.target.value);
             setPage(1);
           }}
-          className="px-4 py-2 bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-lg text-white"
+          className="px-4 py-2 bg-[var(--voyo-card)] border border-[var(--voyo-border)] rounded-lg text-white"
         >
           <option value="">All Statuses</option>
           <option value="pending">Pending</option>
@@ -191,35 +191,35 @@ export default function AdminPayoutsPage() {
         </select>
       </div>
 
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardContent className="pt-6">
           {loading ? (
-            <p className="text-center text-[var(--voyage-muted)] py-8">Loading...</p>
+            <p className="text-center text-[var(--voyo-muted)] py-8">Loading...</p>
           ) : requests.length === 0 ? (
-            <p className="text-center text-[var(--voyage-muted)] py-8">No payout requests found</p>
+            <p className="text-center text-[var(--voyo-muted)] py-8">No payout requests found</p>
           ) : (
             <>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-[var(--voyage-border)]">
-                      <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyage-muted)]">Affiliate</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyage-muted)]">Amount</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyage-muted)]">Payout Method</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyage-muted)]">Status</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyage-muted)]">Requested</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyage-muted)]">Actions</th>
+                    <tr className="border-b border-[var(--voyo-border)]">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyo-muted)]">Affiliate</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyo-muted)]">Amount</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyo-muted)]">Payout Method</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyo-muted)]">Status</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyo-muted)]">Requested</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-[var(--voyo-muted)]">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {requests.map((request: any) => (
-                      <tr key={request.id} className="border-b border-[var(--voyage-border)] hover:bg-[var(--voyage-bg-light)]">
+                      <tr key={request.id} className="border-b border-[var(--voyo-border)] hover:bg-[var(--voyo-bg-light)]">
                         <td className="py-3 px-4">
                           <div>
                             <p className="text-white font-medium">
                               {request.affiliate?.user?.name || request.affiliate?.user?.email}
                             </p>
-                            <p className="text-xs text-[var(--voyage-muted)]">
+                            <p className="text-xs text-[var(--voyo-muted)]">
                               {request.affiliate?.user?.email}
                             </p>
                           </div>
@@ -227,7 +227,7 @@ export default function AdminPayoutsPage() {
                         <td className="py-3 px-4 text-white font-medium">
                           {formatCurrency(request.amountCents)}
                         </td>
-                        <td className="py-3 px-4 text-[var(--voyage-muted)] text-sm">
+                        <td className="py-3 px-4 text-[var(--voyo-muted)] text-sm">
                           {request.affiliate?.payoutMethods?.[0] ? (
                             request.affiliate.payoutMethods[0].type === "paypal" ? (
                               `PayPal: ${request.affiliate.payoutMethods[0].paypalEmail}`
@@ -241,7 +241,7 @@ export default function AdminPayoutsPage() {
                         <td className="py-3 px-4">
                           {getStatusBadge(request.status)}
                         </td>
-                        <td className="py-3 px-4 text-[var(--voyage-muted)] text-sm">
+                        <td className="py-3 px-4 text-[var(--voyo-muted)] text-sm">
                           {formatDate(request.createdAt)}
                         </td>
                         <td className="py-3 px-4">
@@ -276,7 +276,7 @@ export default function AdminPayoutsPage() {
                             )}
                           </div>
                           {request.adminNote && (
-                            <p className="text-xs text-[var(--voyage-muted)] mt-2">
+                            <p className="text-xs text-[var(--voyo-muted)] mt-2">
                               Note: {request.adminNote}
                             </p>
                           )}
@@ -289,7 +289,7 @@ export default function AdminPayoutsPage() {
 
               {pagination.totalPages > 1 && (
                 <div className="mt-4 flex justify-between items-center">
-                  <p className="text-sm text-[var(--voyage-muted)]">
+                  <p className="text-sm text-[var(--voyo-muted)]">
                     Page {pagination.page} of {pagination.totalPages}
                   </p>
                   <div className="flex gap-2">

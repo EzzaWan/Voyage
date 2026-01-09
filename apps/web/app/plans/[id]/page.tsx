@@ -64,7 +64,7 @@ export default function PlanPage() {
     return (
       <div className="container mx-auto px-4 py-20 text-center">
         <h1 className="text-3xl font-bold text-white mb-4">Plan Not Found</h1>
-        <p className="text-[var(--voyage-muted)] mb-6">The plan you're looking for doesn't exist or has been removed.</p>
+        <p className="text-[var(--voyo-muted)] mb-6">The plan you're looking for doesn't exist or has been removed.</p>
         <Link href="/countries">
           <Button variant="secondary">Browse Plans</Button>
         </Link>

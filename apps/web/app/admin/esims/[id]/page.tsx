@@ -247,8 +247,8 @@ export default function AdminEsimDetailPage() {
   if (loading || !esim) {
     return (
       <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyage-accent)] mx-auto mb-4"></div>
-        <p className="text-[var(--voyage-muted)]">Loading eSIM profile...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyo-accent)] mx-auto mb-4"></div>
+        <p className="text-[var(--voyo-muted)]">Loading eSIM profile...</p>
       </div>
     );
   }
@@ -259,33 +259,33 @@ export default function AdminEsimDetailPage() {
         <Button
           variant="ghost"
           onClick={() => router.push("/admin/esims")}
-          className="text-[var(--voyage-muted)] hover:text-white"
+          className="text-[var(--voyo-muted)] hover:text-white"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">eSIM Profile Details</h1>
-          <p className="text-[var(--voyage-muted)]">ICCID: {esim.iccid}</p>
+          <p className="text-[var(--voyo-muted)]">ICCID: {esim.iccid}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
           <CardHeader>
             <CardTitle className="text-white">Profile Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <p className="text-sm text-[var(--voyage-muted)]">ICCID</p>
+              <p className="text-sm text-[var(--voyo-muted)]">ICCID</p>
               <p className="text-white font-mono text-xs">{esim.iccid}</p>
             </div>
             <div>
-              <p className="text-sm text-[var(--voyage-muted)]">esimTranNo</p>
+              <p className="text-sm text-[var(--voyo-muted)]">esimTranNo</p>
               <p className="text-white font-mono text-xs">{esim.esimTranNo}</p>
             </div>
             <div>
-              <p className="text-sm text-[var(--voyage-muted)]">Status</p>
+              <p className="text-sm text-[var(--voyo-muted)]">Status</p>
               {(() => {
                 const status = esim.esimStatus || esim.smdpStatus;
                 const statusDisplay = getEsimStatusDisplay(status);
@@ -293,16 +293,16 @@ export default function AdminEsimDetailPage() {
               })()}
             </div>
             <div>
-              <p className="text-sm text-[var(--voyage-muted)]">Total Volume</p>
+              <p className="text-sm text-[var(--voyo-muted)]">Total Volume</p>
               <p className="text-white">{formatBytes(esim.totalVolume)}</p>
             </div>
             <div>
-              <p className="text-sm text-[var(--voyage-muted)]">Usage</p>
+              <p className="text-sm text-[var(--voyo-muted)]">Usage</p>
               <p className="text-white">{formatBytes(esim.orderUsage)}</p>
             </div>
             {esim.expiredTime && (
               <div>
-                <p className="text-sm text-[var(--voyage-muted)]">Expires</p>
+                <p className="text-sm text-[var(--voyo-muted)]">Expires</p>
                 <p className="text-white">
                   {new Date(esim.expiredTime).toLocaleString()}
                 </p>
@@ -310,35 +310,35 @@ export default function AdminEsimDetailPage() {
             )}
             {esim.ac && (
               <div>
-                <p className="text-sm text-[var(--voyage-muted)]">Activation Code</p>
+                <p className="text-sm text-[var(--voyo-muted)]">Activation Code</p>
                 <p className="text-white font-mono text-xs break-all">{esim.ac}</p>
               </div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
           <CardHeader>
             <CardTitle className="text-white">Order Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <p className="text-sm text-[var(--voyage-muted)]">Order ID</p>
+              <p className="text-sm text-[var(--voyo-muted)]">Order ID</p>
               <Button
                 variant="link"
                 onClick={() => router.push(`/admin/orders/${esim.order.id}`)}
-                className="p-0 h-auto text-[var(--voyage-accent)]"
+                className="p-0 h-auto text-[var(--voyo-accent)]"
               >
                 {esim.order.id}
               </Button>
             </div>
             <div>
-              <p className="text-sm text-[var(--voyage-muted)]">Plan</p>
+              <p className="text-sm text-[var(--voyo-muted)]">Plan</p>
               <div className="text-white">
                 {planName && planName !== esim.order.planId ? (
                   <>
                     <div>{planName}</div>
-                    <div className="text-xs text-[var(--voyage-muted)] font-mono">{esim.order.planId}</div>
+                    <div className="text-xs text-[var(--voyo-muted)] font-mono">{esim.order.planId}</div>
                   </>
                 ) : (
                   <span className="font-mono">{esim.order.planId}</span>
@@ -346,7 +346,7 @@ export default function AdminEsimDetailPage() {
               </div>
             </div>
             <div>
-              <p className="text-sm text-[var(--voyage-muted)]">User Email</p>
+              <p className="text-sm text-[var(--voyo-muted)]">User Email</p>
               <p className="text-white">{esim.order.user.email}</p>
             </div>
           </CardContent>
@@ -354,7 +354,7 @@ export default function AdminEsimDetailPage() {
       </div>
 
               {esim.topups?.length > 0 && (
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
           <CardHeader>
             <CardTitle className="text-white">Top-up History</CardTitle>
           </CardHeader>
@@ -363,16 +363,16 @@ export default function AdminEsimDetailPage() {
               {esim.topups.map((topup) => (
                 <div
                   key={topup.id}
-                  className="p-3 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)] flex items-center justify-between"
+                  className="p-3 bg-[var(--voyo-bg-light)] rounded-lg border border-[var(--voyo-border)] flex items-center justify-between"
                 >
                   <div>
                     <p className="text-white">
                       {topUpPlanNames.get(topup.planCode) || topup.planCode}
                     </p>
                     {topUpPlanNames.get(topup.planCode) && (
-                      <p className="text-xs text-[var(--voyage-muted)] font-mono">{topup.planCode}</p>
+                      <p className="text-xs text-[var(--voyo-muted)] font-mono">{topup.planCode}</p>
                     )}
-                    <p className="text-xs text-[var(--voyage-muted)]">
+                    <p className="text-xs text-[var(--voyo-muted)]">
                       {formatUsdDollars(topup.amountCents / 100)} • {new Date(topup.createdAt).toLocaleString()}
                     </p>
                   </div>
@@ -388,7 +388,7 @@ export default function AdminEsimDetailPage() {
       )}
 
       {/* Usage History */}
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-white flex items-center gap-2">
@@ -400,7 +400,7 @@ export default function AdminEsimDetailPage() {
               disabled={usageHistoryLoading}
               variant="outline"
               size="sm"
-              className="border-[var(--voyage-border)] hover:bg-[var(--voyage-bg-light)]"
+              className="border-[var(--voyo-border)] hover:bg-[var(--voyo-bg-light)]"
             >
               {usageHistoryLoading ? (
                 <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
@@ -434,8 +434,8 @@ export default function AdminEsimDetailPage() {
                     />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: 'var(--voyage-bg-light)',
-                        border: '1px solid var(--voyage-border)',
+                        backgroundColor: 'var(--voyo-bg-light)',
+                        border: '1px solid var(--voyo-border)',
                         borderRadius: '8px',
                         color: 'white',
                       }}
@@ -444,9 +444,9 @@ export default function AdminEsimDetailPage() {
                     <Line 
                       type="monotone" 
                       dataKey="usedGB" 
-                      stroke="var(--voyage-accent)" 
+                      stroke="var(--voyo-accent)" 
                       strokeWidth={2}
-                      dot={{ fill: 'var(--voyage-accent)', r: 4 }}
+                      dot={{ fill: 'var(--voyo-accent)', r: 4 }}
                       activeDot={{ r: 6 }}
                     />
                   </LineChart>
@@ -458,13 +458,13 @@ export default function AdminEsimDetailPage() {
                 {usageHistory.slice().reverse().map((record) => (
                   <div
                     key={record.id}
-                    className="p-3 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)] flex items-center justify-between"
+                    className="p-3 bg-[var(--voyo-bg-light)] rounded-lg border border-[var(--voyo-border)] flex items-center justify-between"
                   >
                     <div>
                       <p className="text-white text-sm font-medium">
                         {formatBytes(record.usedBytes)}
                       </p>
-                      <p className="text-xs text-[var(--voyage-muted)]">
+                      <p className="text-xs text-[var(--voyo-muted)]">
                         {new Date(record.recordedAt).toLocaleString()}
                       </p>
                     </div>
@@ -473,7 +473,7 @@ export default function AdminEsimDetailPage() {
               </div>
             </>
           ) : (
-            <div className="text-center py-8 text-[var(--voyage-muted)]">
+            <div className="text-center py-8 text-[var(--voyo-muted)]">
               <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No usage history yet</p>
               <p className="text-xs mt-2">Usage data will appear here after syncing</p>
@@ -482,7 +482,7 @@ export default function AdminEsimDetailPage() {
         </CardContent>
       </Card>
 
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-white">Actions</CardTitle>
@@ -491,7 +491,7 @@ export default function AdminEsimDetailPage() {
                 onClick={handleSync}
                 disabled={actionLoading}
                 variant="outline"
-                className="border-[var(--voyage-border)] hover:bg-[var(--voyage-bg-light)]"
+                className="border-[var(--voyo-border)] hover:bg-[var(--voyo-bg-light)]"
               >
                 {actionLoading ? (
                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
@@ -523,11 +523,11 @@ export default function AdminEsimDetailPage() {
                 ⚠️ Warning: This will permanently delete this eSIM profile.
               </p>
               {esim.topups?.length > 0 && (
-                <p className="text-xs text-[var(--voyage-muted)] mb-2">
+                <p className="text-xs text-[var(--voyo-muted)] mb-2">
                   This profile has {esim.topups.length} top-up(s) that will also be deleted.
                 </p>
               )}
-              <p className="text-xs text-[var(--voyage-muted)]">
+              <p className="text-xs text-[var(--voyo-muted)]">
                 Click "Confirm Delete" again to proceed, or refresh the page to cancel.
               </p>
             </div>

@@ -68,7 +68,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="min-h-screen flex items-center justify-center p-4">
-          <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)] max-w-md w-full">
+          <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)] max-w-md w-full">
             <CardHeader>
               <div className="flex items-center gap-3">
                 <AlertTriangle className="h-6 w-6 text-red-500" />
@@ -76,7 +76,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-[var(--voyage-muted)]">
+              <p className="text-[var(--voyo-muted)]">
                 An unexpected error occurred. Please try again or refresh the page.
               </p>
               {process.env.NODE_ENV === "development" && this.state.error && (
@@ -89,7 +89,7 @@ export class ErrorBoundary extends Component<Props, State> {
               <div className="flex gap-3">
                 <Button
                   onClick={this.handleRetry}
-                  className="flex-1 bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white"
+                  className="flex-1 bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white"
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Retry
@@ -97,7 +97,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <Button
                   variant="outline"
                   onClick={() => (window.location.href = "/")}
-                  className="flex-1 border-[var(--voyage-border)] text-white hover:bg-[var(--voyage-bg-light)]"
+                  className="flex-1 border-[var(--voyo-border)] text-white hover:bg-[var(--voyo-bg-light)]"
                 >
                   Go Home
                 </Button>

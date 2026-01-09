@@ -206,7 +206,7 @@ export function PlanDetails({ plan }: { plan: any }) {
     <div className="grid gap-10 lg:grid-cols-3">
       {/* Left Column - Main Modal */}
       <div className="lg:col-span-2 space-y-8">
-        <div className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-2xl p-8 shadow-xl space-y-10">
+        <div className="bg-[var(--voyo-card)] border border-[var(--voyo-border)] rounded-2xl p-8 shadow-xl space-y-10">
             
             {/* Header Section */}
             <div>
@@ -215,7 +215,7 @@ export function PlanDetails({ plan }: { plan: any }) {
                 </h1>
                 
                 {/* Features (replacing badges) */}
-                <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-[var(--voyage-muted)]">
+                <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-[var(--voyo-muted)]">
                     <div className="flex items-center gap-2">
                         <Check className="h-4 w-4 text-green-500" />
                         <span>Instant delivery via Email</span>
@@ -250,7 +250,7 @@ export function PlanDetails({ plan }: { plan: any }) {
                                     onChange={(e) => setSelectedDays(Math.max(1, Math.min(365, parseInt(e.target.value) || 1)))}
                                     className="text-xl font-bold text-white w-12 bg-transparent border-b border-white/20 text-center focus:outline-none p-0 h-6"
                                 />
-                                <span className="text-xs text-[var(--voyage-muted)] mt-1">Days</span>
+                                <span className="text-xs text-[var(--voyo-muted)] mt-1">Days</span>
                             </div>
                         ) : (
                             `${plan.duration || 0} Days`
@@ -269,7 +269,7 @@ export function PlanDetails({ plan }: { plan: any }) {
 
             {/* Coverage Region */}
             <div>
-                <div className="flex items-center gap-2 mb-4 text-[var(--voyage-muted)] uppercase tracking-wider text-xs font-bold">
+                <div className="flex items-center gap-2 mb-4 text-[var(--voyo-muted)] uppercase tracking-wider text-xs font-bold">
                     <Globe className="h-4 w-4" />
                     <span>Coverage Region</span>
                 </div>
@@ -278,21 +278,21 @@ export function PlanDetails({ plan }: { plan: any }) {
                     {plan.location && typeof plan.location === 'string' && plan.location.includes(',') ? (
                         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                             <DialogTrigger asChild>
-                                <button className="flex items-center gap-3 bg-[var(--voyage-bg)] border border-[var(--voyage-border)] rounded-lg p-3 hover:bg-[var(--voyage-bg-light)] transition-colors text-left group">
-                                    <div className="h-8 w-8 bg-[var(--voyage-bg-light)] rounded-full flex items-center justify-center border border-[var(--voyage-border)] group-hover:border-[var(--voyage-accent)]/50 transition-colors">
+                                <button className="flex items-center gap-3 bg-[var(--voyo-bg)] border border-[var(--voyo-border)] rounded-lg p-3 hover:bg-[var(--voyo-bg-light)] transition-colors text-left group">
+                                    <div className="h-8 w-8 bg-[var(--voyo-bg-light)] rounded-full flex items-center justify-center border border-[var(--voyo-border)] group-hover:border-[var(--voyo-accent)]/50 transition-colors">
                                         <span className="text-xs font-bold text-white">+{plan.location.split(',').length}</span>
                                     </div>
                                     <div>
-                                        <div className="text-sm font-bold text-white group-hover:text-[var(--voyage-accent)] transition-colors">Multiple Countries</div>
-                                        <div className="text-[10px] text-[var(--voyage-muted)]">Click to view all</div>
+                                        <div className="text-sm font-bold text-white group-hover:text-[var(--voyo-accent)] transition-colors">Multiple Countries</div>
+                                        <div className="text-[10px] text-[var(--voyo-muted)]">Click to view all</div>
                                     </div>
                                 </button>
                             </DialogTrigger>
-                            <DialogContent className="bg-[var(--voyage-card)] border-[var(--voyage-border)] text-white">
+                            <DialogContent className="bg-[var(--voyo-card)] border-[var(--voyo-border)] text-white">
                                 <DialogHeader><DialogTitle>Covered Countries</DialogTitle></DialogHeader>
                                 <div className="grid grid-cols-2 gap-2 mt-4">
                                     {plan.location.split(',').filter((c: string) => c.trim()).map((code: string) => (
-                                        <div key={code} className="flex items-center gap-2 p-2 bg-[var(--voyage-bg-light)] rounded">
+                                        <div key={code} className="flex items-center gap-2 p-2 bg-[var(--voyo-bg-light)] rounded">
                                             <FlagIcon logoUrl={`https://flagcdn.com/w320/${code.trim().toLowerCase().split('-')[0]}.png`} alt={code} className="h-4 w-6 rounded-sm object-cover" />
                                             <span className="text-sm">{getCountryName(code.trim())}</span>
                                         </div>
@@ -301,7 +301,7 @@ export function PlanDetails({ plan }: { plan: any }) {
                             </DialogContent>
                         </Dialog>
                     ) : (
-                        <div className="flex items-center gap-3 bg-[var(--voyage-bg)] border border-[var(--voyage-border)] rounded-lg p-3 pr-6">
+                        <div className="flex items-center gap-3 bg-[var(--voyo-bg)] border border-[var(--voyo-border)] rounded-lg p-3 pr-6">
                             <div className="h-8 w-10 rounded-sm overflow-hidden relative shadow-sm">
                                 <FlagIcon logoUrl={`https://flagcdn.com/w320/${plan.location?.toLowerCase().split('-')[0]}.png`} alt={plan.location} className="h-full w-full object-cover" />
                             </div>
@@ -323,28 +323,28 @@ export function PlanDetails({ plan }: { plan: any }) {
       {/* Right Column */}
       <div className="lg:col-span-1 space-y-6">
          {/* Checkout Card */}
-         <div className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-2xl p-6 shadow-xl sticky top-24">
-             <div className="mb-6 pb-6 border-b border-[var(--voyage-border)]">
-                 <h3 className="text-[var(--voyage-muted)] text-xs uppercase tracking-wider font-semibold mb-4 text-center">Order Summary</h3>
+         <div className="bg-[var(--voyo-card)] border border-[var(--voyo-border)] rounded-2xl p-6 shadow-xl sticky top-24">
+             <div className="mb-6 pb-6 border-b border-[var(--voyo-border)]">
+                 <h3 className="text-[var(--voyo-muted)] text-xs uppercase tracking-wider font-semibold mb-4 text-center">Order Summary</h3>
                  
                  <div className="space-y-3 mb-6">
                      <div className="flex justify-between text-sm">
-                         <span className="text-[var(--voyage-muted)]">Item:</span>
+                         <span className="text-[var(--voyo-muted)]">Item:</span>
                          <span className="text-white font-medium text-right max-w-[60%]">{titleParts.country} {titleParts.data} {titleParts.duration}</span>
                      </div>
                      <div className="flex justify-between text-sm">
-                         <span className="text-[var(--voyage-muted)]">Data:</span>
+                         <span className="text-[var(--voyo-muted)]">Data:</span>
                          <span className="text-white font-medium">{isUnlimitedPlan ? "Unlimited" : `${sizeGB} GB`}</span>
                      </div>
                      <div className="flex justify-between text-sm">
-                         <span className="text-[var(--voyage-muted)]">Validity:</span>
+                         <span className="text-[var(--voyo-muted)]">Validity:</span>
                          <span className="text-white font-medium">{isUnlimitedPlan ? `${selectedDays} Days` : `${plan.duration} Days`}</span>
                      </div>
                  </div>
 
                  {discountPercent > 0 && (
                     <div className="flex justify-between items-center mb-1">
-                        <span className="text-xs text-[var(--voyage-muted)] line-through">
+                        <span className="text-xs text-[var(--voyo-muted)] line-through">
                             {formatCurrency(convert(isUnlimitedPlan ? (dailyPriceUSD * selectedDays) : basePriceUSD))}
                         </span>
                     </div>
@@ -354,7 +354,7 @@ export function PlanDetails({ plan }: { plan: any }) {
                      <span className="text-xl font-bold text-white">TOTAL:</span>
                      <div className="text-right">
                          <span className="text-3xl font-bold text-white">{formatCurrency(convertedPrice)}</span>
-                         {discountPercent > 0 && <div className="text-[10px] text-[var(--voyage-accent)] font-bold mt-1 uppercase tracking-wider">{discountPercent}% Savings Applied</div>}
+                         {discountPercent > 0 && <div className="text-[10px] text-[var(--voyo-accent)] font-bold mt-1 uppercase tracking-wider">{discountPercent}% Savings Applied</div>}
                      </div>
                  </div>
              </div>
@@ -362,38 +362,38 @@ export function PlanDetails({ plan }: { plan: any }) {
              {/* Payment Method */}
              {userLoaded && user && vcashBalance !== null && vcashBalance > 0 && (
                  <div className="grid grid-cols-2 gap-2 mb-6">
-                     <button onClick={() => setPaymentMethod('vcash')} className={`py-2 text-xs font-bold rounded-full border transition-all ${paymentMethod === 'vcash' ? 'bg-[var(--voyage-accent)] text-white border-transparent' : 'bg-transparent text-[var(--voyage-muted)] border-[var(--voyage-border)]'}`}>Pay w/ V-Cash</button>
-                     <button onClick={() => setPaymentMethod('stripe')} className={`py-2 text-xs font-bold rounded-full border transition-all ${paymentMethod === 'stripe' ? 'bg-[var(--voyage-accent)] text-white border-transparent' : 'bg-transparent text-[var(--voyage-muted)] border-[var(--voyage-border)]'}`}>Pay w/ Card</button>
+                     <button onClick={() => setPaymentMethod('vcash')} className={`py-2 text-xs font-bold rounded-full border transition-all ${paymentMethod === 'vcash' ? 'bg-[var(--voyo-accent)] text-white border-transparent' : 'bg-transparent text-[var(--voyo-muted)] border-[var(--voyo-border)]'}`}>Pay w/ V-Cash</button>
+                     <button onClick={() => setPaymentMethod('stripe')} className={`py-2 text-xs font-bold rounded-full border transition-all ${paymentMethod === 'stripe' ? 'bg-[var(--voyo-accent)] text-white border-transparent' : 'bg-transparent text-[var(--voyo-muted)] border-[var(--voyo-border)]'}`}>Pay w/ Card</button>
                  </div>
              )}
 
              <Button 
                 onClick={buyNow}
                 disabled={processing}
-                className="w-full h-14 text-lg font-bold bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white uppercase tracking-wider shadow-lg shadow-blue-500/20"
+                className="w-full h-14 text-lg font-bold bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white uppercase tracking-wider shadow-lg shadow-blue-500/20"
              >
                 {processing ? 'Processing...' : 'Complete Order'}
              </Button>
              
-             <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-[var(--voyage-muted)]">
+             <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-[var(--voyo-muted)]">
                  <Shield className="h-3 w-3" />
                  <span>Secure Checkout • Instant Delivery</span>
              </div>
          </div>
 
          {/* Device Compatibility Link */}
-         <Link href="/device-check" className="block bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl p-4 hover:border-[var(--voyage-accent)] transition-colors group">
+         <Link href="/device-check" className="block bg-[var(--voyo-card)] border border-[var(--voyo-border)] rounded-xl p-4 hover:border-[var(--voyo-accent)] transition-colors group">
              <div className="flex items-center justify-between">
                  <div className="flex items-center gap-3">
-                     <div className="h-8 w-8 rounded-full bg-[var(--voyage-bg-light)] flex items-center justify-center text-[var(--voyage-muted)] group-hover:text-white transition-colors">
+                     <div className="h-8 w-8 rounded-full bg-[var(--voyo-bg-light)] flex items-center justify-center text-[var(--voyo-muted)] group-hover:text-white transition-colors">
                          <Smartphone className="h-4 w-4" />
                      </div>
                      <div>
                          <div className="text-sm font-bold text-white">Device Compatibility</div>
-                         <div className="text-[10px] text-[var(--voyage-muted)]">Check if your phone works</div>
+                         <div className="text-[10px] text-[var(--voyo-muted)]">Check if your phone works</div>
                      </div>
                  </div>
-                 <ChevronRight className="h-4 w-4 text-[var(--voyage-muted)] group-hover:translate-x-1 transition-transform" />
+                 <ChevronRight className="h-4 w-4 text-[var(--voyo-muted)] group-hover:translate-x-1 transition-transform" />
              </div>
          </Link>
       </div>
@@ -401,14 +401,14 @@ export function PlanDetails({ plan }: { plan: any }) {
       {/* Warning Modal */}
       {showDeviceWarning && deviceCompatibility && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-2xl p-6 max-w-md w-full shadow-2xl">
+          <div className="bg-[var(--voyo-card)] border border-[var(--voyo-border)] rounded-2xl p-6 max-w-md w-full shadow-2xl">
              <div className="mb-4">
                 <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2"><AlertTriangle className="text-yellow-400" /> Warning</h3>
-                <p className="text-[var(--voyage-muted)]">Your device may not be supported.</p>
+                <p className="text-[var(--voyo-muted)]">Your device may not be supported.</p>
              </div>
              <div className="flex gap-3">
                 <Button onClick={() => { setShowDeviceWarning(false); setProceedWithCheckout(true); buyNow(); }} variant="destructive" className="flex-1">Continue</Button>
-                <Button onClick={() => setShowDeviceWarning(false)} variant="outline" className="flex-1 border-[var(--voyage-border)] text-white">Cancel</Button>
+                <Button onClick={() => setShowDeviceWarning(false)} variant="outline" className="flex-1 border-[var(--voyo-border)] text-white">Cancel</Button>
              </div>
           </div>
         </div>
@@ -419,8 +419,8 @@ export function PlanDetails({ plan }: { plan: any }) {
 
 function StatBox({ label, value }: { label: string, value: React.ReactNode }) {
     return (
-        <div className="bg-[var(--voyage-bg)] border border-[var(--voyage-border)] rounded-xl p-4 flex flex-col items-center justify-center text-center h-28 hover:border-[var(--voyage-accent)]/30 transition-colors">
-            <span className="text-[10px] uppercase tracking-widest font-bold text-[var(--voyage-muted)] mb-2">{label}</span>
+        <div className="bg-[var(--voyo-bg)] border border-[var(--voyo-border)] rounded-xl p-4 flex flex-col items-center justify-center text-center h-28 hover:border-[var(--voyo-accent)]/30 transition-colors">
+            <span className="text-[10px] uppercase tracking-widest font-bold text-[var(--voyo-muted)] mb-2">{label}</span>
             <div className="text-xl md:text-2xl font-bold text-white">{value}</div>
         </div>
     );

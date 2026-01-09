@@ -54,14 +54,14 @@ export default function CountriesPage() {
   return (
     <div className="min-h-[80vh] flex flex-col">
        <div className="flex flex-col items-center text-center max-w-2xl mx-auto mb-12 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="inline-flex items-center justify-center p-3 rounded-full bg-[var(--voyage-bg-light)] border border-[var(--voyage-border)] mb-4">
-             <Globe className="h-6 w-6 text-[var(--voyage-accent)]" />
+          <div className="inline-flex items-center justify-center p-3 rounded-full bg-[var(--voyo-bg-light)] border border-[var(--voyo-border)] mb-4">
+             <Globe className="h-6 w-6 text-[var(--voyo-accent)]" />
           </div>
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white">
              Where are you <br />
-             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--voyage-accent)] to-purple-400">traveling next?</span>
+             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--voyo-accent)] to-purple-400">traveling next?</span>
           </h1>
-          <p className="text-lg text-[var(--voyage-muted)]">
+          <p className="text-lg text-[var(--voyo-muted)]">
              Stay connected in 200+ countries with instant eSIM delivery. No hidden fees. No roaming charges.
           </p>
           
@@ -83,7 +83,7 @@ export default function CountriesPage() {
             ))}
             
             {filtered.length === 0 && (
-               <div className="col-span-full text-center py-20 text-[var(--voyage-muted)]">
+               <div className="col-span-full text-center py-20 text-[var(--voyo-muted)]">
                   No countries found matching "{search}"
                </div>
             )}

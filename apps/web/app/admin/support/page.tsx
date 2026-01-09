@@ -67,7 +67,7 @@ export default function AdminSupportTicketsPage() {
       accessor: (row: SupportTicket) => row.email,
       render: (row: SupportTicket) => (
         <div className="truncate max-w-[200px]" title={row.email}>
-          <a href={`mailto:${row.email}`} className="text-[var(--voyage-accent)] hover:underline">
+          <a href={`mailto:${row.email}`} className="text-[var(--voyo-accent)] hover:underline">
             {row.email}
           </a>
         </div>
@@ -79,11 +79,11 @@ export default function AdminSupportTicketsPage() {
       accessor: (row: SupportTicket) => row.orderId || "",
       render: (row: SupportTicket) =>
         row.orderId ? (
-          <Link href={`/admin/orders/${row.orderId}`} className="text-[var(--voyage-accent)] hover:underline font-mono text-sm">
+          <Link href={`/admin/orders/${row.orderId}`} className="text-[var(--voyo-accent)] hover:underline font-mono text-sm">
             {row.orderId}
           </Link>
         ) : (
-          <span className="text-[var(--voyage-muted)]">—</span>
+          <span className="text-[var(--voyo-muted)]">—</span>
         ),
       className: "w-[150px]",
     },
@@ -93,11 +93,11 @@ export default function AdminSupportTicketsPage() {
       render: (row: SupportTicket) =>
         row.device ? (
           <div className="flex items-center gap-2">
-            <Smartphone className="h-4 w-4 text-[var(--voyage-muted)]" />
+            <Smartphone className="h-4 w-4 text-[var(--voyo-muted)]" />
             <span className="text-sm">{row.device}</span>
           </div>
         ) : (
-          <span className="text-[var(--voyage-muted)]">—</span>
+          <span className="text-[var(--voyo-muted)]">—</span>
         ),
       className: "w-[150px]",
     },
@@ -106,7 +106,7 @@ export default function AdminSupportTicketsPage() {
       accessor: (row: SupportTicket) => row.message,
       render: (row: SupportTicket) => (
         <div className="truncate max-w-[300px]" title={row.message}>
-          <p className="text-sm text-[var(--voyage-muted)]">{row.message}</p>
+          <p className="text-sm text-[var(--voyo-muted)]">{row.message}</p>
         </div>
       ),
       className: "w-[300px]",
@@ -116,7 +116,7 @@ export default function AdminSupportTicketsPage() {
       accessor: (row: SupportTicket) => row.replyCount || 0,
       render: (row: SupportTicket) => (
         <div className="flex items-center gap-2">
-          <MessageCircle className="h-4 w-4 text-[var(--voyage-muted)]" />
+          <MessageCircle className="h-4 w-4 text-[var(--voyo-muted)]" />
           <span className="text-sm">{row.replyCount || 0}</span>
         </div>
       ),
@@ -136,8 +136,8 @@ export default function AdminSupportTicketsPage() {
   if (loading) {
     return (
       <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyage-accent)] mx-auto mb-4"></div>
-        <p className="text-[var(--voyage-muted)]">Loading support tickets...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--voyo-accent)] mx-auto mb-4"></div>
+        <p className="text-[var(--voyo-muted)]">Loading support tickets...</p>
       </div>
     );
   }
@@ -150,18 +150,18 @@ export default function AdminSupportTicketsPage() {
             <MessageSquare className="h-8 w-8" />
             Support Tickets
           </h1>
-          <p className="text-[var(--voyage-muted)]">
+          <p className="text-[var(--voyo-muted)]">
             View all contact form submissions from users ({total} total)
           </p>
         </div>
       </div>
 
-      <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+      <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
         <CardContent className="p-0">
           {tickets.length === 0 ? (
             <div className="text-center py-12">
-              <MessageSquare className="h-16 w-16 text-[var(--voyage-muted)] mx-auto mb-4 opacity-50" />
-              <p className="text-[var(--voyage-muted)]">No support tickets found</p>
+              <MessageSquare className="h-16 w-16 text-[var(--voyo-muted)] mx-auto mb-4 opacity-50" />
+              <p className="text-[var(--voyo-muted)]">No support tickets found</p>
             </div>
           ) : (
             <AdminTable data={tickets} columns={columns} onRowClick={handleRowClick} />

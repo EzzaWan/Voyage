@@ -20,7 +20,7 @@ export class EmailService {
     @Inject(forwardRef(() => AdminSettingsService))
     private adminSettingsService: AdminSettingsService,
   ) {
-    this.fromAddress = this.config.get('EMAIL_FROM') || 'no-reply@voyage.app';
+    this.fromAddress = this.config.get('EMAIL_FROM') || 'no-reply@voyoesim.com';
 
     const apiKey = this.config.get('RESEND_API_KEY');
     if (apiKey) {
@@ -247,7 +247,7 @@ export class EmailService {
 
   // Convenience wrappers
   async sendOrderConfirmation(to: string, variables: any, idempotency?: string) {
-    const subject = `Order confirmed — Voyage`;
+    const subject = `Order confirmed — Voyo`;
     return this.sendEmail({
       to,
       template: 'order-confirmation',
@@ -258,7 +258,7 @@ export class EmailService {
   }
 
   async sendEsimReady(to: string, variables: any, idempotency?: string) {
-    const subject = `Your eSIM is ready — Voyage`;
+    const subject = `Your eSIM is ready — Voyo`;
     return this.sendEmail({
       to,
       template: 'esim-ready',
@@ -269,7 +269,7 @@ export class EmailService {
   }
 
   async sendTopupConfirmation(to: string, variables: any, idempotency?: string) {
-    const subject = `Top-up confirmed — Voyage`;
+    const subject = `Top-up confirmed — Voyo`;
     return this.sendEmail({
       to,
       template: 'topup-confirmation',
@@ -280,7 +280,7 @@ export class EmailService {
   }
 
   async sendPaymentFailed(to: string, variables: any, idempotency?: string) {
-    const subject = `Payment failed — Voyage`;
+    const subject = `Payment failed — Voyo`;
     return this.sendEmail({
       to,
       template: 'payment-failed',
@@ -291,7 +291,7 @@ export class EmailService {
   }
 
   async sendEsimExpiring(to: string, variables: any, idempotency?: string) {
-    const subject = `Your eSIM expires soon — Voyage`;
+    const subject = `Your eSIM expires soon — Voyo`;
     return this.sendEmail({
       to,
       template: 'esim-expiring',
@@ -302,7 +302,7 @@ export class EmailService {
   }
 
   async sendReceiptEmail(to: string, variables: any, idempotency?: string) {
-    const subject = `Receipt for your purchase — Voyage`;
+    const subject = `Receipt for your purchase — Voyo`;
     return this.sendEmail({
       to,
       template: 'receipt',
@@ -314,7 +314,7 @@ export class EmailService {
 
   // Affiliate email notifications
   async sendAffiliateCommissionEarned(to: string, variables: any, idempotency?: string) {
-    const subject = `You earned commission — Voyage Affiliate`;
+    const subject = `You earned commission — Voyo Affiliate`;
     return this.sendEmail({
       to,
       template: 'affiliate_commission_earned',
@@ -325,7 +325,7 @@ export class EmailService {
   }
 
   async sendAffiliateNewReferral(to: string, variables: any, idempotency?: string) {
-    const subject = `New referral joined — Voyage Affiliate`;
+    const subject = `New referral joined — Voyo Affiliate`;
     return this.sendEmail({
       to,
       template: 'affiliate_new_referral',
@@ -336,7 +336,7 @@ export class EmailService {
   }
 
   async sendAffiliatePayoutRequested(to: string, variables: any, idempotency?: string) {
-    const subject = `Payout request submitted — Voyage Affiliate`;
+    const subject = `Payout request submitted — Voyo Affiliate`;
     return this.sendEmail({
       to,
       template: 'affiliate_payout_requested',
@@ -347,7 +347,7 @@ export class EmailService {
   }
 
   async sendAffiliatePayoutApproved(to: string, variables: any, idempotency?: string) {
-    const subject = `Payout approved — Voyage Affiliate`;
+    const subject = `Payout approved — Voyo Affiliate`;
     return this.sendEmail({
       to,
       template: 'affiliate_payout_approved',
@@ -358,7 +358,7 @@ export class EmailService {
   }
 
   async sendAffiliatePayoutDeclined(to: string, variables: any, idempotency?: string) {
-    const subject = `Payout request declined — Voyage Affiliate`;
+    const subject = `Payout request declined — Voyo Affiliate`;
     return this.sendEmail({
       to,
       template: 'affiliate_payout_declined',
@@ -369,7 +369,7 @@ export class EmailService {
   }
 
   async sendAffiliatePayoutPaid(to: string, variables: any, idempotency?: string) {
-    const subject = `Payout sent — Voyage Affiliate`;
+    const subject = `Payout sent — Voyo Affiliate`;
     return this.sendEmail({
       to,
       template: 'affiliate_payout_paid',
@@ -388,7 +388,7 @@ export class EmailService {
     amount: number;
     dashboardUrl: string;
   }) {
-    const subject = `New Cash-Out Request — Voyage Affiliate`;
+    const subject = `New Cash-Out Request — Voyo Affiliate`;
     const variables = {
       affiliateEmail: params.affiliateEmail,
       affiliateName: params.affiliateName,
@@ -415,7 +415,7 @@ export class EmailService {
 
 
   async sendRefundToVCashEmail(to: string, variables: any, idempotency?: string) {
-    const subject = `Refund issued as V-Cash — Voyage`;
+    const subject = `Refund issued as V-Cash — Voyo`;
     return this.sendEmail({
       to,
       template: 'refund_to_vcash',
@@ -426,7 +426,7 @@ export class EmailService {
   }
 
   async sendAffiliateCommissionConvertedToVCash(to: string, variables: any, idempotency?: string) {
-    const subject = `Commission converted to V-Cash — Voyage Affiliate`;
+    const subject = `Commission converted to V-Cash — Voyo Affiliate`;
     return this.sendEmail({
       to,
       template: 'affiliate_commission_converted_vcash',
@@ -437,7 +437,7 @@ export class EmailService {
   }
 
   async sendGuestAccessEmail(to: string, orderId: string, accessUrl: string, idempotency?: string) {
-    const subject = `Access your eSIM order — Voyage`;
+    const subject = `Access your eSIM order — Voyo`;
     return this.sendEmail({
       to,
       template: 'guest-access',

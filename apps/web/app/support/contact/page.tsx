@@ -123,21 +123,21 @@ export default function ContactSupportPage() {
     return (
       <div className="min-h-screen py-10">
         <div className="max-w-2xl mx-auto">
-          <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+          <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
             <CardContent className="p-8 text-center">
               <CheckCircle2 className="h-16 w-16 text-green-400 mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-white mb-2">Message Sent Successfully!</h2>
-              <p className="text-[var(--voyage-muted)] mb-6">
+              <p className="text-[var(--voyo-muted)] mb-6">
                 We've received your message and will get back to you as soon as possible, usually within 24-48 hours.
               </p>
               <div className="flex gap-4 justify-center">
                 <a href="/support">
-                  <Button variant="outline" className="border-[var(--voyage-border)] text-white">
+                  <Button variant="outline" className="border-[var(--voyo-border)] text-white">
                     Back to Support
                   </Button>
                 </a>
                 <a href="/">
-                  <Button className="bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white">
+                  <Button className="bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white">
                     Go Home
                   </Button>
                 </a>
@@ -154,12 +154,12 @@ export default function ContactSupportPage() {
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Contact Support</h1>
-          <p className="text-[var(--voyage-muted)]">
+          <p className="text-[var(--voyo-muted)]">
             Send us a message and we'll get back to you as soon as possible
           </p>
         </div>
 
-        <Card className="bg-[var(--voyage-card)] border-[var(--voyage-border)]">
+        <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Mail className="h-5 w-5" />
@@ -185,7 +185,7 @@ export default function ContactSupportPage() {
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="bg-[var(--voyage-bg)] border-[var(--voyage-border)] text-white"
+                  className="bg-[var(--voyo-bg)] border-[var(--voyo-border)] text-white"
                   placeholder="Your full name"
                 />
               </div>
@@ -200,34 +200,34 @@ export default function ContactSupportPage() {
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="bg-[var(--voyage-bg)] border-[var(--voyage-border)] text-white"
+                  className="bg-[var(--voyo-bg)] border-[var(--voyo-border)] text-white"
                   placeholder="your.email@example.com"
                 />
               </div>
 
               <div>
                 <label htmlFor="orderId" className="block text-sm font-medium text-white mb-2">
-                  Order ID <span className="text-[var(--voyage-muted)] text-xs">(optional)</span>
+                  Order ID <span className="text-[var(--voyo-muted)] text-xs">(optional)</span>
                 </label>
                 <Input
                   id="orderId"
                   type="text"
                   value={formData.orderId}
                   onChange={(e) => setFormData({ ...formData, orderId: e.target.value })}
-                  className="bg-[var(--voyage-bg)] border-[var(--voyage-border)] text-white"
+                  className="bg-[var(--voyo-bg)] border-[var(--voyo-border)] text-white"
                   placeholder="Order ID if related to a purchase"
                 />
               </div>
 
               <div>
                 <label htmlFor="device" className="block text-sm font-medium text-white mb-2">
-                  Device Model <span className="text-[var(--voyage-muted)] text-xs">(optional)</span>
+                  Device Model <span className="text-[var(--voyo-muted)] text-xs">(optional)</span>
                 </label>
                 <select
                   id="device"
                   value={formData.device}
                   onChange={(e) => setFormData({ ...formData, device: e.target.value })}
-                  className="w-full h-10 px-3 rounded-md border border-[var(--voyage-border)] bg-[var(--voyage-bg)] text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--voyage-accent)]"
+                  className="w-full h-10 px-3 rounded-md border border-[var(--voyo-border)] bg-[var(--voyo-bg)] text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--voyo-accent)]"
                 >
                   <option value="">Select device model</option>
                   {deviceModels.map((model) => (
@@ -247,7 +247,7 @@ export default function ContactSupportPage() {
                   required
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  className="bg-[var(--voyage-bg)] border-[var(--voyage-border)] text-white min-h-[200px]"
+                  className="bg-[var(--voyo-bg)] border-[var(--voyo-border)] text-white min-h-[200px]"
                   placeholder="Please describe your issue or question in detail..."
                 />
               </div>
@@ -255,7 +255,7 @@ export default function ContactSupportPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white"
+                className="w-full bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white"
               >
                 {loading ? (
                   <>

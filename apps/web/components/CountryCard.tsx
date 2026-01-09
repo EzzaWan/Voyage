@@ -34,39 +34,39 @@ export function CountryCard({
 
   return (
     <Link href={`/countries/${slug}`} className="h-full block">
-      <div className="h-full group bg-[var(--voyage-card)] border border-[var(--voyage-border)] rounded-xl p-5 shadow-sm hover:shadow-xl hover:bg-[var(--voyage-card-hover)] hover:border-[var(--voyage-accent)]/30 transition-all cursor-pointer flex flex-col relative overflow-hidden">
+      <div className="h-full group bg-[var(--voyo-card)] border border-[var(--voyo-border)] rounded-xl p-5 shadow-sm hover:shadow-xl hover:bg-[var(--voyo-card-hover)] hover:border-[var(--voyo-accent)]/30 transition-all cursor-pointer flex flex-col relative overflow-hidden">
         <div className="flex items-center justify-between z-10 flex-grow">
           <div className="flex items-center gap-4 flex-1 min-w-0">
-            <FlagIcon logoUrl={country.locationLogo} alt={country.name} className="h-8 w-11 rounded-md border-2 border-[var(--voyage-border)] shadow-sm flex-shrink-0" />
+            <FlagIcon logoUrl={country.locationLogo} alt={country.name} className="h-8 w-11 rounded-md border-2 border-[var(--voyo-border)] shadow-sm flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <span className="font-medium text-lg text-[var(--voyage-text)] group-hover:text-white transition-colors block truncate" title={country.name}>
+              <span className="font-medium text-lg text-[var(--voyo-text)] group-hover:text-white transition-colors block truncate" title={country.name}>
                 {country.name}
               </span>
             </div>
           </div>
           
-          <div className="bg-[var(--voyage-bg-light)] p-2 rounded-full group-hover:bg-[var(--voyage-accent)] transition-colors z-10 flex-shrink-0 ml-2">
-            <ChevronRight className="h-4 w-4 text-[var(--voyage-muted)] group-hover:text-white" />
+          <div className="bg-[var(--voyo-bg-light)] p-2 rounded-full group-hover:bg-[var(--voyo-accent)] transition-colors z-10 flex-shrink-0 ml-2">
+            <ChevronRight className="h-4 w-4 text-[var(--voyo-muted)] group-hover:text-white" />
           </div>
         </div>
 
         {/* Plan Summary Info - Only show if loading or if we have data to display */}
         {(loadingSummary || lowestPriceUSD > 0 || planCount > 0) && (
-          <div className="mt-4 pt-4 border-t border-[var(--voyage-border)]/50 space-y-1.5 z-10">
+          <div className="mt-4 pt-4 border-t border-[var(--voyo-border)]/50 space-y-1.5 z-10">
             {loadingSummary ? (
               <div className="space-y-1.5">
-                <div className="h-4 bg-[var(--voyage-bg-light)] rounded animate-pulse" />
-                <div className="h-3 bg-[var(--voyage-bg-light)] rounded animate-pulse w-2/3" />
+                <div className="h-4 bg-[var(--voyo-bg-light)] rounded animate-pulse" />
+                <div className="h-3 bg-[var(--voyo-bg-light)] rounded animate-pulse w-2/3" />
               </div>
             ) : (
               <>
                 {lowestPriceUSD > 0 && (
-                  <div className="text-sm font-semibold text-[var(--voyage-accent)]">
+                  <div className="text-sm font-semibold text-[var(--voyo-accent)]">
                     From {formatCurrency(convertedPrice)}
                   </div>
                 )}
                 {planCount > 0 && (
-                  <div className="text-xs text-[var(--voyage-muted)]">
+                  <div className="text-xs text-[var(--voyo-muted)]">
                     {planCount} plan{planCount !== 1 ? 's' : ''} available
                   </div>
                 )}
@@ -76,7 +76,7 @@ export function CountryCard({
         )}
 
         {/* Subtle glow effect on hover */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--voyage-accent)]/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--voyo-accent)]/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out pointer-events-none" />
       </div>
     </Link>
   );

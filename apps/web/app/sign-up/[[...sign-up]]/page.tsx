@@ -4,7 +4,7 @@ export default function SignUpPage() {
   return (
     <div className="flex items-center justify-center min-h-[80vh] relative overflow-hidden">
       {/* Background Elements */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--voyage-accent)]/10 rounded-full blur-[100px] -z-10" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--voyo-accent)]/10 rounded-full blur-[100px] -z-10" />
 
       <SignUp
         appearance={{
@@ -21,7 +21,7 @@ export default function SignUpPage() {
           elements: {
             rootBox: "mx-auto w-full max-w-md",
             // Lighter modal background
-            card: "bg-[#162C4E] border border-[var(--voyage-border)] shadow-2xl ring-1 ring-white/10",
+            card: "bg-[#162C4E] border border-[var(--voyo-border)] shadow-2xl ring-1 ring-white/10",
             headerTitle: "text-2xl font-bold text-white",
             headerSubtitle: "text-gray-300 text-base",
             socialButtonsBlockButton: "bg-[#1E3A5F] border border-white/10 text-white hover:bg-[#2A4D7A] transition-all duration-200",

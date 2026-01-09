@@ -194,7 +194,7 @@ export default function MyEsimsPage() {
         </div>
         <div className="flex items-center gap-3">
           <Link href="/">
-            <Button variant="outline" className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-bg-light)] hover:text-white hover:border-[var(--voyage-accent)]">
+            <Button variant="outline" className="border-[var(--voyo-border)] bg-[var(--voyo-card)] text-white hover:bg-[var(--voyo-bg-light)] hover:text-white hover:border-[var(--voyo-accent)]">
               <ShoppingBag className="h-4 w-4 mr-2" />
               Continue Shopping
             </Button>
@@ -202,7 +202,7 @@ export default function MyEsimsPage() {
           <Button 
             variant="outline" 
             size="icon" 
-            className="border-[var(--voyage-border)] bg-[var(--voyage-card)] text-white hover:bg-[var(--voyage-accent)] hover:border-[var(--voyage-accent)]"
+            className="border-[var(--voyo-border)] bg-[var(--voyo-card)] text-white hover:bg-[var(--voyo-accent)] hover:border-[var(--voyo-accent)]"
             onClick={async () => {
               setLoading(true);
               // Get email from authenticated user, URL params, or localStorage
@@ -234,7 +234,7 @@ export default function MyEsimsPage() {
       {loading ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
            {[...Array(3)].map((_, i) => (
-             <Skeleton key={i} className="h-64 w-full rounded-xl bg-[var(--voyage-card)]" />
+             <Skeleton key={i} className="h-64 w-full rounded-xl bg-[var(--voyo-card)]" />
            ))}
         </div>
       ) : esims.length === 0 ? (
@@ -257,15 +257,15 @@ export default function MyEsimsPage() {
              
              return (
                <Link key={esim.id} href={`/my-esims/${esim.iccid}`} className="block">
-                 <Card className="bg-[var(--voyage-card)] border border-[var(--voyage-border)] overflow-hidden hover:border-[var(--voyage-accent)] transition-colors cursor-pointer">
-                    <div className="h-2 bg-gradient-to-r from-[var(--voyage-accent)] to-purple-500" />
+                 <Card className="bg-[var(--voyo-card)] border border-[var(--voyo-border)] overflow-hidden hover:border-[var(--voyo-accent)] transition-colors cursor-pointer">
+                    <div className="h-2 bg-gradient-to-r from-[var(--voyo-accent)] to-purple-500" />
                     <CardHeader className="flex flex-row items-start justify-between pb-2">
                        <div className="flex-1 min-w-0 pr-2">
                           <h3 className="font-bold text-lg text-white mb-1 truncate">
                             {formatPlanName(esim.planDetails, esim.order?.planId)}
                           </h3>
                           {esim.planDetails?.locationCode && (
-                            <p className="text-sm text-[var(--voyage-muted)]">
+                            <p className="text-sm text-[var(--voyo-muted)]">
                               {esim.planDetails.locationCode}
                             </p>
                           )}
@@ -281,7 +281,7 @@ export default function MyEsimsPage() {
                                   Expiring Soon
                                 </Badge>
                               ) : (
-                                <span className="text-xs text-[var(--voyage-muted)] flex items-center gap-1">
+                                <span className="text-xs text-[var(--voyo-muted)] flex items-center gap-1">
                                   <Calendar className="h-3 w-3" />
                                   <ExpiryCountdown expiry={esim.expiredTime} iccid={esim.iccid} className="text-xs" />
                                 </span>
@@ -295,17 +295,17 @@ export default function MyEsimsPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                      <div className="space-y-2">
-                        <div className="p-3 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)] flex items-center justify-between">
-                           <span className="text-sm text-[var(--voyage-muted)]">ICCID</span>
+                        <div className="p-3 bg-[var(--voyo-bg-light)] rounded-lg border border-[var(--voyo-border)] flex items-center justify-between">
+                           <span className="text-sm text-[var(--voyo-muted)]">ICCID</span>
                            <span className="font-mono text-sm text-white">{esim.iccid}</span>
                         </div>
                         
                         {esim.totalVolume !== null && esim.totalVolume !== undefined && (
-                          <div className="p-3 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)] space-y-2">
+                          <div className="p-3 bg-[var(--voyo-bg-light)] rounded-lg border border-[var(--voyo-border)] space-y-2">
                              <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                   <HardDrive className="h-4 w-4 text-[var(--voyage-muted)]" />
-                                   <span className="text-sm text-[var(--voyage-muted)]">Total Data</span>
+                                   <HardDrive className="h-4 w-4 text-[var(--voyo-muted)]" />
+                                   <span className="text-sm text-[var(--voyo-muted)]">Total Data</span>
                                 </div>
                                 <span className="text-sm text-white font-medium">{formatBytes(esim.totalVolume)}</span>
                              </div>
@@ -315,19 +315,19 @@ export default function MyEsimsPage() {
                                 <>
                                    <div className="space-y-1">
                                       <div className="flex items-center justify-between text-xs">
-                                         <span className="text-[var(--voyage-muted)]">Data Used</span>
+                                         <span className="text-[var(--voyo-muted)]">Data Used</span>
                                          <span className="text-white font-medium">{formatBytes(esim.orderUsage)}</span>
                                       </div>
-                                      <div className="w-full bg-[var(--voyage-border)] rounded-full h-2 overflow-hidden">
+                                      <div className="w-full bg-[var(--voyo-border)] rounded-full h-2 overflow-hidden">
                                          <div 
-                                            className="h-full bg-gradient-to-r from-[var(--voyage-accent)] to-purple-500 transition-all duration-300"
+                                            className="h-full bg-gradient-to-r from-[var(--voyo-accent)] to-purple-500 transition-all duration-300"
                                             style={{
                                                width: `${Math.min(100, (Number(esim.orderUsage) / Number(esim.totalVolume)) * 100)}%`
                                             }}
                                          />
                                       </div>
                                       <div className="flex items-center justify-between text-xs">
-                                         <span className="text-[var(--voyage-muted)]">Remaining</span>
+                                         <span className="text-[var(--voyo-muted)]">Remaining</span>
                                          <span className="text-white font-medium">
                                             {formatBytes(Number(esim.totalVolume) - Number(esim.orderUsage))}
                                          </span>
@@ -339,10 +339,10 @@ export default function MyEsimsPage() {
                         )}
                         
                         {esim.expiredTime && (
-                          <div className="p-3 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)] flex items-center justify-between">
+                          <div className="p-3 bg-[var(--voyo-bg-light)] rounded-lg border border-[var(--voyo-border)] flex items-center justify-between">
                              <div className="flex items-center gap-2">
-                                <Calendar className="h-4 w-4 text-[var(--voyage-muted)]" />
-                                <span className="text-sm text-[var(--voyage-muted)]">Expires</span>
+                                <Calendar className="h-4 w-4 text-[var(--voyo-muted)]" />
+                                <span className="text-sm text-[var(--voyo-muted)]">Expires</span>
                              </div>
                              <ExpiryCountdown expiry={esim.expiredTime} iccid={esim.iccid} className="text-sm font-medium" />
                           </div>
@@ -351,7 +351,7 @@ export default function MyEsimsPage() {
                      
                      {esim.qrCodeUrl && (
                         <Button 
-                          className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white"
+                          className="w-full bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white"
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
@@ -363,7 +363,7 @@ export default function MyEsimsPage() {
                      )}
 
                      <Button 
-                        className="w-full h-10 text-md font-bold bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white shadow-[0_0_20px_rgba(30,144,255,0.3)] transition-all mt-2"
+                        className="w-full h-10 text-md font-bold bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white shadow-[0_0_20px_rgba(30,144,255,0.3)] transition-all mt-2"
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
@@ -375,7 +375,7 @@ export default function MyEsimsPage() {
 
                      <Button 
                         variant="outline"
-                        className="w-full bg-[var(--voyage-bg-light)] hover:bg-[var(--voyage-border)] text-white border border-[var(--voyage-border)] mt-2"
+                        className="w-full bg-[var(--voyo-bg-light)] hover:bg-[var(--voyo-border)] text-white border border-[var(--voyo-border)] mt-2"
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
@@ -388,7 +388,7 @@ export default function MyEsimsPage() {
                      {esim.ac && (
                         <Button 
                           variant="outline"
-                          className="w-full bg-[var(--voyage-bg-light)] hover:bg-[var(--voyage-border)] text-white border border-[var(--voyage-border)]"
+                          className="w-full bg-[var(--voyo-bg-light)] hover:bg-[var(--voyo-border)] text-white border border-[var(--voyo-border)]"
                           onClick={async (e) => {
                             e.preventDefault();
                             e.stopPropagation();
@@ -425,7 +425,7 @@ export default function MyEsimsPage() {
           onClick={() => setSelectedEsim(null)}
         >
           <div 
-            className="bg-[var(--voyage-card)] rounded-xl border border-[var(--voyage-border)] p-6 max-w-md w-full"
+            className="bg-[var(--voyo-card)] rounded-xl border border-[var(--voyo-border)] p-6 max-w-md w-full"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
@@ -434,14 +434,14 @@ export default function MyEsimsPage() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setSelectedEsim(null)}
-                className="text-[var(--voyage-muted)] hover:text-white"
+                className="text-[var(--voyo-muted)] hover:text-white"
               >
                 ×
               </Button>
             </div>
             
             <div className="space-y-4">
-              <p className="text-sm text-[var(--voyage-muted)]">
+              <p className="text-sm text-[var(--voyo-muted)]">
                 Scan this QR code with your device to install the eSIM profile.
               </p>
               
@@ -456,14 +456,14 @@ export default function MyEsimsPage() {
               </div>
               
               {selectedEsim.ac && (
-                <div className="p-3 bg-[var(--voyage-bg-light)] rounded-lg border border-[var(--voyage-border)]">
-                  <p className="text-xs text-[var(--voyage-muted)] mb-2">Activation Code:</p>
+                <div className="p-3 bg-[var(--voyo-bg-light)] rounded-lg border border-[var(--voyo-border)]">
+                  <p className="text-xs text-[var(--voyo-muted)] mb-2">Activation Code:</p>
                   <p className="font-mono text-sm text-white break-all">{selectedEsim.ac}</p>
                 </div>
               )}
               
               <Button
-                className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent-soft)] text-white"
+                className="w-full bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white"
                 onClick={() => setSelectedEsim(null)}
               >
                 Close
@@ -476,7 +476,7 @@ export default function MyEsimsPage() {
       {/* Review Dialog */}
       {reviewEsim && (
         <Dialog open={!!reviewEsim} onOpenChange={(open) => !open && setReviewEsim(null)}>
-          <DialogContent className="bg-[var(--voyage-card)] border border-white/5 shadow-xl rounded-xl max-w-md">
+          <DialogContent className="bg-[var(--voyo-card)] border border-white/5 shadow-xl rounded-xl max-w-md">
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold text-white">Write a Review</DialogTitle>
             </DialogHeader>
@@ -495,7 +495,7 @@ export default function MyEsimsPage() {
                         className={cn(
                           "h-8 w-8 transition-colors",
                           star <= reviewRating
-                            ? "fill-[var(--voyage-accent)] text-[var(--voyage-accent)]"
+                            ? "fill-[var(--voyo-accent)] text-[var(--voyo-accent)]"
                             : "text-zinc-700"
                         )}
                       />
@@ -511,7 +511,7 @@ export default function MyEsimsPage() {
                   value={reviewComment}
                   onChange={(e) => setReviewComment(e.target.value)}
                   placeholder="Share your experience with this plan... (optional)"
-                  className="min-h-[120px] border border-white/10 rounded-lg focus:ring-2 focus:ring-[var(--voyage-accent)]/20 focus:border-[var(--voyage-accent)] resize-none text-white bg-[var(--voyage-bg)]"
+                  className="min-h-[120px] border border-white/10 rounded-lg focus:ring-2 focus:ring-[var(--voyo-accent)]/20 focus:border-[var(--voyo-accent)] resize-none text-white bg-[var(--voyo-bg)]"
                   maxLength={1000}
                 />
                 <p className="text-xs text-zinc-400 mt-1">
@@ -568,7 +568,7 @@ export default function MyEsimsPage() {
                   }
                 }}
                 disabled={submittingReview}
-                className="w-full bg-[var(--voyage-accent)] hover:bg-[var(--voyage-accent)]/90 text-black font-bold rounded-lg"
+                className="w-full bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent)]/90 text-black font-bold rounded-lg"
               >
                 {submittingReview ? "Submitting..." : "Submit Review"}
               </Button>

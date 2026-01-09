@@ -54,7 +54,7 @@ export async function GET(
       headers: {
         "Content-Type": contentType,
         "Cache-Control": "public, max-age=3600",
-        "Content-Disposition": `inline; filename="voyage-esim-${iccid}.png"`,
+        "Content-Disposition": `inline; filename="Voyo-esim-${iccid}.png"`,
       },
     });
   } catch (error) {
