@@ -317,7 +317,7 @@ export function PlanDetails({ plan }: { plan: any }) {
         <PriceComparison />
         
         {/* Customer Reviews */}
-        <PlanTrustReviews />
+        <PlanTrustReviews planId={plan.packageCode || plan.id || ''} />
       </div>
 
       {/* Right Column */}
@@ -362,7 +362,7 @@ export function PlanDetails({ plan }: { plan: any }) {
              {/* Payment Method */}
              {userLoaded && user && vcashBalance !== null && vcashBalance > 0 && (
                  <div className="grid grid-cols-2 gap-2 mb-6">
-                     <button onClick={() => setPaymentMethod('vcash')} className={`py-2 text-xs font-bold rounded-full border transition-all ${paymentMethod === 'vcash' ? 'bg-[var(--voyage-accent)] text-white border-transparent' : 'bg-transparent text-[var(--voyage-muted)] border-[var(--voyage-border)]'}`}>Pay w/ Balance</button>
+                     <button onClick={() => setPaymentMethod('vcash')} className={`py-2 text-xs font-bold rounded-full border transition-all ${paymentMethod === 'vcash' ? 'bg-[var(--voyage-accent)] text-white border-transparent' : 'bg-transparent text-[var(--voyage-muted)] border-[var(--voyage-border)]'}`}>Pay w/ V-Cash</button>
                      <button onClick={() => setPaymentMethod('stripe')} className={`py-2 text-xs font-bold rounded-full border transition-all ${paymentMethod === 'stripe' ? 'bg-[var(--voyage-accent)] text-white border-transparent' : 'bg-transparent text-[var(--voyage-muted)] border-[var(--voyage-border)]'}`}>Pay w/ Card</button>
                  </div>
              )}
