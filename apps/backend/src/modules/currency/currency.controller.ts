@@ -82,4 +82,44 @@ export class CurrencyController {
       default: await this.currencyService.getDefaultCurrency(),
     };
   }
+
+  @Get('detect')
+  async detectCurrency() {
+    try {
+      // Proxy ipapi.co currency detection to avoid CORS issues
+      const response = await fetch('https://ipapi.co/currency/', {
+        method: 'GET',
+        headers: {
+          'Accept': 'text/plain',
+        },
+      });
+
+      if (response.ok) {
+        const currency = (await response.text()).trim().toUpperCase();
+        
+        // Validate that it's one of our supported currencies
+        const supportedCurrencies = this.currencyService.getAvailableCurrencies();
+        if (supportedCurrencies.includes(currency)) {
+          return {
+            success: true,
+            currency,
+          };
+        }
+      }
+      
+      // Fallback to default currency
+      const defaultCurrency = await this.currencyService.getDefaultCurrency();
+      return {
+        success: true,
+        currency: defaultCurrency || 'USD',
+      };
+    } catch (error) {
+      // Fallback to default currency on error
+      const defaultCurrency = await this.currencyService.getDefaultCurrency();
+      return {
+        success: true,
+        currency: defaultCurrency || 'USD',
+      };
+    }
+  }
 }

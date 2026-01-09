@@ -189,49 +189,46 @@ export class ReviewsService {
   }
 
   async getReviews(limit?: number, offset?: number, minRating?: number, hasText?: boolean) {
-    const where: any = {};
-    if (minRating) {
-      where.rating = { gte: minRating };
+    try {
+      const where: any = {};
+      if (minRating) {
+        where.rating = { gte: minRating };
+      }
+      if (hasText) {
+        where.AND = [
+          { comment: { not: null } },
+          { comment: { not: "" } }
+        ];
+      }
+
+      const reviews = await this.prisma.review.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        skip: offset,
+      });
+
+      const total = await this.prisma.review.count({ where });
+
+      // All reviews show verified purchase tag
+      return {
+        reviews: reviews.map((review) => ({
+          id: review.id,
+          planId: review.planId,
+          userName: review.userName || 'Anonymous',
+          rating: review.rating,
+          comment: review.comment,
+          language: review.language,
+          source: review.source,
+          verified: true, // All reviews show verified
+          date: review.createdAt.toISOString(),
+        })),
+        total,
+      };
+    } catch (error) {
+      this.logger.error('Error fetching reviews:', error);
+      throw new BadRequestException('Failed to fetch reviews');
     }
-    if (hasText) {
-      where.AND = [
-        { comment: { not: null } },
-        { comment: { not: "" } }
-      ];
-    }
-
-    const reviews = await this.prisma.review.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      take: limit,
-      skip: offset,
-      include: {
-        User: {
-          select: {
-            id: true,
-            email: true,
-          },
-        },
-      },
-    });
-
-    const total = await this.prisma.review.count({ where });
-
-    // All reviews show verified purchase tag
-    return {
-      reviews: reviews.map((review) => ({
-        id: review.id,
-        planId: review.planId,
-        userName: review.userName || 'Anonymous',
-        rating: review.rating,
-        comment: review.comment,
-        language: review.language,
-        source: review.source,
-        verified: true, // All reviews show verified
-        date: review.createdAt.toISOString(),
-      })),
-      total,
-    };
   }
 
   async getReviewStats() {

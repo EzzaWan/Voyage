@@ -12,28 +12,14 @@ export async function detectCurrency(): Promise<string> {
   }
 
   try {
-    // Try to detect currency from IP using ipapi.co
-    const response = await fetch('https://ipapi.co/currency/', {
-      method: 'GET',
-      headers: {
-        'Accept': 'text/plain',
-      },
-    });
-
+    // Use backend proxy to avoid CORS issues
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+    const response = await fetch(`${apiUrl}/currency/detect`);
+    
     if (response.ok) {
-      const currency = (await response.text()).trim().toUpperCase();
-      
-      // Validate that it's one of our supported currencies
-      const supportedCurrencies = [
-        'USD', 'EUR', 'GBP', 'PLN', 'AED', 'SGD', 'MYR', 'CAD', 'AUD', 'JPY',
-        'CHF', 'NZD', 'SEK', 'NOK', 'DKK', 'HKD', 'TWD', 'KRW', 'INR', 'BRL',
-        'MXN', 'THB', 'ZAR', 'SAR', 'TRY', 'IDR', 'PHP', 'VND', 'HUF', 'CZK',
-        'RON', 'BGN', 'COP', 'CLP', 'PEN', 'NGN', 'KES', 'GHS', 'MAD', 'EGP',
-        'QAR', 'KWD', 'BHD', 'OMR', 'JOD', 'BDT', 'PKR', 'LKR', 'NPR', 'MMK',
-        'KZT', 'UZS', 'AZN', 'GEL', 'CRC', 'UYU'
-      ];
-      if (supportedCurrencies.includes(currency)) {
-        return currency;
+      const data = await response.json();
+      if (data.success && data.currency) {
+        return data.currency.toUpperCase();
       }
     }
   } catch (error) {
