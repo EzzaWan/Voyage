@@ -37,7 +37,6 @@ export default function RootLayout({
   return (
     <ErrorBoundary>
       <ClerkProvider
-        frontendApi={process.env.NEXT_PUBLIC_CLERK_FRONTEND_API || undefined}
         appearance={{
           elements: {
             userButtonPopoverCard: "bg-[var(--voyo-card)] border-[var(--voyo-border)]",
