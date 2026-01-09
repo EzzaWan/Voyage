@@ -7,6 +7,18 @@ const config: Config = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "../../packages/ui/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  safelist: [
+    // Ensure CSS variable-based classes are included in production build
+    {
+      pattern: /bg-\[var\(--voyo-.*\)\]/,
+    },
+    {
+      pattern: /text-\[var\(--voyo-.*\)\]/,
+    },
+    {
+      pattern: /border-\[var\(--voyo-.*\)\]/,
+    },
+  ],
   theme: {
   	extend: {
   		colors: {

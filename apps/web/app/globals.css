@@ -73,8 +73,8 @@
     @apply border-border;
   }
   body {
-    /* Background and text colors are set via inline classes in layout.tsx */
-    /* Using CSS variables for dark theme: bg-[var(--voyo-bg)] text-[var(--voyo-text)] */
+    background-color: var(--voyo-bg);
+    color: var(--voyo-text);
   }
 }
 
