@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, Delete, UseGuards, Headers, BadRequestException, Logger } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Query, Delete, UseGuards, Headers, BadRequestException, Logger } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
 import { CsrfGuard } from '../../common/guards/csrf.guard';
@@ -40,6 +40,22 @@ export class ReviewsController {
       language: body.language,
       source: body.source,
     });
+  }
+
+  @Get()
+  @RateLimit({ limit: 100, window: 60 })
+  async getReviews(
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+    @Query('minRating') minRating?: string,
+    @Query('hasText') hasText?: string,
+  ) {
+    const limitNum = limit ? parseInt(limit, 10) : undefined;
+    const offsetNum = offset ? parseInt(offset, 10) : undefined;
+    const minRatingNum = minRating ? parseInt(minRating, 10) : undefined;
+    const hasTextBool = hasText === 'true';
+    
+    return this.reviewsService.getReviews(limitNum, offsetNum, minRatingNum, hasTextBool);
   }
 
   @Get('stats')
