@@ -188,9 +188,10 @@ export default function TopUpSelectionPage() {
                       </span>
                    </div>
                    <Button 
+                      variant="default"
                       size="sm" 
                       onClick={() => handleCheckout(plan)}
-                      className="bg-[var(--voyo-bg-light)] hover:bg-[var(--voyo-accent)] text-[var(--voyo-text)] hover:text-white border border-[var(--voyo-border)] group-hover:border-[var(--voyo-accent)] transition-all"
+                      className="group-hover:border-[var(--voyo-accent)] transition-all"
                    >
                       Top Up <ArrowRight className="ml-2 h-4 w-4" />
                    </Button>
