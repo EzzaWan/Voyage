@@ -14,11 +14,14 @@ interface MobileEsimInstallProps {
 }
 
 /**
- * Formats activation code into LPA link format
+ * Formats activation code into LPA string format
  * Expected format: LPA:1$rsp.example.com$ACTIVATION_CODE
  * If already in LPA format, returns as-is
+ * 
+ * @see https://esimaccess.com/new-apple-universal-link-for-esim-install/
+ * @see https://esimaccess.com/new-android-universal-link-for-esim-installation/
  */
-function formatLPALink(activationCode: string): string {
+function formatLPAString(activationCode: string): string {
   // If already in LPA format, return as-is
   if (activationCode.startsWith('LPA:')) {
     return activationCode;
@@ -30,21 +33,31 @@ function formatLPALink(activationCode: string): string {
 }
 
 /**
- * Formats Android eSIM install link
- * Android supports both LPA links and esim:// protocol
+ * Generates Apple Universal Link for eSIM installation
+ * Format: https://esimsetup.apple.com/esim_qrcode_provisioning?carddata={LPA_STRING}
+ * Requires iOS 17.4+
+ * 
+ * @see https://esimaccess.com/new-apple-universal-link-for-esim-install/
  */
-function formatAndroidEsimLink(activationCode: string): string {
-  const lpaLink = formatLPALink(activationCode);
-  
-  // Try esim:// protocol (some Android devices support this)
-  // Fallback to LPA link if esim:// doesn't work
-  if (lpaLink.startsWith('LPA:')) {
-    // Use LPA link directly for Android (most devices support it)
-    return lpaLink;
-  }
-  
-  // If not in LPA format, try esim:// protocol
-  return `esim://install?code=${encodeURIComponent(lpaLink)}`;
+function generateAppleUniversalLink(activationCode: string): string {
+  const lpaString = formatLPAString(activationCode);
+  // URL encode the LPA string for the carddata parameter
+  const encodedLPA = encodeURIComponent(lpaString);
+  return `https://esimsetup.apple.com/esim_qrcode_provisioning?carddata=${encodedLPA}`;
+}
+
+/**
+ * Generates Android Universal Link for eSIM installation
+ * Format: https://esimsetup.android.com/esim_qrcode_provisioning?carddata={LPA_STRING}
+ * Requires Android 10+ with latest GMS and LPA updates
+ * 
+ * @see https://esimaccess.com/new-android-universal-link-for-esim-installation/
+ */
+function generateAndroidUniversalLink(activationCode: string): string {
+  const lpaString = formatLPAString(activationCode);
+  // URL encode the LPA string for the carddata parameter
+  const encodedLPA = encodeURIComponent(lpaString);
+  return `https://esimsetup.android.com/esim_qrcode_provisioning?carddata=${encodedLPA}`;
 }
 
 export function MobileEsimInstall({
@@ -121,34 +134,53 @@ export function MobileEsimInstall({
     // This is just for tracking/UX purposes
   };
 
-  const lpaLink = formatLPALink(activationCode);
-  const installHref = deviceInfo.isIOS 
-    ? lpaLink 
-    : deviceInfo.isAndroid 
-    ? formatAndroidEsimLink(activationCode)
-    : lpaLink;
+  // Generate Universal Link based on device type
+  // Apple: https://esimsetup.apple.com/esim_qrcode_provisioning?carddata={LPA_STRING}
+  // Android: https://esimsetup.android.com/esim_qrcode_provisioning?carddata={LPA_STRING}
+  const installHref = deviceInfo.isIOS && deviceInfo.supportsUniversalLink
+    ? generateAppleUniversalLink(activationCode)
+    : deviceInfo.isAndroid && deviceInfo.supportsUniversalLink
+    ? generateAndroidUniversalLink(activationCode)
+    : null; // Fallback to QR code if Universal Links not supported
 
   return (
     <div className={`space-y-3 ${className}`}>
       {/* Helper text */}
       <p className="text-xs text-[var(--voyo-muted)] text-center">
-        If you're viewing this on the phone you want to install the eSIM on, tap below.
+        {deviceInfo.isIOS 
+          ? "Tap below to install directly on this iPhone (iOS 17.4+ required)."
+          : deviceInfo.isAndroid
+          ? "Tap below to install directly on this Android device (Android 10+ required)."
+          : "If you're viewing this on the phone you want to install the eSIM on, tap below."}
       </p>
 
-      {/* Install button */}
-      <a
-        href={installHref}
-        onClick={handleInstallClick}
-        className="block"
-      >
-        <Button
-          variant="default"
-          className="w-full bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white py-6 text-base font-semibold"
+      {/* Install button - Only show if Universal Link is available */}
+      {installHref ? (
+        <a
+          href={installHref}
+          onClick={handleInstallClick}
+          className="block"
         >
-          <Smartphone className="mr-2 h-5 w-5" />
-          Install eSIM on this device
-        </Button>
-      </a>
+          <Button
+            variant="default"
+            className="w-full bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white py-6 text-base font-semibold"
+          >
+            <Smartphone className="mr-2 h-5 w-5" />
+            {deviceInfo.isIOS 
+              ? "Install eSIM on this iPhone" 
+              : deviceInfo.isAndroid 
+              ? "Install eSIM on this Android device"
+              : "Install eSIM on this device"}
+          </Button>
+        </a>
+      ) : (
+        <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+          <p className="text-xs text-yellow-400 text-center">
+            Universal Link installation requires {deviceInfo.isIOS ? 'iOS 17.4+' : 'Android 10+'}.
+            Please use the QR code or activation code below.
+          </p>
+        </div>
+      )}
 
       {/* Fallback instructions */}
       {installAttempted && (
