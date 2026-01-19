@@ -17,6 +17,7 @@ import {
 import { toast } from "@/components/ui/use-toast";
 import { toPng } from "html-to-image";
 import { saveAs } from "file-saver";
+import { MobileEsimInstall } from "./MobileEsimInstall";
 
 interface QRDisplayProps {
   qrCodeUrl: string | null;
@@ -455,7 +456,19 @@ export function QRDisplay({
       )}
 
       <div className="space-y-4">
-        <div className="bg-white p-6 rounded-lg flex items-center justify-center relative min-h-[300px]">
+        {/* Mobile eSIM Install Button - Only shows on mobile devices */}
+        {activationCode && (
+          <MobileEsimInstall
+            activationCode={activationCode}
+            qrCodeUrl={qrCodeUrl}
+            onCopyActivation={handleCopyActivation}
+          />
+        )}
+
+        <div 
+          data-qr-code
+          className="bg-white p-6 rounded-lg flex items-center justify-center relative min-h-[300px]"
+        >
           {qrLoading && (
             <div className="absolute inset-0 flex items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin text-[var(--voyo-muted)]" />

@@ -13,6 +13,7 @@ import { safeFetch } from "@/lib/safe-fetch";
 import { formatCurrency } from "@/lib/utils";
 import { getOrderStatusDisplay } from "@/lib/admin-helpers";
 import { useToast } from "@/components/ui/use-toast";
+import { MobileEsimInstall } from "@/components/esim/MobileEsimInstall";
 
 declare global {
   interface Window {
@@ -242,45 +243,62 @@ function SuccessContent() {
         )}
 
         {/* QR Code & Installation */}
-        {esimProfile && esimProfile.qrCodeUrl && (
+        {esimProfile && (esimProfile.qrCodeUrl || esimProfile.ac) && (
           <Card className="bg-[var(--voyo-card)] border-[var(--voyo-border)]">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <QrCode className="h-5 w-5" />
-                Your eSIM QR Code
+                Install Your eSIM
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="bg-white rounded-lg p-4 flex items-center justify-center">
-                <img 
-                  src={esimProfile.qrCodeUrl} 
-                  alt="eSIM QR Code" 
-                  className="max-w-full h-auto"
+              {/* Mobile Install Button - Only shows on mobile devices */}
+              {esimProfile.ac && (
+                <MobileEsimInstall
+                  activationCode={esimProfile.ac}
+                  qrCodeUrl={esimProfile.qrCodeUrl || null}
                 />
-              </div>
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  className="flex-1 border-[var(--voyo-border)] bg-[var(--voyo-bg-light)] text-white hover:bg-[var(--voyo-card)] hover:text-white hover:border-[var(--voyo-accent)]"
-                  onClick={() => esimProfile.qrCodeUrl && window.open(esimProfile.qrCodeUrl, '_blank')}
-                >
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  Open QR Code
-                </Button>
-                <Button
-                  variant="outline"
-                  className="flex-1 border-[var(--voyo-border)] bg-[var(--voyo-bg-light)] text-white hover:bg-[var(--voyo-card)] hover:text-white hover:border-[var(--voyo-accent)]"
-                  onClick={() => {
-                    const link = document.createElement('a');
-                    link.href = esimProfile.qrCodeUrl!;
-                    link.download = `esim-qr-${orderData?.id}.png`;
-                    link.click();
-                  }}
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Download
-                </Button>
-              </div>
+              )}
+
+              {/* QR Code */}
+              {esimProfile.qrCodeUrl && (
+                <>
+                  <div 
+                    data-qr-code
+                    className="bg-white rounded-lg p-4 flex items-center justify-center"
+                  >
+                    <img 
+                      src={esimProfile.qrCodeUrl} 
+                      alt="eSIM QR Code" 
+                      className="max-w-full h-auto"
+                    />
+                  </div>
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      className="flex-1 border-[var(--voyo-border)] bg-[var(--voyo-bg-light)] text-white hover:bg-[var(--voyo-card)] hover:text-white hover:border-[var(--voyo-accent)]"
+                      onClick={() => esimProfile.qrCodeUrl && window.open(esimProfile.qrCodeUrl, '_blank')}
+                    >
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      Open QR Code
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1 border-[var(--voyo-border)] bg-[var(--voyo-bg-light)] text-white hover:bg-[var(--voyo-card)] hover:text-white hover:border-[var(--voyo-accent)]"
+                      onClick={() => {
+                        const link = document.createElement('a');
+                        link.href = esimProfile.qrCodeUrl!;
+                        link.download = `esim-qr-${orderData?.id}.png`;
+                        link.click();
+                      }}
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Download
+                    </Button>
+                  </div>
+                </>
+              )}
+
               <Link href={`/my-esims/${esimProfile.iccid}`} className="block">
                 <Button className="w-full bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white">
                   View Full Details
