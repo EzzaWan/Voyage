@@ -455,19 +455,20 @@ export function QRDisplay({
         </div>
       )}
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         {/* Mobile eSIM Install Button - Only shows on mobile devices */}
         {activationCode && (
           <MobileEsimInstall
             activationCode={activationCode}
             qrCodeUrl={qrCodeUrl}
             onCopyActivation={handleCopyActivation}
+            className="mb-6"
           />
         )}
 
         <div 
           data-qr-code
-          className="bg-white p-6 rounded-lg flex items-center justify-center relative min-h-[300px]"
+          className="bg-white p-4 sm:p-6 rounded-lg flex items-center justify-center relative min-h-[250px] sm:min-h-[300px] mx-auto w-full max-w-[300px] sm:max-w-md overflow-hidden"
         >
           {qrLoading && (
             <div className="absolute inset-0 flex items-center justify-center">
@@ -480,7 +481,7 @@ export function QRDisplay({
             alt="eSIM QR Code"
             width={400}
             height={400}
-            className={`w-full h-auto max-w-md ${qrLoading ? "opacity-0" : "opacity-100"} transition-opacity`}
+            className={`w-full h-auto ${qrLoading ? "opacity-0" : "opacity-100"} transition-opacity`}
             onLoad={() => setQrLoading(false)}
             onError={() => {
               setQrLoading(false);

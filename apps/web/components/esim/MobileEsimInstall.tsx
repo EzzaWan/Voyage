@@ -144,9 +144,9 @@ export function MobileEsimInstall({
     : null; // Fallback to QR code if Universal Links not supported
 
   return (
-    <div className={`space-y-3 ${className}`}>
+    <div className={`space-y-4 ${className}`}>
       {/* Helper text */}
-      <p className="text-xs text-[var(--voyo-muted)] text-center">
+      <p className="text-sm text-[var(--voyo-muted)] text-center px-2">
         {deviceInfo.isIOS 
           ? "Tap below to install directly on this iPhone (iOS 17.4+ required)."
           : deviceInfo.isAndroid
@@ -159,23 +159,25 @@ export function MobileEsimInstall({
         <a
           href={installHref}
           onClick={handleInstallClick}
-          className="block"
+          className="block w-full"
         >
           <Button
             variant="default"
-            className="w-full bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white py-6 text-base font-semibold"
+            className="w-full bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white py-6 h-auto min-h-[3.5rem] text-base font-semibold whitespace-normal text-center shadow-lg shadow-[var(--voyo-accent)]/20"
           >
-            <Smartphone className="mr-2 h-5 w-5" />
-            {deviceInfo.isIOS 
-              ? "Install eSIM on this iPhone" 
-              : deviceInfo.isAndroid 
-              ? "Install eSIM on this Android device"
-              : "Install eSIM on this device"}
+            <Smartphone className="mr-2 h-5 w-5 flex-shrink-0" />
+            <span className="flex-1">
+              {deviceInfo.isIOS 
+                ? "Install eSIM on this iPhone" 
+                : deviceInfo.isAndroid 
+                ? "Install eSIM on this Android device"
+                : "Install eSIM on this device"}
+            </span>
           </Button>
         </a>
       ) : (
-        <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-          <p className="text-xs text-yellow-400 text-center">
+        <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+          <p className="text-sm text-yellow-400 text-center">
             Universal Link installation requires {deviceInfo.isIOS ? 'iOS 17.4+' : 'Android 10+'}.
             Please use the QR code or activation code below.
           </p>
@@ -184,11 +186,11 @@ export function MobileEsimInstall({
 
       {/* Fallback instructions */}
       {installAttempted && (
-        <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-          <p className="text-xs text-yellow-400 mb-2">
+        <div className="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg animate-in fade-in slide-in-from-top-2">
+          <p className="text-sm text-yellow-400 mb-2 font-medium">
             If the install button didn't work, use one of these methods:
           </p>
-          <ul className="text-xs text-[var(--voyo-muted)] space-y-1 list-disc list-inside">
+          <ul className="text-sm text-[var(--voyo-muted)] space-y-1.5 list-disc list-inside">
             <li>Scan the QR code below</li>
             <li>Copy the activation code and enter it manually</li>
             <li>Check your email for installation instructions</li>
@@ -197,11 +199,10 @@ export function MobileEsimInstall({
       )}
 
       {/* Backup options */}
-      <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-[var(--voyo-border)]">
+      <div className="flex flex-col gap-3 pt-4 border-t border-[var(--voyo-border)]">
         {qrCodeUrl && (
           <Button
             variant="outline"
-            size="sm"
             onClick={() => {
               // Scroll to QR code or show it
               const qrElement = document.querySelector('[data-qr-code]');
@@ -209,7 +210,7 @@ export function MobileEsimInstall({
                 qrElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
               }
             }}
-            className="flex-1 border-[var(--voyo-border)] bg-[var(--voyo-bg-light)] text-white hover:bg-[var(--voyo-card)] hover:text-white hover:border-[var(--voyo-accent)]"
+            className="w-full border-[var(--voyo-border)] bg-[var(--voyo-bg-light)] text-white hover:bg-[var(--voyo-card)] hover:text-white hover:border-[var(--voyo-accent)] h-12"
           >
             <QrCode className="mr-2 h-4 w-4" />
             View QR Code
@@ -218,9 +219,8 @@ export function MobileEsimInstall({
         
         <Button
           variant="outline"
-          size="sm"
           onClick={handleCopyActivation}
-          className="flex-1 border-[var(--voyo-border)] bg-[var(--voyo-bg-light)] text-white hover:bg-[var(--voyo-card)] hover:text-white hover:border-[var(--voyo-accent)]"
+          className="w-full border-[var(--voyo-border)] bg-[var(--voyo-bg-light)] text-white hover:bg-[var(--voyo-card)] hover:text-white hover:border-[var(--voyo-accent)] h-12"
         >
           {copied ? (
             <>
