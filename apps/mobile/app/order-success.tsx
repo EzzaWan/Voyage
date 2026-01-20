@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { apiFetch } from '../src/api/client';
 import { theme } from '../src/theme';
 
@@ -288,7 +289,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   successTitle: {
-    ...theme.typography.display,
+    fontSize: 32,
+    fontWeight: '700' as const,
+    lineHeight: 40,
+    letterSpacing: -0.5,
     color: theme.colors.text,
     marginBottom: theme.spacing.xs,
     textAlign: 'center',
@@ -307,7 +311,10 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
   },
   cardTitle: {
-    ...theme.typography.h3,
+    fontSize: 22,
+    fontWeight: '600' as const,
+    lineHeight: 28,
+    letterSpacing: -0.2,
     color: theme.colors.text,
     marginBottom: theme.spacing.md,
   },
@@ -324,7 +331,9 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
   },
   orderValue: {
-    ...theme.typography.bodyMedium,
+    fontSize: 16,
+    fontWeight: '500' as const,
+    lineHeight: 24,
     color: theme.colors.text,
     flex: 1,
     textAlign: 'right',
@@ -347,20 +356,25 @@ const styles = StyleSheet.create({
     marginRight: theme.spacing.sm,
   },
   orderStatus: {
-    ...theme.typography.bodyBold,
+    fontSize: 16,
+    fontWeight: '600' as const,
+    lineHeight: 24,
     color: theme.colors.success,
     textTransform: 'capitalize',
   },
   infoCard: {
-    backgroundColor: theme.colors.primaryMuted,
+    backgroundColor: (theme.colors as any).primaryMuted || (theme.colors as any).blueBackground || theme.colors.primarySoft,
     borderRadius: theme.borderRadius.xl,
     padding: theme.spacing.lg,
     marginBottom: theme.spacing.lg,
     borderWidth: 1,
-    borderColor: theme.colors.blueBorder,
+    borderColor: (theme.colors as any).blueBorder || theme.colors.primary,
   },
   infoTitle: {
-    ...theme.typography.h3,
+    fontSize: 22,
+    fontWeight: '600' as const,
+    lineHeight: 28,
+    letterSpacing: -0.2,
     color: theme.colors.text,
     marginBottom: theme.spacing.sm,
   },
@@ -385,10 +399,15 @@ const styles = StyleSheet.create({
   },
   ctaButtonText: {
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
+    fontSize: 16,
+    fontWeight: '600' as const,
+    lineHeight: 24,
   },
   errorTitle: {
-    ...theme.typography.h1,
+    fontSize: 28,
+    fontWeight: '700' as const,
+    lineHeight: 36,
+    letterSpacing: -0.3,
     color: theme.colors.text,
     marginBottom: theme.spacing.md,
     textAlign: 'center',

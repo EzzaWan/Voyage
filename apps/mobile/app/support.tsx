@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingLeft: 16, // Explicit 16px padding
     paddingRight: 16, // Explicit 16px padding
-    paddingTop: theme.spacing.base,
+    paddingTop: 16, // Use explicit 16px instead of theme.spacing.base
     paddingBottom: theme.spacing.xl * 2,
   },
   // Saily Header Style
@@ -236,12 +236,12 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: theme.colors.primaryMuted,
+    backgroundColor: (theme.colors as any).primaryMuted || theme.colors.primarySoft,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: theme.spacing.lg,
     borderWidth: 1,
-    borderColor: theme.colors.blueBorder,
+    borderColor: (theme.colors as any).blueBorder || theme.colors.primary,
   },
   headerIcon: {
     fontSize: 40,
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: theme.colors.primaryMuted,
+    backgroundColor: (theme.colors as any).primaryMuted || theme.colors.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: theme.spacing.md,

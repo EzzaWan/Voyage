@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 28,
-    backgroundColor: theme.colors.primaryMuted,
+    backgroundColor: (theme.colors as any).primaryMuted || theme.colors.primarySoft,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: theme.spacing.lg,
@@ -286,7 +286,10 @@ const styles = StyleSheet.create({
     fontSize: 40,
   },
   title: {
-    ...theme.typography.h2,
+    fontSize: 22,
+    fontWeight: '600' as const,
+    lineHeight: 28,
+    letterSpacing: -0.2,
     color: theme.colors.text,
     marginBottom: theme.spacing.sm,
   },
@@ -312,7 +315,9 @@ const styles = StyleSheet.create({
   },
   signInButtonText: {
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
+    fontSize: 16,
+    fontWeight: '600' as const,
+    lineHeight: 24,
   },
   signUpButton: {
     width: '100%',
@@ -325,7 +330,9 @@ const styles = StyleSheet.create({
   },
   signUpButtonText: {
     color: theme.colors.text,
-    ...theme.typography.bodyMedium,
+    fontSize: 16,
+    fontWeight: '500' as const,
+    lineHeight: 24,
   },
   
   // Header
@@ -333,7 +340,10 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.lg,
   },
   headerTitle: {
-    ...theme.typography.h1,
+    fontSize: 28,
+    fontWeight: '700' as const,
+    lineHeight: 36,
+    letterSpacing: -0.3,
     color: theme.colors.text,
   },
   headerSubtitle: {
@@ -359,7 +369,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 16,
-    backgroundColor: theme.colors.primaryMuted,
+    backgroundColor: (theme.colors as any).primaryMuted || theme.colors.primarySoft,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: theme.spacing.md,
@@ -395,7 +405,9 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.lg,
   },
   sectionTitle: {
-    ...theme.typography.h3,
+    fontSize: 18,
+    fontWeight: '600' as const,
+    lineHeight: 24,
     color: theme.colors.text,
     marginBottom: theme.spacing.md,
   },
@@ -414,7 +426,7 @@ const styles = StyleSheet.create({
     minHeight: 110,
   },
   quickLinkCardAccent: {
-    backgroundColor: theme.colors.primaryMuted,
+    backgroundColor: (theme.colors as any).primaryMuted || theme.colors.primarySoft,
     borderColor: theme.colors.primary,
   },
   quickLinkIcon: {
@@ -422,7 +434,9 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xs,
   },
   quickLinkTitle: {
-    ...theme.typography.bodyMedium,
+    fontSize: 16,
+    fontWeight: '500' as const,
+    lineHeight: 24,
     color: theme.colors.text,
     marginBottom: 4,
   },
@@ -457,7 +471,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   actionTitle: {
-    ...theme.typography.bodyMedium,
+    fontSize: 16,
+    fontWeight: '500' as const,
+    lineHeight: 24,
     color: theme.colors.text,
   },
   actionSubtitle: {
