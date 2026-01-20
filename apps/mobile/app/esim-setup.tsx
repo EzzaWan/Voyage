@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Image, TouchableOpacity, Alert, Linking, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { apiFetch } from '../src/api/client';
 import { theme } from '../src/theme';
 import { getStatusLabel, getStatusColor } from '../src/utils/statusUtils';
@@ -215,7 +216,7 @@ export default function EsimSetup() {
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.errorContainer}>
-            <Text style={styles.errorIcon}>⚠️</Text>
+            <Ionicons name="warning" size={48} color={theme.colors.warning} />
             <Text style={styles.errorTitle}>Unable to Load Order</Text>
             <Text style={styles.errorText}>{error || 'Order not found'}</Text>
             <TouchableOpacity
@@ -324,7 +325,7 @@ export default function EsimSetup() {
           </View>
 
           <View style={styles.successCard}>
-            <Text style={styles.successIcon}>✓</Text>
+            <Ionicons name="checkmark-circle" size={48} color={theme.colors.success} />
             <Text style={styles.successMessage}>Your eSIM is currently active and providing connectivity.</Text>
           </View>
 
@@ -358,7 +359,7 @@ export default function EsimSetup() {
           </View>
 
           <View style={styles.errorCard}>
-            <Text style={styles.errorIcon}>✗</Text>
+            <Ionicons name="close-circle" size={48} color={theme.colors.error} />
             <Text style={styles.errorMessage}>
               This eSIM has expired and is no longer providing connectivity.
             </Text>
@@ -423,7 +424,10 @@ export default function EsimSetup() {
       <View style={styles.instructionsSection}>
         <Text style={styles.sectionTitle}>Installation Steps</Text>
         <View style={styles.platformSection}>
-          <Text style={styles.platformTitle}>📱 iOS (iPhone)</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Ionicons name="logo-apple" size={20} color={theme.colors.text} />
+            <Text style={styles.platformTitle}>iOS (iPhone)</Text>
+          </View>
           <View style={styles.stepsList}>
             <View style={styles.step}>
               <Text style={styles.stepNumber}>1</Text>
@@ -503,9 +507,10 @@ export default function EsimSetup() {
     <View style={styles.container}>
       {showStaleDataWarning && (
         <View style={styles.staleDataBanner}>
-          <Text style={styles.staleDataText}>
-            ⚠️ Showing saved data. Information may be outdated.
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Ionicons name="warning" size={16} color={theme.colors.warning} />
+            <Text style={styles.staleDataText}>Showing saved data. Information may be outdated.</Text>
+          </View>
           <TouchableOpacity
             style={styles.staleDataButton}
             onPress={fetchOrder}
@@ -596,9 +601,11 @@ export default function EsimSetup() {
             activeOpacity={0.7}
           >
             <Text style={styles.troubleshootingTitle}>Troubleshooting</Text>
-            <Text style={styles.troubleshootingChevron}>
-              {troubleshootingExpanded ? '▼' : '▶'}
-            </Text>
+            <Ionicons 
+              name={troubleshootingExpanded ? "chevron-down" : "chevron-forward"} 
+              size={18} 
+              color={theme.colors.textMuted} 
+            />
           </TouchableOpacity>
           
           {troubleshootingExpanded && (
@@ -668,6 +675,26 @@ export default function EsimSetup() {
             </TouchableOpacity>
           </View>
 
+          {/* Top Up Button */}
+          <TouchableOpacity
+            style={styles.topUpButton}
+            onPress={() => {
+              const iccid = esimProfile?.iccid;
+              if (iccid) {
+                router.push({
+                  pathname: '/topup',
+                  params: { iccid },
+                });
+              } else {
+                Alert.alert('Error', 'eSIM ICCID not found');
+              }
+            }}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.topUpButtonIcon}>⚡</Text>
+            <Text style={styles.topUpButtonText}>Top Up Data</Text>
+          </TouchableOpacity>
+
           <View style={styles.actionsContainer}>
             <TouchableOpacity
               style={[styles.actionButton, styles.resendButton]}
@@ -679,7 +706,7 @@ export default function EsimSetup() {
                 <ActivityIndicator size="small" color="#ffffff" />
               ) : (
                 <>
-                  <Text style={styles.actionButtonIcon}>📧</Text>
+                  <Ionicons name="mail-outline" size={18} color={theme.colors.primary} />
                   <Text style={styles.actionButtonText}>Resend eSIM Email</Text>
                 </>
               )}
@@ -690,7 +717,7 @@ export default function EsimSetup() {
               onPress={handleContactSupport}
               activeOpacity={0.7}
             >
-              <Text style={styles.actionButtonIcon}>💬</Text>
+              <Ionicons name="chatbubble-outline" size={18} color={theme.colors.primary} />
               <Text style={styles.actionButtonText}>Contact Support</Text>
             </TouchableOpacity>
           </View>
@@ -706,8 +733,10 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   scrollContent: {
-    padding: theme.spacing.md,
-    paddingBottom: 32,
+    paddingLeft: 16, // Explicit 16px padding
+    paddingRight: 16, // Explicit 16px padding
+    paddingTop: theme.spacing.base,
+    paddingBottom: theme.spacing.xxxl,
   },
   loadingContainer: {
     flex: 1,
@@ -715,21 +744,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
+    marginTop: theme.spacing.md,
+    fontSize: 13,
     color: theme.colors.textSecondary,
   },
   header: {
     marginBottom: theme.spacing.lg,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '600',
     color: theme.colors.text,
-    marginBottom: 8,
+    marginBottom: theme.spacing.xs,
+    letterSpacing: -0.2,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: theme.colors.textSecondary,
   },
   qrSection: {
@@ -737,35 +767,44 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   qrCard: {
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.lg,
-    marginBottom: theme.spacing.xl,
+    backgroundColor: theme.colors.backgroundLight,
+    borderRadius: theme.borderRadius.sm,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
     borderWidth: 1,
     borderColor: theme.colors.border,
     alignItems: 'center',
+    width: '100%',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   qrCardTitle: {
-    fontSize: 20,
+    fontSize: 15,
     fontWeight: '600',
     color: theme.colors.text,
     marginBottom: theme.spacing.md,
     width: '100%',
-    textAlign: 'center',
+    textAlign: 'left',
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 13,
     fontWeight: '600',
-    color: theme.colors.text,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    color: theme.colors.textMuted,
     marginBottom: theme.spacing.md,
+    marginTop: theme.spacing.lg,
   },
   qrContainer: {
-    width: 250,
-    height: 250,
+    width: 240,
+    height: 240,
     backgroundColor: theme.colors.white,
-    borderRadius: theme.borderRadius.lg,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: theme.borderRadius.sm,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -774,17 +813,19 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   qrHint: {
-    fontSize: 14,
+    fontSize: 13,
     color: theme.colors.textSecondary,
-    textAlign: 'center',
-    paddingHorizontal: 16,
+    textAlign: 'left',
+    paddingHorizontal: 0,
     marginBottom: theme.spacing.md,
+    lineHeight: 19,
+    opacity: 0.8,
   },
   qrTip: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: theme.colors.backgroundLight,
-    borderRadius: theme.borderRadius.md,
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.borderRadius.sm,
     padding: theme.spacing.md,
     marginTop: theme.spacing.sm,
     width: '100%',
@@ -792,19 +833,17 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
   },
   qrTipIcon: {
-    fontSize: 18,
-    marginRight: theme.spacing.sm,
-    marginTop: 2,
+    display: 'none', // Remove icon
   },
   qrTipText: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 12,
     color: theme.colors.textSecondary,
-    lineHeight: 20,
+    lineHeight: 18,
   },
   copyQRCodeButton: {
-    marginTop: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+    marginTop: theme.spacing.sm,
+    paddingVertical: 10,
     paddingHorizontal: theme.spacing.md,
     backgroundColor: theme.colors.primary,
     borderRadius: theme.borderRadius.sm,
@@ -813,7 +852,7 @@ const styles = StyleSheet.create({
   },
   copyQRCodeButtonText: {
     color: theme.colors.white,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   },
   divider: {
@@ -842,28 +881,27 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   stepNumber: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 24,
+    height: 24,
+    borderRadius: theme.borderRadius.xs,
     backgroundColor: theme.colors.primary,
     color: theme.colors.white,
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
-    lineHeight: 28,
-    marginRight: 12,
+    lineHeight: 24,
+    marginRight: theme.spacing.md,
   },
   stepText: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 14,
     color: theme.colors.text,
-    lineHeight: 24,
-    opacity: 0.9,
+    lineHeight: 21,
   },
   notesSection: {
     marginBottom: theme.spacing.lg,
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.borderRadius.lg,
+    backgroundColor: theme.colors.backgroundLight,
+    borderRadius: theme.borderRadius.sm,
     padding: theme.spacing.md,
     borderWidth: 1,
     borderColor: theme.colors.border,
@@ -916,6 +954,11 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     borderWidth: 1,
     borderColor: 'rgba(52, 199, 89, 0.2)',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   successIcon: {
     fontSize: 48,
@@ -961,6 +1004,11 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     borderWidth: 1,
     borderColor: theme.colors.border,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   infoRow: {
     flexDirection: 'row',
@@ -986,30 +1034,31 @@ const styles = StyleSheet.create({
   },
   buyAgainButton: {
     backgroundColor: theme.colors.primary,
-    paddingVertical: 16,
-    borderRadius: theme.borderRadius.md,
+    paddingVertical: 12,
+    borderRadius: theme.borderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 24,
+    marginBottom: theme.spacing.lg,
+    minHeight: 44,
   },
   buyAgainButtonText: {
     color: theme.colors.white,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
   },
   supportSection: {
-    marginTop: 32,
-    padding: 20,
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.borderRadius.lg,
+    marginTop: theme.spacing.xl,
+    padding: theme.spacing.base,
+    backgroundColor: theme.colors.backgroundLight,
+    borderRadius: theme.borderRadius.sm,
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
   supportSectionTitle: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '600',
     color: theme.colors.text,
-    marginBottom: 16,
+    marginBottom: theme.spacing.md,
   },
   orderIdRow: {
     flexDirection: 'row',
@@ -1028,21 +1077,45 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   copyButton: {
-    paddingHorizontal: 16,
+    paddingHorizontal: theme.spacing.md,
     paddingVertical: 8,
     backgroundColor: theme.colors.primary,
-    borderRadius: 6,
+    borderRadius: theme.borderRadius.sm,
     minWidth: 60,
     alignItems: 'center',
   },
   copyButtonText: {
     color: theme.colors.white,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   },
   actionsContainer: {
     marginTop: 8,
     gap: 12,
+  },
+  topUpButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.primary,
+    paddingVertical: 18,
+    paddingHorizontal: 24,
+    borderRadius: theme.borderRadius.lg,
+    marginBottom: theme.spacing.md,
+    gap: 10,
+    shadowColor: '#1E90FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  topUpButtonIcon: {
+    fontSize: 20,
+  },
+  topUpButtonText: {
+    color: theme.colors.white,
+    fontSize: 18,
+    fontWeight: '700',
   },
   actionButton: {
     flexDirection: 'row',
@@ -1054,7 +1127,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   resendButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.backgroundLight,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   supportButton: {
     backgroundColor: theme.colors.cardHover,
@@ -1093,15 +1168,19 @@ const styles = StyleSheet.create({
   retryButton: {
     backgroundColor: theme.colors.primary,
     paddingHorizontal: 32,
-    paddingVertical: 14,
+    paddingVertical: 16,
     borderRadius: theme.borderRadius.md,
-    minWidth: 120,
+    minWidth: 140,
     alignItems: 'center',
+    shadowColor: '#1E90FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   retryButtonText: {
     color: theme.colors.white,
-    fontSize: 16,
-    fontWeight: '600',
+    ...theme.typography.bodyBold,
   },
   staleDataBanner: {
     backgroundColor: theme.colors.warningBackground,

@@ -82,6 +82,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Voyage',
   slug: 'voyage-mobile',
+  scheme: 'voyage',
   sdkVersion: '54.0.0',
   version: '1.0.0',
   orientation: 'portrait',

@@ -1,106 +1,239 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { useRouter } from 'expo-router';
 import { apiFetch } from '../src/api/client';
 import { theme } from '../src/theme';
 
-type Location = {
+type Country = {
   code: string;
   name: string;
-  type: number; // 1 for country, 2 for region
+  type: number;
   locationLogo?: string;
 };
 
+type Region = {
+  code: string;
+  name: string;
+  icon: string;
+};
+
+// Region definitions matching web app
+const REGIONS: Region[] = [
+  { code: 'asia', name: 'Asia', icon: '🌏' },
+  { code: 'europe', name: 'Europe', icon: '🇪🇺' },
+  { code: 'north-america', name: 'North America', icon: '🌎' },
+  { code: 'south-america', name: 'South America', icon: '🌎' },
+  { code: 'africa', name: 'Africa', icon: '🌍' },
+  { code: 'oceania', name: 'Oceania', icon: '🌏' },
+];
+
+// Country to region mapping (simplified version)
+const COUNTRY_TO_REGION: Record<string, string> = {
+  // Asia
+  AF: 'asia', AM: 'asia', AZ: 'asia', BH: 'asia', BD: 'asia', BT: 'asia',
+  BN: 'asia', KH: 'asia', CN: 'asia', GE: 'asia', HK: 'asia', IN: 'asia',
+  ID: 'asia', IR: 'asia', IQ: 'asia', IL: 'asia', JP: 'asia', JO: 'asia',
+  KZ: 'asia', KW: 'asia', KG: 'asia', LA: 'asia', LB: 'asia', MY: 'asia',
+  MV: 'asia', MN: 'asia', MM: 'asia', NP: 'asia', KP: 'asia', OM: 'asia',
+  PK: 'asia', PH: 'asia', QA: 'asia', SA: 'asia', SG: 'asia', KR: 'asia',
+  LK: 'asia', SY: 'asia', TW: 'asia', TJ: 'asia', TH: 'asia', TL: 'asia',
+  TR: 'asia', TM: 'asia', AE: 'asia', UZ: 'asia', VN: 'asia', YE: 'asia',
+  
+  // Europe
+  AL: 'europe', AD: 'europe', AT: 'europe', BY: 'europe', BE: 'europe',
+  BA: 'europe', BG: 'europe', HR: 'europe', CY: 'europe', CZ: 'europe',
+  DK: 'europe', EE: 'europe', FI: 'europe', FR: 'europe', DE: 'europe',
+  GR: 'europe', HU: 'europe', IS: 'europe', IE: 'europe', IT: 'europe',
+  LV: 'europe', LI: 'europe', LT: 'europe', LU: 'europe', MT: 'europe',
+  MD: 'europe', MC: 'europe', ME: 'europe', NL: 'europe', MK: 'europe',
+  NO: 'europe', PL: 'europe', PT: 'europe', RO: 'europe', RU: 'europe',
+  SM: 'europe', RS: 'europe', SK: 'europe', SI: 'europe', ES: 'europe',
+  SE: 'europe', CH: 'europe', UA: 'europe', GB: 'europe', VA: 'europe',
+  
+  // North America
+  CA: 'north-america', MX: 'north-america', US: 'north-america',
+  BZ: 'north-america', CR: 'north-america', SV: 'north-america',
+  GT: 'north-america', HN: 'north-america', NI: 'north-america',
+  PA: 'north-america',
+  
+  // South America
+  AR: 'south-america', BO: 'south-america', BR: 'south-america',
+  CL: 'south-america', CO: 'south-america', EC: 'south-america',
+  GY: 'south-america', PY: 'south-america', PE: 'south-america',
+  SR: 'south-america', UY: 'south-america', VE: 'south-america',
+  
+  // Africa
+  DZ: 'africa', AO: 'africa', BJ: 'africa', BW: 'africa', BF: 'africa',
+  BI: 'africa', CV: 'africa', CM: 'africa', CF: 'africa', TD: 'africa',
+  KM: 'africa', CG: 'africa', CD: 'africa', CI: 'africa', DJ: 'africa',
+  EG: 'africa', GQ: 'africa', ER: 'africa', SZ: 'africa', ET: 'africa',
+  GA: 'africa', GM: 'africa', GH: 'africa', GN: 'africa', GW: 'africa',
+  KE: 'africa', LS: 'africa', LR: 'africa', LY: 'africa', MG: 'africa',
+  MW: 'africa', ML: 'africa', MR: 'africa', MU: 'africa', MA: 'africa',
+  MZ: 'africa', NA: 'africa', NE: 'africa', NG: 'africa', RW: 'africa',
+  ST: 'africa', SN: 'africa', SC: 'africa', SL: 'africa', SO: 'africa',
+  ZA: 'africa', SS: 'africa', SD: 'africa', TZ: 'africa', TG: 'africa',
+  TN: 'africa', UG: 'africa', ZM: 'africa', ZW: 'africa',
+  
+  // Oceania
+  AU: 'oceania', NZ: 'oceania', FJ: 'oceania', PG: 'oceania',
+  NC: 'oceania', PF: 'oceania', WS: 'oceania', SB: 'oceania',
+  VU: 'oceania',
+};
+
+function getCountriesForRegion(regionCode: string): string[] {
+  return Object.entries(COUNTRY_TO_REGION)
+    .filter(([_, region]) => region === regionCode)
+    .map(([code]) => code);
+}
+
 export default function Regions() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ countryId: string; countryName: string }>();
-  const [regions, setRegions] = useState<Location[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+  const [regionCountries, setRegionCountries] = useState<Country[]>([]);
 
-  useEffect(() => {
-    if (params.countryId) {
-      fetchRegions();
+  const handleRegionPress = async (region: Region) => {
+    if (selectedRegion === region.code) {
+      // If already selected, deselect
+      setSelectedRegion(null);
+      setRegionCountries([]);
+      return;
     }
-  }, [params.countryId]);
 
-  async function fetchRegions() {
+    setSelectedRegion(region.code);
+    setLoading(true);
+
     try {
-      setLoading(true);
-      setError(null);
+      // Fetch all countries
+      const countriesData = await apiFetch<Country[] | { locationList: Country[] }>('/countries');
+      const countriesArray = Array.isArray(countriesData) 
+        ? countriesData 
+        : (countriesData.locationList || []);
+
+      // Filter to only countries (type === 1)
+      const countriesOnly = countriesArray.filter((item: Country) => 
+        item.type === 1 || !item.type
+      );
+
+      // Get country codes for this region
+      const regionCountryCodes = getCountriesForRegion(region.code);
       
-      const allLocations = await apiFetch<Location[]>('/countries');
-      const filteredRegions = Array.isArray(allLocations) 
-        ? allLocations.filter(loc => loc.type === 2) 
-        : [];
-      setRegions(filteredRegions);
+      // Filter countries that belong to this region
+      const filtered = countriesOnly.filter((country: Country) =>
+        regionCountryCodes.includes(country.code.toUpperCase())
+      );
+
+      // Sort alphabetically
+      const sorted = filtered.sort((a: Country, b: Country) =>
+        a.name.localeCompare(b.name)
+      );
+
+      setRegionCountries(sorted);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch regions';
-      setError(errorMessage);
-      console.error('Error fetching regions:', err);
+      console.error('Error fetching region countries:', err);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  const handleRegionPress = (region: Location) => {
+  const handleCountryPress = (country: Country) => {
     router.push({
       pathname: '/plans',
       params: {
-        countryId: params.countryId,
-        countryName: params.countryName,
-        regionId: region.code,
-        regionName: region.name,
+        countryId: country.code,
+        countryName: country.name,
+        regionId: country.code,
+        regionName: country.name,
       },
     });
   };
 
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Regions for {params.countryName || '...'}</Text>
-        <ActivityIndicator size="large" color={theme.colors.primary} style={styles.loader} />
-        <Text style={styles.loadingText}>Loading regions...</Text>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Regions for {params.countryName || '...'}</Text>
-        <Text style={styles.errorText}>Error: {error}</Text>
-      </View>
-    );
-  }
-
-  if (regions.length === 0) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Regions for {params.countryName || '...'}</Text>
-        <Text style={styles.emptyText}>No regions available</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Regions for {params.countryName}</Text>
-      <FlatList
-        data={regions}
-        keyExtractor={(item) => item.code}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.item}
-            onPress={() => handleRegionPress(item)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.itemName}>{item.name}</Text>
-            <Text style={styles.arrow}>›</Text>
-          </TouchableOpacity>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Browse by Region</Text>
+      </View>
+
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Regions List */}
+        <View style={styles.groupedList}>
+          {REGIONS.map((region, index) => (
+            <TouchableOpacity
+              key={region.code}
+              style={[
+                styles.regionItem,
+                selectedRegion === region.code && styles.regionItemSelected,
+                index === REGIONS.length - 1 && !selectedRegion && styles.lastRegionItem
+              ]}
+              onPress={() => handleRegionPress(region)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.regionIcon}>
+                <Text style={styles.regionIconText}>{region.icon}</Text>
+              </View>
+              <Text style={styles.regionName}>{region.name}</Text>
+              <Text style={styles.chevron}>
+                {selectedRegion === region.code ? '−' : '›'}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Countries in Selected Region */}
+        {selectedRegion && (
+          <>
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color={theme.colors.primary} />
+                <Text style={styles.loadingText}>Loading countries...</Text>
+              </View>
+            ) : regionCountries.length > 0 ? (
+              <>
+                <Text style={styles.sectionTitle}>
+                  {REGIONS.find(r => r.code === selectedRegion)?.name} Countries
+                </Text>
+                <View style={styles.groupedList}>
+                  {regionCountries.map((country, index) => (
+                    <TouchableOpacity
+                      key={country.code}
+                      style={[
+                        styles.countryItem,
+                        index === regionCountries.length - 1 && styles.lastCountryItem
+                      ]}
+                      onPress={() => handleCountryPress(country)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.flagContainer}>
+                        {country.locationLogo ? (
+                          <Image
+                            source={{ uri: country.locationLogo }}
+                            style={styles.flag}
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <Text style={styles.flagFallback}>🌍</Text>
+                        )}
+                      </View>
+                      <Text style={styles.countryName}>{country.name}</Text>
+                      <Text style={styles.chevron}>›</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No countries found in this region</Text>
+              </View>
+            )}
+          </>
         )}
-      />
+
+        <View style={{ height: 100 }} />
+      </ScrollView>
     </View>
   );
 }
@@ -109,57 +242,135 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
-    padding: theme.spacing.md,
   },
-  title: {
+  header: {
+    paddingTop: 4,
+    paddingLeft: 16, // Explicit 16px padding
+    paddingRight: 16, // Explicit 16px padding
+    paddingBottom: theme.spacing.xs,
+  },
+  headerTitle: {
     fontSize: 24,
     fontWeight: '700',
     color: theme.colors.text,
-    marginBottom: 16,
   },
-  loader: {
-    marginVertical: 32,
+  scrollContent: {
+    paddingLeft: 16, // Explicit 16px padding
+    paddingRight: 16, // Explicit 16px padding
+    paddingTop: theme.spacing.lg,
+    paddingBottom: theme.spacing.xl * 2, // Add bottom padding
   },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
-  },
-  errorText: {
-    fontSize: 16,
-    color: theme.colors.error,
-    marginTop: 16,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: theme.colors.textSecondary,
-    marginTop: 16,
-    textAlign: 'center',
-  },
-  listContent: {
-    paddingBottom: 24,
-  },
-  item: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+  groupedList: {
     backgroundColor: theme.colors.card,
-    borderRadius: theme.borderRadius.md,
-    marginBottom: theme.spacing.sm,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    borderRadius: theme.borderRadius.xl,
+    overflow: 'hidden',
+    marginBottom: theme.spacing.xl,
   },
-  itemName: {
+  regionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  regionItemSelected: {
+    backgroundColor: theme.colors.backgroundLight,
+  },
+  lastRegionItem: {
+    borderBottomWidth: 0,
+  },
+  regionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.backgroundLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: theme.spacing.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border.muted,
+  },
+  regionIconText: {
+    fontSize: 20,
+  },
+  regionName: {
+    flex: 1,
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
     color: theme.colors.text,
   },
-  arrow: {
-    fontSize: 20,
-    color: theme.colors.textSecondary,
+  chevron: {
+    fontSize: 22,
+    color: theme.colors.textMuted,
+    fontWeight: '300',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: theme.colors.text,
+    marginBottom: theme.spacing.sm,
+    marginLeft: theme.spacing.xs,
+  },
+  loadingContainer: {
+    padding: theme.spacing.xl,
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: theme.spacing.sm,
+    fontSize: 14,
+    color: theme.colors.textMuted,
+  },
+  countryItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  lastCountryItem: {
+    borderBottomWidth: 0,
+  },
+  flagContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginRight: theme.spacing.md,
+    backgroundColor: theme.colors.backgroundLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.border.muted,
+  },
+  flag: {
+    width: '100%',
+    height: '100%',
+  },
+  flagFallback: {
+    fontSize: 18,
+  },
+  countryName: {
+    flex: 1,
+    fontSize: 16,
     fontWeight: '600',
+    color: theme.colors.text,
+  },
+  emptyContainer: {
+    padding: theme.spacing.xl,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 14,
+    color: theme.colors.textMuted,
   },
 });

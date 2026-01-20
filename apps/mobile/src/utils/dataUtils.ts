@@ -19,7 +19,7 @@ export function formatDataSize(bytes: string | number | null | undefined): strin
 /**
  * Calculate remaining data
  */
-export function calculateRemainingData(totalVolume: string | null | undefined, orderUsage: string | null | undefined): string {
+export function calculateRemainingData(totalVolume: string | number | null | undefined, orderUsage: string | number | null | undefined): string {
   if (!totalVolume) return '—';
   
   const total = typeof totalVolume === 'string' ? parseFloat(totalVolume) : totalVolume;
@@ -36,7 +36,7 @@ export function calculateRemainingData(totalVolume: string | null | undefined, o
 /**
  * Calculate data usage percentage (0-100)
  */
-export function calculateUsagePercentage(totalVolume: string | null | undefined, orderUsage: string | null | undefined): number {
+export function calculateUsagePercentage(totalVolume: string | number | null | undefined, orderUsage: string | number | null | undefined): number {
   if (!totalVolume) return 0;
   
   const total = typeof totalVolume === 'string' ? parseFloat(totalVolume) : totalVolume;
@@ -80,6 +80,13 @@ export function formatExpiryDate(expiredTime: string | null | undefined): string
     return expiredTime;
   }
 }
+
+
+
+
+
+
+
 
 
 

@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, RefreshControl, ActivityIndicator, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUser, useAuth } from '@clerk/clerk-expo';
+import { Ionicons } from '@expo/vector-icons';
 import { apiFetch } from '../src/api/client';
 import { theme } from '../src/theme';
 import BottomNav from '../src/components/BottomNav';
+import { useCurrency } from '../src/context/CurrencyContext';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 type Country = {
   code: string;
@@ -25,26 +29,108 @@ type Plan = {
 
 // Popular countries to show on homepage
 const POPULAR_CODES = ['US', 'GB', 'FR', 'JP', 'ES', 'IT', 'TR', 'TH'];
-const REGIONS = [
-  { id: 'europe', name: 'Europe', icon: '🇪🇺' },
-  { id: 'asia', name: 'Asia', icon: '🌏' },
-  { id: 'north-america', name: 'N. America', icon: '🌎' },
-  { id: 'south-america', name: 'S. America', icon: '🌎' },
-  { id: 'africa', name: 'Africa', icon: '🌍' },
-  { id: 'oceania', name: 'Oceania', icon: '🌏' },
+
+// Filter Tabs
+const FILTER_TABS = [
+  { id: 'country', label: 'Country' },
+  { id: 'regional', label: 'Regional' },
+  { id: 'global', label: 'Global' },
 ];
+
+// Region definitions
+type Region = {
+  code: string;
+  name: string;
+  icon: string;
+};
+
+const REGIONS: Region[] = [
+  { code: 'asia', name: 'Asia', icon: '🌏' },
+  { code: 'europe', name: 'Europe', icon: '🇪🇺' },
+  { code: 'north-america', name: 'North America', icon: '🌎' },
+  { code: 'south-america', name: 'South America', icon: '🌎' },
+  { code: 'africa', name: 'Africa', icon: '🌍' },
+  { code: 'oceania', name: 'Oceania', icon: '🌏' },
+];
+
+// Country to region mapping
+const COUNTRY_TO_REGION: Record<string, string> = {
+  // Asia
+  AF: 'asia', AM: 'asia', AZ: 'asia', BH: 'asia', BD: 'asia', BT: 'asia',
+  BN: 'asia', KH: 'asia', CN: 'asia', GE: 'asia', HK: 'asia', IN: 'asia',
+  ID: 'asia', IR: 'asia', IQ: 'asia', IL: 'asia', JP: 'asia', JO: 'asia',
+  KZ: 'asia', KW: 'asia', KG: 'asia', LA: 'asia', LB: 'asia', MY: 'asia',
+  MV: 'asia', MN: 'asia', MM: 'asia', NP: 'asia', KP: 'asia', OM: 'asia',
+  PK: 'asia', PH: 'asia', QA: 'asia', SA: 'asia', SG: 'asia', KR: 'asia',
+  LK: 'asia', SY: 'asia', TW: 'asia', TJ: 'asia', TH: 'asia', TL: 'asia',
+  TR: 'asia', TM: 'asia', AE: 'asia', UZ: 'asia', VN: 'asia', YE: 'asia',
+  
+  // Europe
+  AL: 'europe', AD: 'europe', AT: 'europe', BY: 'europe', BE: 'europe',
+  BA: 'europe', BG: 'europe', HR: 'europe', CY: 'europe', CZ: 'europe',
+  DK: 'europe', EE: 'europe', FI: 'europe', FR: 'europe', DE: 'europe',
+  GR: 'europe', HU: 'europe', IS: 'europe', IE: 'europe', IT: 'europe',
+  LV: 'europe', LI: 'europe', LT: 'europe', LU: 'europe', MT: 'europe',
+  MD: 'europe', MC: 'europe', ME: 'europe', NL: 'europe', MK: 'europe',
+  NO: 'europe', PL: 'europe', PT: 'europe', RO: 'europe', RU: 'europe',
+  SM: 'europe', RS: 'europe', SK: 'europe', SI: 'europe', ES: 'europe',
+  SE: 'europe', CH: 'europe', UA: 'europe', GB: 'europe', VA: 'europe',
+  
+  // North America
+  CA: 'north-america', MX: 'north-america', US: 'north-america',
+  BZ: 'north-america', CR: 'north-america', SV: 'north-america',
+  GT: 'north-america', HN: 'north-america', NI: 'north-america',
+  PA: 'north-america',
+  
+  // South America
+  AR: 'south-america', BO: 'south-america', BR: 'south-america',
+  CL: 'south-america', CO: 'south-america', EC: 'south-america',
+  GY: 'south-america', PY: 'south-america', PE: 'south-america',
+  SR: 'south-america', UY: 'south-america', VE: 'south-america',
+  
+  // Africa
+  DZ: 'africa', AO: 'africa', BJ: 'africa', BW: 'africa', BF: 'africa',
+  BI: 'africa', CV: 'africa', CM: 'africa', CF: 'africa', TD: 'africa',
+  KM: 'africa', CG: 'africa', CD: 'africa', CI: 'africa', DJ: 'africa',
+  EG: 'africa', GQ: 'africa', ER: 'africa', SZ: 'africa', ET: 'africa',
+  GA: 'africa', GM: 'africa', GH: 'africa', GN: 'africa', GW: 'africa',
+  KE: 'africa', LS: 'africa', LR: 'africa', LY: 'africa', MG: 'africa',
+  MW: 'africa', ML: 'africa', MR: 'africa', MU: 'africa', MA: 'africa',
+  MZ: 'africa', NA: 'africa', NE: 'africa', NG: 'africa', RW: 'africa',
+  ST: 'africa', SN: 'africa', SC: 'africa', SL: 'africa', SO: 'africa',
+  ZA: 'africa', SS: 'africa', SD: 'africa', TZ: 'africa', TG: 'africa',
+  TN: 'africa', UG: 'africa', ZM: 'africa', ZW: 'africa',
+  
+  // Oceania
+  AU: 'oceania', NZ: 'oceania', FJ: 'oceania', PG: 'oceania',
+  NC: 'oceania', PF: 'oceania', WS: 'oceania', SB: 'oceania',
+  VU: 'oceania',
+};
+
+function getCountriesForRegion(regionCode: string): string[] {
+  return Object.entries(COUNTRY_TO_REGION)
+    .filter(([_, region]) => region === regionCode)
+    .map(([code]) => code);
+}
 
 export default function Home() {
   const router = useRouter();
   const { user, isLoaded: userLoaded } = useUser();
   const { isSignedIn, isLoaded: authLoaded } = useAuth();
+  const { convert, formatPrice: formatCurrencyPrice } = useCurrency();
   const isLoaded = userLoaded && authLoaded;
   
   const [popularCountries, setPopularCountries] = useState<Country[]>([]);
+  const [allCountries, setAllCountries] = useState<Country[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   const [loadingPrices, setLoadingPrices] = useState<Record<string, boolean>>({});
+  const [activeTab, setActiveTab] = useState('country');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+  const [regionCountries, setRegionCountries] = useState<Country[]>([]);
+  const [loadingRegionCountries, setLoadingRegionCountries] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -53,16 +139,25 @@ export default function Home() {
   async function fetchData() {
     try {
       setLoading(true);
-      // Fetch all countries
-      const allCountries = await apiFetch<Country[]>('/countries');
+      const countriesData = await apiFetch<Country[]>('/countries');
       
-      // Filter for popular ones and sort them by POPULAR_CODES order
-      const popular = allCountries.filter(c => POPULAR_CODES.includes(c.code));
+      // Filter to only show countries (type === 1), exclude multi-region plans (type === 2)
+      const countriesOnly = countriesData.filter((item: Country) => 
+        item.type === 1 || !item.type
+      );
+      
+      // Sort all countries alphabetically
+      const sortedAllCountries = countriesOnly.sort((a, b) => 
+        a.name.localeCompare(b.name)
+      );
+      setAllCountries(sortedAllCountries);
+      
+      // Fetch popular countries with prices
+      const popular = countriesData.filter(c => POPULAR_CODES.includes(c.code));
       const sortedPopular = popular.sort((a, b) => {
         return POPULAR_CODES.indexOf(a.code) - POPULAR_CODES.indexOf(b.code);
       });
       
-      // Fetch prices for each country
       const countriesWithPrices = await Promise.all(
         sortedPopular.map(async (country) => {
           try {
@@ -85,7 +180,7 @@ export default function Home() {
       
       setPopularCountries(countriesWithPrices);
     } catch (err) {
-      console.error('Failed to fetch popular countries', err);
+      console.error('Failed to fetch countries', err);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -118,178 +213,306 @@ export default function Home() {
     });
   };
 
-  const handleSearchPress = () => {
-    router.push('/countries');
+  const formatPrice = (price?: number) => {
+    if (!price) return 'View plans';
+    return `From ${formatCurrencyPrice(convert(price))}`;
   };
 
-  const getUserName = () => {
-    if (user?.firstName) return user.firstName;
-    if (user?.primaryEmailAddress?.emailAddress) {
-      return user.primaryEmailAddress.emailAddress.split('@')[0];
+  const handleTabPress = (tabId: string) => {
+    setActiveTab(tabId);
+    // Reset region selection when switching tabs
+    if (tabId !== 'regional') {
+      setSelectedRegion(null);
+      setRegionCountries([]);
     }
-    return 'Traveler';
+    if (tabId === 'global') {
+      // Navigate to global plans page - try GL-120 first (most common)
+      router.push({
+        pathname: '/plans',
+        params: {
+          countryId: 'GL-120', // Global plan code (120+ countries)
+          countryName: 'Global',
+        },
+      });
+    }
   };
 
-  const formatPrice = (price?: number, currency: string = 'USD') => {
-    if (!price) return 'Check price';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency.toUpperCase(),
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(price);
+  const handleRegionPress = async (region: Region) => {
+    if (selectedRegion === region.code) {
+      // If already selected, deselect
+      setSelectedRegion(null);
+      setRegionCountries([]);
+      return;
+    }
+
+    setSelectedRegion(region.code);
+    setLoadingRegionCountries(true);
+
+    try {
+      // Fetch all countries
+      const countriesData = await apiFetch<Country[] | { locationList: Country[] }>('/countries');
+      const countriesArray = Array.isArray(countriesData) 
+        ? countriesData 
+        : (countriesData.locationList || []);
+
+      // Filter to only countries (type === 1)
+      const countriesOnly = countriesArray.filter((item: Country) => 
+        item.type === 1 || !item.type
+      );
+
+      // Get country codes for this region
+      const regionCountryCodes = getCountriesForRegion(region.code);
+      
+      // Filter countries that belong to this region
+      const filtered = countriesOnly.filter((country: Country) =>
+        regionCountryCodes.includes(country.code.toUpperCase())
+      );
+
+      // Sort alphabetically
+      const sorted = filtered.sort((a: Country, b: Country) =>
+        a.name.localeCompare(b.name)
+      );
+
+      setRegionCountries(sorted);
+    } catch (err) {
+      console.error('Error fetching region countries:', err);
+    } finally {
+      setLoadingRegionCountries(false);
+    }
   };
 
   return (
     <View style={styles.container}>
+      {/* Fixed Header Area */}
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerTitle}>Data plans</Text>
+        
+        <View style={styles.searchBar}>
+          <Ionicons name="search" size={20} color={theme.colors.textMuted} style={styles.searchIcon} />
+          <TextInput 
+            style={styles.searchInput}
+            placeholder="Search"
+            placeholderTextColor={theme.colors.textMuted}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+        
+        {/* Filter Tabs */}
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          contentContainerStyle={styles.tabsContainer}
+        >
+          {FILTER_TABS.map((tab) => (
+            <TouchableOpacity 
+              key={tab.id} 
+              style={[
+                styles.tab, 
+                activeTab === tab.id && styles.activeTab
+              ]}
+              onPress={() => handleTabPress(tab.id)}
+            >
+              <Text style={[
+                styles.tabText,
+                activeTab === tab.id && styles.activeTabText
+              ]}>
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh} 
+            tintColor={theme.colors.primary}
+            colors={[theme.colors.primary]}
+          />
         }
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.greeting}>
-              {isLoaded && isSignedIn ? `Hi, ${getUserName()}!` : 'Welcome to Voyage'}
-            </Text>
-            <Text style={styles.tagline}>Global connectivity made simple</Text>
-          </View>
-          {isLoaded && !isSignedIn && (
-            <TouchableOpacity 
-              onPress={() => router.push('/(auth)/sign-in')} 
-              style={styles.signInButton}
-            >
-              <Text style={styles.signInButtonText}>Sign In</Text>
-            </TouchableOpacity>
-          )}
-          {isLoaded && isSignedIn && (
-            <TouchableOpacity onPress={() => router.push('/my-esims')} style={styles.myEsimsButton}>
-              <Text style={styles.myEsimsIcon}>📱</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        {/* Regional Tab Content */}
+        {activeTab === 'regional' && !searchQuery && (
+          <>
+            {!selectedRegion ? (
+              <>
+                {/* Regions List */}
+                <Text style={styles.sectionTitle}>Browse by Region</Text>
+                <View style={styles.groupedList}>
+                  {REGIONS.map((region, index) => (
+                    <TouchableOpacity
+                      key={region.code}
+                      style={[
+                        styles.regionItem,
+                        index === REGIONS.length - 1 && styles.lastListItem
+                      ]}
+                      onPress={() => handleRegionPress(region)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.regionIcon}>
+                        <Text style={styles.regionIconText}>{region.icon}</Text>
+                      </View>
+                      <Text style={styles.regionName}>{region.name}</Text>
+                      <Text style={styles.chevron}>›</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            ) : (
+              <>
+                {/* Countries in Selected Region */}
+                {loadingRegionCountries ? (
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="small" color={theme.colors.primary} />
+                    <Text style={styles.loadingText}>Loading countries...</Text>
+                  </View>
+                ) : regionCountries.length > 0 ? (
+                  <>
+                    <Text style={styles.sectionTitle}>
+                      {REGIONS.find(r => r.code === selectedRegion)?.name} Countries
+                    </Text>
+                    <View style={styles.groupedList}>
+                      {regionCountries.map((country, index) => (
+                        <TouchableOpacity
+                          key={country.code}
+                          style={[
+                            styles.listItem,
+                            index === regionCountries.length - 1 && styles.lastListItem
+                          ]}
+                          onPress={() => handleCountryPress(country)}
+                          activeOpacity={0.7}
+                        >
+                          <View style={styles.flagContainer}>
+                            {!imageErrors[country.code] ? (
+                              <Image
+                                source={{ uri: getFlagUrl(country) }}
+                                style={styles.flag}
+                                resizeMode="cover"
+                                onError={() => handleImageError(country.code)}
+                              />
+                            ) : (
+                              <Text style={{ fontSize: 20 }}>🌍</Text>
+                            )}
+                          </View>
+                          <View style={styles.listItemContent}>
+                            <Text style={styles.countryName}>{country.name}</Text>
+                            <Text style={styles.priceText}>View plans</Text>
+                          </View>
+                          <Ionicons name="chevron-forward" size={20} color={theme.colors.textMuted} style={styles.chevron} />
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </>
+                ) : (
+                  <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>No countries found in this region</Text>
+                  </View>
+                )}
+              </>
+            )}
+          </>
+        )}
 
-        {/* Hero Banner */}
-        <View style={styles.heroBanner}>
-          <View style={styles.heroContent}>
-            <Text style={styles.heroTitle}>Connectivity without boundaries</Text>
-            <Text style={styles.heroSubtitle}>
-              Instant eSIM delivery for global travelers. No roaming fees.
-            </Text>
-          </View>
-        </View>
-
-        {/* Search Bar - Moved here */}
-        <TouchableOpacity 
-          style={styles.searchContainer} 
-          onPress={handleSearchPress}
-          activeOpacity={0.9}
-        >
-          <Text style={styles.searchIcon}>🔍</Text>
-          <Text style={styles.searchPlaceholder}>Where do you need an eSIM?</Text>
-        </TouchableOpacity>
-
-        {/* Why Choose Voyage - Simplified */}
-        <View style={styles.featuresRow}>
-          <View style={styles.featureItem}>
-            <View style={styles.featureIconBox}><Text style={styles.featureIcon}>⚡</Text></View>
-            <Text style={styles.featureText}>Instant</Text>
-          </View>
-          <View style={styles.featureItem}>
-            <View style={styles.featureIconBox}><Text style={styles.featureIcon}>🌍</Text></View>
-            <Text style={styles.featureText}>Global</Text>
-          </View>
-          <View style={styles.featureItem}>
-            <View style={styles.featureIconBox}><Text style={styles.featureIcon}>💸</Text></View>
-            <Text style={styles.featureText}>Affordable</Text>
-          </View>
-          <View style={styles.featureItem}>
-            <View style={styles.featureIconBox}><Text style={styles.featureIcon}>🛡️</Text></View>
-            <Text style={styles.featureText}>Secure</Text>
-          </View>
-        </View>
-
-        {/* Popular Destinations */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
+        {/* Country Tab Content - Popular Destinations Group - Hide when searching or regional tab */}
+        {activeTab === 'country' && !searchQuery && (
+          <>
             <Text style={styles.sectionTitle}>Popular Destinations</Text>
-            <TouchableOpacity onPress={() => router.push('/countries')}>
-              <Text style={styles.seeAllText}>See all</Text>
-            </TouchableOpacity>
-          </View>
-          
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.popularList}>
-            {popularCountries.map((country) => (
+            <View style={styles.groupedList}>
+          {loading ? (
+            <ActivityIndicator size="small" color={theme.colors.primary} style={{ margin: 20 }} />
+          ) : (
+            popularCountries.map((country, index) => (
               <TouchableOpacity 
                 key={country.code} 
-                style={styles.popularCard}
+                style={[
+                  styles.listItem,
+                  index === popularCountries.length - 1 && styles.lastListItem
+                ]}
                 onPress={() => handleCountryPress(country)}
-                activeOpacity={0.8}
+                activeOpacity={0.7}
               >
-                <View style={styles.cardFlagContainer}>
+                <View style={styles.flagContainer}>
                   {!imageErrors[country.code] ? (
                     <Image
                       source={{ uri: getFlagUrl(country) }}
-                      style={styles.cardFlag}
+                      style={styles.flag}
                       resizeMode="cover"
                       onError={() => handleImageError(country.code)}
                     />
                   ) : (
-                    <Text style={styles.cardFlagFallback}>🌍</Text>
+                    <Text style={{ fontSize: 20 }}>🌍</Text>
                   )}
                 </View>
-                <Text style={styles.cardName} numberOfLines={1}>{country.name}</Text>
-                {loadingPrices[country.code] ? (
-                  <View style={styles.priceLoading}>
-                    <ActivityIndicator size="small" color={theme.colors.primary} />
-                  </View>
-                ) : (
-                  <View style={styles.cardPriceBadge}>
-                    <Text style={styles.cardPriceLabel}>Starting at</Text>
-                    <Text style={styles.cardPriceText}>
-                      {formatPrice(country.lowestPrice, country.currency)}
-                    </Text>
-                  </View>
-                )}
+                
+                <View style={styles.listItemContent}>
+                  <Text style={styles.countryName}>{country.name}</Text>
+                  {loadingPrices[country.code] ? (
+                    <ActivityIndicator size="small" color={theme.colors.textMuted} />
+                  ) : (
+                    <Text style={styles.priceText}>{formatPrice(country.lowestPrice)}</Text>
+                  )}
+                </View>
+                
+                <Ionicons name="chevron-forward" size={20} color={theme.colors.textMuted} style={styles.chevron} />
               </TouchableOpacity>
-            ))}
-            
-            {/* View All Card */}
-            <TouchableOpacity 
-              style={[styles.popularCard, styles.viewAllCard]}
-              onPress={() => router.push('/countries')}
-              activeOpacity={0.8}
-            >
-              <View style={styles.viewAllIconCircle}>
-                <Text style={styles.viewAllIcon}>→</Text>
-              </View>
-              <Text style={styles.viewAllText}>View All</Text>
-            </TouchableOpacity>
-          </ScrollView>
-        </View>
+            ))
+          )}
+            </View>
+          </>
+        )}
 
-        {/* Browse by Region */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Browse by Region</Text>
-          <View style={styles.regionsGrid}>
-            {REGIONS.map((region) => (
-              <TouchableOpacity 
-                key={region.id} 
-                style={styles.regionCard}
-                onPress={() => router.push('/countries')}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.regionIcon}>{region.icon}</Text>
-                <Text style={styles.regionName}>{region.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+        {/* All Destinations Group - Only show for country tab */}
+        {activeTab === 'country' && (
+          <>
+            <Text style={styles.sectionTitle}>All destinations</Text>
+            <View style={styles.groupedList}>
+              {allCountries
+                .filter(country => 
+                  !searchQuery || 
+                  country.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  country.code.toLowerCase().includes(searchQuery.toLowerCase())
+                )
+                .map((country, index) => (
+                <TouchableOpacity
+                  key={country.code}
+                  style={[
+                    styles.listItem,
+                    index === allCountries.length - 1 && styles.lastListItem
+                  ]}
+                  onPress={() => handleCountryPress(country)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.flagContainer}>
+                    {!imageErrors[country.code] ? (
+                      <Image
+                        source={{ uri: getFlagUrl(country) }}
+                        style={styles.flag}
+                        resizeMode="cover"
+                        onError={() => handleImageError(country.code)}
+                      />
+                    ) : (
+                      <Text style={{ fontSize: 20 }}>🌍</Text>
+                    )}
+                  </View>
+                  
+                  <View style={styles.listItemContent}>
+                    <Text style={styles.countryName}>{country.name}</Text>
+                    <Text style={styles.priceText}>From US$3.99</Text> 
+                  </View>
+                  
+                  <Ionicons name="chevron-forward" size={20} color={theme.colors.textMuted} style={styles.chevron} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        )}
 
-        {/* Bottom Spacing for nav bar */}
-        <View style={{ height: 80 }} />
+        <View style={{ height: 100 }} />
       </ScrollView>
       <BottomNav activeTab="store" />
     </View>
@@ -299,264 +522,172 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: theme.colors.background, // Voyage Navy (Saily is Light Gray)
+  },
+  headerContainer: {
     backgroundColor: theme.colors.background,
+    paddingTop: 4, // Minimal top padding - Stack header already provides spacing
+    paddingBottom: theme.spacing.xs,
   },
-  scrollContent: {
-    paddingTop: 60,
-    paddingBottom: 20,
-  },
-  header: {
-    paddingHorizontal: theme.spacing.lg,
-    marginBottom: theme.spacing.lg,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  greeting: {
-    fontSize: 28,
-    fontWeight: 'bold',
+  headerTitle: {
+    fontSize: 24, // Saily uses large bold headers
+    fontWeight: '700' as const,
     color: theme.colors.text,
-    marginBottom: 4,
+    marginBottom: theme.spacing.xs, // Minimal margin
+    paddingLeft: 16, // Explicit 16px padding
+    paddingRight: 16, // Explicit 16px padding
   },
-  tagline: {
-    fontSize: 16,
-    color: theme.colors.textSecondary,
-  },
-  signInButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: theme.borderRadius.full,
-    backgroundColor: theme.colors.primary,
-    borderWidth: 1,
-    borderColor: theme.colors.primary,
-  },
-  signInButtonText: {
-    color: theme.colors.white,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  myEsimsButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: theme.colors.card,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  myEsimsIcon: {
-    fontSize: 20,
-  },
-  heroBanner: {
-    marginHorizontal: theme.spacing.lg,
-    backgroundColor: '#0f172a',
-    borderRadius: theme.borderRadius.lg,
-    overflow: 'hidden',
-    marginBottom: theme.spacing.lg,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    padding: theme.spacing.lg,
-  },
-  heroContent: {
-    alignItems: 'flex-start',
-  },
-  heroTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: theme.colors.text,
-    marginBottom: 8,
-    lineHeight: 32,
-  },
-  heroSubtitle: {
-    fontSize: 14,
-    color: theme.colors.textSecondary,
-    lineHeight: 20,
-  },
-  searchContainer: {
-    marginHorizontal: theme.spacing.lg,
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.borderRadius.full,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
+  searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: theme.spacing.xl,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    shadowColor: theme.colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  searchIcon: {
-    fontSize: 18,
-    marginRight: 10,
-    color: theme.colors.textSecondary,
-  },
-  searchPlaceholder: {
-    fontSize: 16,
-    color: theme.colors.textSecondary,
-  },
-  featuresRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: theme.spacing.lg,
-    marginBottom: theme.spacing.xl,
-  },
-  featureItem: {
-    alignItems: 'center',
-    gap: 8,
-  },
-  featureIconBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: theme.colors.card,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  featureIcon: {
-    fontSize: 20,
-  },
-  featureText: {
-    fontSize: 12,
-    color: theme.colors.textSecondary,
-    fontWeight: '500',
-  },
-  section: {
-    marginBottom: theme.spacing.xl,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: theme.spacing.lg,
+    backgroundColor: theme.colors.card, // Slightly lighter than background
+    marginLeft: 16, // Explicit 16px margin
+    marginRight: 16, // Explicit 16px margin
+    paddingHorizontal: theme.spacing.md,
+    height: 48, // Standard touch height
+    borderRadius: theme.borderRadius.lg, // Rounded like Saily
     marginBottom: theme.spacing.md,
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+  searchIcon: {
+    marginRight: theme.spacing.sm,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
     color: theme.colors.text,
-    paddingHorizontal: theme.spacing.lg,
+    height: '100%',
   },
-  seeAllText: {
+  tabsContainer: {
+    paddingLeft: 16, // Explicit 16px padding
+    paddingRight: 16, // Explicit 16px padding
+    gap: theme.spacing.sm,
+    paddingBottom: theme.spacing.xs,
+  },
+  tab: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: 8,
+    borderRadius: 20, // Pill shape
+    backgroundColor: theme.colors.card, // Inactive tab background
+    marginRight: theme.spacing.sm,
+  },
+  activeTab: {
+    backgroundColor: theme.colors.primary, // Active tab (Blue for Voyage, Yellow for Saily)
+  },
+  tabText: {
     fontSize: 14,
-    color: theme.colors.primary,
-    fontWeight: '600',
+    fontWeight: '600' as const,
+    color: theme.colors.text,
   },
-  popularList: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingRight: 8,
+  activeTabText: {
+    color: theme.colors.white,
   },
-  popularCard: {
-    width: 140,
-    height: 180,
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.borderRadius.md,
-    padding: 12,
-    marginRight: 12,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    justifyContent: 'space-between',
+  scrollContent: {
+    paddingTop: theme.spacing.lg,
+    paddingLeft: 16, // Explicit 16px padding
+    paddingRight: 16, // Explicit 16px padding
+    paddingBottom: theme.spacing.xl,
   },
-  cardFlagContainer: {
-    width: 40,
+  sectionTitle: {
+    fontSize: 18, // Saily "Top picks" header
+    fontWeight: '700' as const,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.sm,
+    marginLeft: theme.spacing.xs,
+  },
+  groupedList: {
+    backgroundColor: theme.colors.card, // Grouped list background (Lighter Navy)
+    borderRadius: theme.borderRadius.xl, // Large rounding for the group
+    overflow: 'hidden',
+    marginBottom: theme.spacing.xl,
+    marginHorizontal: 0, // Ensure no extra horizontal margin (padding is on parent)
+  },
+  listItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border, // Subtle divider
+  },
+  lastListItem: {
+    borderBottomWidth: 0,
+  },
+  flagContainer: {
+    width: 40, // Saily flags are substantial
     height: 40,
     borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: theme.colors.background,
+    marginRight: theme.spacing.md,
+    backgroundColor: theme.colors.backgroundLight,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
-  cardFlag: {
+  flag: {
     width: '100%',
     height: '100%',
   },
-  cardFlagFallback: {
-    fontSize: 20,
+  listItemContent: {
+    flex: 1,
+    justifyContent: 'center',
   },
-  cardName: {
+  countryName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '600' as const,
     color: theme.colors.text,
-    marginTop: 8,
-  },
-  cardPriceBadge: {
-    backgroundColor: theme.colors.background,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: theme.borderRadius.sm,
-    alignSelf: 'flex-start',
-  },
-  cardPriceLabel: {
-    fontSize: 10,
-    color: theme.colors.textSecondary,
     marginBottom: 2,
   },
-  cardPriceText: {
+  priceText: {
     fontSize: 14,
-    fontWeight: '700',
-    color: theme.colors.primary,
+    color: theme.colors.textMuted, // "From US$..."
   },
-  priceLoading: {
-    paddingVertical: 8,
-    paddingHorizontal: 10,
+  chevron: {
+    marginLeft: theme.spacing.sm,
   },
-  viewAllCard: {
+  // Region styles
+  regionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  regionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.backgroundLight,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: theme.colors.card,
-  },
-  viewAllIconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: theme.colors.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
+    marginRight: theme.spacing.md,
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
-  viewAllIcon: {
+  regionIconText: {
     fontSize: 20,
-    color: theme.colors.primary,
   },
-  viewAllText: {
+  regionName: {
+    flex: 1,
     fontSize: 16,
     fontWeight: '600',
     color: theme.colors.text,
   },
-  regionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: theme.spacing.lg,
-    gap: 12,
-    marginTop: 12,
-  },
-  regionCard: {
-    width: (Dimensions.get('window').width - 48 - 12) / 2,
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.borderRadius.md,
-    padding: 16,
-    flexDirection: 'row',
+  loadingContainer: {
+    padding: theme.spacing.xl,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: theme.colors.border,
   },
-  regionIcon: {
-    fontSize: 20,
-    marginRight: 12,
-  },
-  regionName: {
+  loadingText: {
+    marginTop: theme.spacing.sm,
     fontSize: 14,
-    fontWeight: '600',
-    color: theme.colors.text,
+    color: theme.colors.textMuted,
+  },
+  emptyContainer: {
+    padding: theme.spacing.xl,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 14,
+    color: theme.colors.textMuted,
   },
 });

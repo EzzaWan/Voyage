@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, TextInput, Image } from 'react-native';
+import { useState, useEffect, useMemo } from 'react';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, TextInput, Image, Keyboard } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { apiFetch } from '../src/api/client';
 import { theme } from '../src/theme';
+import { AnimatedListItem } from '../src/components/AnimatedListItem';
+import { AnimatedButton } from '../src/components/AnimatedButton';
 
 type Country = {
   code: string;
@@ -38,17 +41,23 @@ export default function Countries() {
     }
   }
 
-  const filteredCountries = countries.filter(country => 
-    country.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredCountries = useMemo(() => {
+    if (!searchQuery.trim()) return countries;
+    const query = searchQuery.toLowerCase();
+    return countries.filter(country => 
+      country.name.toLowerCase().includes(query) ||
+      country.code.toLowerCase().includes(query)
+    );
+  }, [countries, searchQuery]);
 
   const handleCountryPress = (country: Country) => {
+    Keyboard.dismiss();
     router.push({
       pathname: '/plans',
       params: {
         countryId: country.code,
         countryName: country.name,
-        regionId: country.code, // Use country code as regionId for single country plans
+        regionId: country.code,
         regionName: country.name,
       },
     });
@@ -60,13 +69,17 @@ export default function Countries() {
 
   const getFlagUrl = (country: Country) => {
     if (country.locationLogo) return country.locationLogo;
-    // Fallback to flagcdn if no logo (using w160 for better quality on retina)
     return `https://flagcdn.com/w160/${country.code.toLowerCase()}.png`;
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    Keyboard.dismiss();
   };
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
         <Text style={styles.loadingText}>Loading countries...</Text>
       </View>
@@ -75,56 +88,105 @@ export default function Countries() {
 
   if (error) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>Error: {error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={fetchCountries}>
-          <Text style={styles.retryButtonText}>Retry</Text>
-        </TouchableOpacity>
+      <View style={styles.errorContainer}>
+        <Ionicons name="warning" size={48} color={theme.colors.warning} />
+        <Text style={styles.errorTitle}>Unable to Load</Text>
+        <Text style={styles.errorText}>{error}</Text>
+        <AnimatedButton 
+          style={styles.retryButton} 
+          onPress={fetchCountries}
+        >
+          <Text style={styles.retryButtonText}>Try Again</Text>
+        </AnimatedButton>
       </View>
     );
   }
 
+  const renderCountryItem = ({ item, index }: { item: Country; index: number }) => {
+    const hasError = imageErrors[item.code];
+    
+    return (
+      <AnimatedListItem index={index}>
+        <TouchableOpacity
+          style={styles.countryItem}
+          onPress={() => handleCountryPress(item)}
+          activeOpacity={0.7}
+        >
+          <View style={styles.countryFlagContainer}>
+            {!hasError ? (
+              <Image
+                source={{ uri: getFlagUrl(item) }}
+                style={styles.flagIcon}
+                resizeMode="cover"
+                onError={() => handleImageError(item.code)}
+              />
+            ) : (
+              <Text style={styles.countryIconFallback}>🌍</Text>
+            )}
+          </View>
+          <View style={styles.countryInfo}>
+            <Text style={styles.countryName}>{item.name}</Text>
+            <Text style={styles.countryCode}>{item.code}</Text>
+          </View>
+          <View style={styles.arrowContainer}>
+            <Ionicons name="chevron-forward" size={20} color={theme.colors.textMuted} />
+          </View>
+        </TouchableOpacity>
+      </AnimatedListItem>
+    );
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search countries..."
-          placeholderTextColor={theme.colors.textSecondary}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
+      {/* Search Header */}
+      <View style={styles.searchSection}>
+        <View style={styles.searchInputContainer}>
+          <Ionicons name="search" size={20} color={theme.colors.textMuted} style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search countries..."
+            placeholderTextColor={theme.colors.textMuted}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            returnKeyType="search"
+            autoCorrect={false}
+            autoCapitalize="none"
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity 
+              onPress={clearSearch}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={styles.clearButton}
+            >
+              <Text style={styles.clearButtonText}>✕</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        {searchQuery && (
+          <Text style={styles.resultCount}>
+            {filteredCountries.length} {filteredCountries.length === 1 ? 'result' : 'results'}
+          </Text>
+        )}
       </View>
+
+      {/* Country List */}
       <FlatList
         data={filteredCountries}
         keyExtractor={(item) => item.code}
+        renderItem={renderCountryItem}
         contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => {
-          const hasError = imageErrors[item.code];
-          
-          return (
-            <TouchableOpacity
-              style={styles.countryItem}
-              onPress={() => handleCountryPress(item)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.countryIconContainer}>
-                {!hasError ? (
-                  <Image
-                    source={{ uri: getFlagUrl(item) }}
-                    style={styles.flagIcon}
-                    resizeMode="cover"
-                    onError={() => handleImageError(item.code)}
-                  />
-                ) : (
-                  <Text style={styles.countryIcon}>🌍</Text>
-                )}
-              </View>
-              <Text style={styles.countryName}>{item.name}</Text>
-              <Text style={styles.arrow}>›</Text>
-            </TouchableOpacity>
-          );
-        }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        initialNumToRender={15}
+        maxToRenderPerBatch={15}
+        windowSize={10}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Ionicons name="search-outline" size={48} color={theme.colors.textMuted} style={{ opacity: 0.5 }} />
+            <Text style={styles.emptyText}>No countries found</Text>
+            <Text style={styles.emptySubtext}>Try a different search term</Text>
+          </View>
+        }
       />
     </View>
   );
@@ -135,62 +197,141 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  searchContainer: {
-    padding: theme.spacing.md,
+  
+  // Loading State
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: theme.spacing.xl,
+  },
+  loadingText: {
+    marginTop: theme.spacing.md,
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary,
+  },
+  
+  // Error State
+  errorContainer: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: theme.spacing.xl,
+  },
+  errorIcon: {
+    fontSize: 48,
+    marginBottom: theme.spacing.md,
+  },
+  errorTitle: {
+    ...theme.typography.heading,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.sm,
+  },
+  errorText: {
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+  retryButton: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.lg + theme.spacing.xs,
+    paddingVertical: theme.spacing.sm + theme.spacing.xs,
+    borderRadius: theme.borderRadius.md,
+    shadowColor: '#1E90FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  retryButtonText: {
+    color: theme.colors.white,
+    ...theme.typography.bodyBold,
+  },
+  
+  // Search
+  searchSection: {
+    paddingLeft: 16, // Explicit 16px padding
+    paddingRight: 16, // Explicit 16px padding
+    paddingTop: theme.spacing.sm,
+    paddingBottom: theme.spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
     backgroundColor: theme.colors.background,
   },
-  searchInput: {
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: theme.colors.card,
     borderRadius: theme.borderRadius.md,
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: 12,
-    color: theme.colors.text,
-    fontSize: 16,
+    height: 52,
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
-  listContent: {
-    padding: theme.spacing.md,
-  },
-  loadingText: {
-    marginTop: theme.spacing.md,
+  searchIcon: {
     fontSize: 16,
+    marginRight: theme.spacing.sm,
+  },
+  searchInput: {
+    flex: 1,
+    ...theme.typography.body,
+    color: theme.colors.text,
+    paddingVertical: 0,
+  },
+  clearButton: {
+    width: 28,
+    height: 28,
+    borderRadius: theme.borderRadius.round,
+    backgroundColor: theme.colors.backgroundLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  clearButtonText: {
+    ...theme.typography.caption,
+    color: theme.colors.textMuted,
+  },
+  resultCount: {
+    marginTop: theme.spacing.sm,
+    ...theme.typography.caption,
     color: theme.colors.textSecondary,
   },
-  errorText: {
-    fontSize: 16,
-    color: theme.colors.error,
-    marginBottom: 16,
-  },
-  retryButton: {
-    padding: 12,
-    backgroundColor: theme.colors.card,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: theme.colors.text,
+  
+  // List
+  listContent: {
+    paddingLeft: 16, // Explicit 16px padding
+    paddingRight: 16, // Explicit 16px padding
+    paddingTop: theme.spacing.base,
+    paddingBottom: theme.spacing.xl * 2,
   },
   countryItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: theme.spacing.md,
     backgroundColor: theme.colors.card,
     marginBottom: theme.spacing.sm,
     borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.md,
+    minHeight: 72,
     borderWidth: 1,
     borderColor: theme.colors.border,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+    marginHorizontal: 0, // Ensure no extra horizontal margin
   },
-  countryIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: theme.colors.background,
+  countryFlagContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: theme.borderRadius.round,
+    overflow: 'hidden',
+    backgroundColor: theme.colors.backgroundLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: theme.spacing.md,
-    overflow: 'hidden', // Ensure flag stays within circle
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
@@ -198,18 +339,52 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  countryIcon: {
-    fontSize: 20,
+  countryIconFallback: {
+    fontSize: 24,
   },
-  countryName: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: theme.colors.text,
+  countryInfo: {
     flex: 1,
   },
+  countryName: {
+    ...theme.typography.bodyBold,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs,
+  },
+  countryCode: {
+    ...theme.typography.caption,
+    color: theme.colors.textMuted,
+  },
+  arrowContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: theme.borderRadius.round,
+    backgroundColor: theme.colors.backgroundLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   arrow: {
-    fontSize: 20,
+    fontSize: 18,
     color: theme.colors.textSecondary,
     fontWeight: '600',
+  },
+  
+  // Empty State
+  emptyContainer: {
+    alignItems: 'center',
+    paddingVertical: theme.spacing.xl * 2,
+  },
+  emptyIcon: {
+    fontSize: 40,
+    marginBottom: theme.spacing.md,
+    opacity: 0.5,
+  },
+  emptyText: {
+    ...theme.typography.bodyBold,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs,
+  },
+  emptySubtext: {
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary,
   },
 });

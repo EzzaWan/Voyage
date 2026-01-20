@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
-import { SafeAreaView, StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useState } from 'react';
+import { SafeAreaView, StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { useSignIn } from '@clerk/clerk-expo';
+import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../src/theme';
 
 type SignInState = 'initial' | 'second_factor';
@@ -17,9 +18,7 @@ export default function SignInScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const onSignInPress = async () => {
-    if (!isLoaded) {
-      return;
-    }
+    if (!isLoaded) return;
 
     if (!emailAddress || !password) {
       setError('Please enter both email and password');
@@ -68,150 +67,200 @@ export default function SignInScreen() {
     }
   };
 
+  const onVerifyPress = async () => {
+    if (!isLoaded || !code) {
+      setError('Please enter the verification code');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const availableStrategies = signIn.supportedSecondFactors || [];
+      const emailCodeStrategy = availableStrategies.find(s => s.strategy === 'email_code');
+      const strategy = emailCodeStrategy?.strategy || availableStrategies[0]?.strategy || 'email_code';
+
+      const result = await signIn.attemptSecondFactor({
+        strategy: strategy as any,
+        code: code.trim(),
+      });
+
+      if (result.status === 'complete' && result.createdSessionId) {
+        await setActive({ session: result.createdSessionId });
+        router.replace('/');
+      } else {
+        setError('Verification failed. Please check your code and try again.');
+      }
+    } catch (err: any) {
+      const errorMessage = err.errors?.[0]?.longMessage || err.errors?.[0]?.message || 'Verification failed';
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Sign In</Text>
-        <Text style={styles.subtitle}>Welcome back to Voyage</Text>
-
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
+      <KeyboardAvoidingView 
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={styles.logoContainer}>
+              <Text style={styles.logoIcon}>✈️</Text>
+            </View>
+            <Text style={styles.title}>Welcome back</Text>
+            <Text style={styles.subtitle}>Sign in to your Voyage account</Text>
           </View>
-        )}
 
-        <View style={styles.form}>
-          {state === 'initial' ? (
-            <>
-              <TextInput
-                style={styles.input}
-                placeholder="Email"
-                placeholderTextColor={theme.colors.textSecondary}
-                value={emailAddress}
-                onChangeText={(text) => {
-                  setEmailAddress(text);
-                  setError(null);
-                }}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                autoComplete="email"
-                autoCorrect={false}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Password"
-                placeholderTextColor={theme.colors.textSecondary}
-                value={password}
-                onChangeText={(text) => {
-                  setPassword(text);
-                  setError(null);
-                }}
-                secureTextEntry
-                autoCapitalize="none"
-                autoComplete="password"
-                autoCorrect={false}
-              />
-
-              <TouchableOpacity
-                style={[styles.button, loading && styles.buttonDisabled]}
-                onPress={onSignInPress}
-                disabled={loading || !isLoaded}
-              >
-                {loading ? (
-                  <ActivityIndicator color={theme.colors.white} />
-                ) : (
-                  <Text style={styles.buttonText}>Sign In</Text>
-                )}
-              </TouchableOpacity>
-            </>
-          ) : (
-            <>
-              <Text style={styles.verificationText}>
-                Two-factor authentication required
-              </Text>
-              <Text style={styles.verificationSubtext}>
-                Enter the verification code sent to your email.
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Verification Code"
-                placeholderTextColor={theme.colors.textSecondary}
-                value={code}
-                onChangeText={(text) => {
-                  setCode(text);
-                  setError(null);
-                }}
-                autoCapitalize="none"
-                keyboardType="number-pad"
-                autoCorrect={false}
-              />
-
-              <TouchableOpacity
-                style={[styles.button, loading && styles.buttonDisabled]}
-                onPress={async () => {
-                  if (!isLoaded || !code) {
-                    setError('Please enter the verification code');
-                    return;
-                  }
-
-                  try {
-                    setLoading(true);
-                    setError(null);
-
-                    const availableStrategies = signIn.supportedSecondFactors || [];
-                    const emailCodeStrategy = availableStrategies.find(s => s.strategy === 'email_code');
-                    const strategy = emailCodeStrategy?.strategy || availableStrategies[0]?.strategy || 'email_code';
-
-                    const result = await signIn.attemptSecondFactor({
-                      strategy: strategy as any,
-                      code: code.trim(),
-                    });
-
-                    if (result.status === 'complete' && result.createdSessionId) {
-                      await setActive({ session: result.createdSessionId });
-                      router.replace('/');
-                    } else {
-                      setError('Verification failed. Please check your code and try again.');
-                    }
-                  } catch (err: any) {
-                    const errorMessage = err.errors?.[0]?.longMessage || err.errors?.[0]?.message || 'Verification failed';
-                    setError(errorMessage);
-                  } finally {
-                    setLoading(false);
-                  }
-                }}
-                disabled={loading || !isLoaded}
-              >
-                {loading ? (
-                  <ActivityIndicator color={theme.colors.white} />
-                ) : (
-                  <Text style={styles.buttonText}>Verify</Text>
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.backButton}
-                onPress={() => {
-                  setState('initial');
-                  setCode('');
-                  setError(null);
-                }}
-              >
-                <Text style={styles.backButtonText}>Back</Text>
-              </TouchableOpacity>
-            </>
+          {/* Error */}
+          {error && (
+            <View style={styles.errorContainer}>
+              <Ionicons name="warning" size={48} color={theme.colors.warning} />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
           )}
-        </View>
 
-        {state === 'initial' && (
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>No account yet?</Text>
-            <Link href="/(auth)/sign-up" style={styles.link}>
-              Sign up
-            </Link>
+          {/* Form */}
+          <View style={styles.form}>
+            {state === 'initial' ? (
+              <>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Email</Text>
+                  <View style={styles.inputContainer}>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="you@example.com"
+                      placeholderTextColor={theme.colors.textMuted}
+                      value={emailAddress}
+                      onChangeText={(text) => {
+                        setEmailAddress(text);
+                        setError(null);
+                      }}
+                      autoCapitalize="none"
+                      keyboardType="email-address"
+                      autoComplete="email"
+                      autoCorrect={false}
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Password</Text>
+                  <View style={styles.inputContainer}>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Enter your password"
+                      placeholderTextColor={theme.colors.textMuted}
+                      value={password}
+                      onChangeText={(text) => {
+                        setPassword(text);
+                        setError(null);
+                      }}
+                      secureTextEntry
+                      autoCapitalize="none"
+                      autoComplete="password"
+                      autoCorrect={false}
+                    />
+                  </View>
+                </View>
+
+                <TouchableOpacity
+                  style={[styles.primaryButton, loading && styles.primaryButtonDisabled]}
+                  onPress={onSignInPress}
+                  disabled={loading || !isLoaded}
+                  activeOpacity={0.85}
+                >
+                  {loading ? (
+                    <ActivityIndicator color={theme.colors.white} />
+                  ) : (
+                    <Text style={styles.primaryButtonText}>Sign In</Text>
+                  )}
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <View style={styles.verificationHeader}>
+                  <View style={styles.verificationIconContainer}>
+                    <Text style={styles.verificationIcon}>🔐</Text>
+                  </View>
+                  <Text style={styles.verificationTitle}>Two-Factor Authentication</Text>
+                  <Text style={styles.verificationSubtitle}>
+                    Enter the verification code sent to your email
+                  </Text>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Verification Code</Text>
+                  <View style={styles.inputContainer}>
+                    <TextInput
+                      style={[styles.input, styles.codeInput]}
+                      placeholder="000000"
+                      placeholderTextColor={theme.colors.textMuted}
+                      value={code}
+                      onChangeText={(text) => {
+                        setCode(text);
+                        setError(null);
+                      }}
+                      autoCapitalize="none"
+                      keyboardType="number-pad"
+                      autoCorrect={false}
+                      maxLength={6}
+                    />
+                  </View>
+                </View>
+
+                <TouchableOpacity
+                  style={[styles.primaryButton, loading && styles.primaryButtonDisabled]}
+                  onPress={onVerifyPress}
+                  disabled={loading || !isLoaded}
+                  activeOpacity={0.85}
+                >
+                  {loading ? (
+                    <ActivityIndicator color={theme.colors.white} />
+                  ) : (
+                    <Text style={styles.primaryButtonText}>Verify</Text>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.secondaryButton}
+                  onPress={() => {
+                    setState('initial');
+                    setCode('');
+                    setError(null);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Ionicons name="chevron-back" size={16} color={theme.colors.textMuted} />
+                    <Text style={styles.secondaryButtonText}>Back to Sign In</Text>
+                  </View>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
-        )}
-      </View>
+
+          {/* Footer */}
+          {state === 'initial' && (
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>Don't have an account?</Text>
+              <Link href="/(auth)/sign-up" asChild>
+                <TouchableOpacity activeOpacity={0.7}>
+                  <Text style={styles.footerLink}>Sign up</Text>
+                </TouchableOpacity>
+              </Link>
+            </View>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -221,108 +270,176 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  content: {
+  keyboardView: {
     flex: 1,
-    padding: 24,
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
+    paddingLeft: 16, // Explicit 16px padding
+    paddingRight: 16, // Explicit 16px padding
+    paddingTop: theme.spacing.lg,
+    paddingBottom: theme.spacing.lg,
+    paddingBottom: theme.spacing.xxl,
+  },
+  
+  // Header
+  header: {
+    alignItems: 'center',
+    marginBottom: theme.spacing.xl,
+  },
+  logoContainer: {
+    width: 72,
+    height: 72,
+    borderRadius: 24,
+    backgroundColor: theme.colors.primaryMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+  logoIcon: {
+    fontSize: 36,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '800',
+    ...theme.typography.display,
     color: theme.colors.text,
-    marginBottom: 8,
+    marginBottom: theme.spacing.xs,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
+    ...theme.typography.body,
     color: theme.colors.textSecondary,
-    marginBottom: 32,
     textAlign: 'center',
   },
-  form: {
-    gap: 16,
-    marginBottom: 24,
+  
+  // Error
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.errorBackground,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    marginBottom: theme.spacing.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.errorBorder,
   },
-  input: {
+  errorIcon: {
+    fontSize: 16,
+    marginRight: theme.spacing.sm,
+  },
+  errorText: {
+    ...theme.typography.caption,
+    color: theme.colors.error,
+    flex: 1,
+  },
+  
+  // Form
+  form: {
+    marginBottom: theme.spacing.lg,
+  },
+  inputGroup: {
+    marginBottom: theme.spacing.md,
+  },
+  inputLabel: {
+    ...theme.typography.captionMedium,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.sm,
+  },
+  inputContainer: {
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.md,
     borderWidth: 1,
     borderColor: theme.colors.border,
-    borderRadius: theme.borderRadius.md,
-    padding: 16,
-    fontSize: 16,
-    backgroundColor: theme.colors.card,
-    color: theme.colors.text,
   },
-  button: {
-    backgroundColor: theme.colors.primary,
+  input: {
+    ...theme.typography.body,
+    color: theme.colors.text,
+    paddingHorizontal: theme.spacing.md,
     paddingVertical: 16,
+    minHeight: 56,
+  },
+  codeInput: {
+    textAlign: 'center',
+    fontSize: 24,
+    fontWeight: '600',
+    letterSpacing: 8,
+  },
+  
+  // Buttons
+  primaryButton: {
+    backgroundColor: theme.colors.primary,
+    paddingVertical: 18,
     borderRadius: theme.borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 50,
-    marginTop: 8,
-    shadowColor: theme.colors.primary,
+    minHeight: 56,
+    marginTop: theme.spacing.sm,
+    shadowColor: '#1E90FF',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
   },
-  buttonDisabled: {
+  primaryButtonDisabled: {
     backgroundColor: theme.colors.border,
     shadowOpacity: 0,
   },
-  buttonText: {
+  primaryButtonText: {
+    ...theme.typography.bodyBold,
     color: theme.colors.white,
-    fontSize: 16,
-    fontWeight: '600',
   },
-  errorContainer: {
-    backgroundColor: theme.colors.errorBackground,
-    padding: 12,
-    borderRadius: theme.borderRadius.md,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 59, 48, 0.2)',
+  secondaryButton: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginTop: theme.spacing.sm,
   },
-  errorText: {
-    color: theme.colors.error,
-    fontSize: 14,
-    textAlign: 'center',
+  secondaryButtonText: {
+    ...theme.typography.captionMedium,
+    color: theme.colors.primary,
   },
-  verificationText: {
-    fontSize: 16,
-    fontWeight: '600',
+  
+  // Verification
+  verificationHeader: {
+    alignItems: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+  verificationIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    backgroundColor: theme.colors.primaryMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: theme.spacing.md,
+  },
+  verificationIcon: {
+    fontSize: 28,
+  },
+  verificationTitle: {
+    ...theme.typography.h2,
     color: theme.colors.text,
+    marginBottom: theme.spacing.xs,
     textAlign: 'center',
-    marginBottom: 8,
   },
-  verificationSubtext: {
-    fontSize: 14,
+  verificationSubtitle: {
+    ...theme.typography.caption,
     color: theme.colors.textSecondary,
     textAlign: 'center',
-    marginBottom: 8,
   },
-  backButton: {
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  backButtonText: {
-    color: theme.colors.primary,
-    fontSize: 14,
-    fontWeight: '500',
-  },
+  
+  // Footer
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+    gap: theme.spacing.xs,
   },
   footerText: {
+    ...theme.typography.caption,
     color: theme.colors.textSecondary,
-    fontSize: 14,
   },
-  link: {
+  footerLink: {
+    ...theme.typography.captionMedium,
     color: theme.colors.primary,
-    fontWeight: '600',
-    fontSize: 14,
   },
 });
