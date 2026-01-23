@@ -197,6 +197,21 @@ export function filterVisiblePlans(plans: Plan[], getDiscount?: (packageCode: st
 }
 
 /**
+ * Get the lowest price from filtered plans (plans we actually sell)
+ * Used to display "from $X" pricing on country cards
+ */
+export function getLowestPriceFromPlans(plans: Plan[]): number | undefined {
+  const visiblePlans = filterVisiblePlans(plans);
+  
+  if (visiblePlans.length === 0) {
+    return undefined;
+  }
+  
+  const prices = visiblePlans.map(p => p.price).filter(p => p > 0);
+  return prices.length > 0 ? Math.min(...prices) : undefined;
+}
+
+/**
  * Deduplicate plans: if multiple plans have same location, duration, and data size,
  * - For Japan: prefer the one with "(IIJ)" in the name
  * - For all other countries: prefer the one with "nonhkip" flag

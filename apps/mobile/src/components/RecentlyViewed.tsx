@@ -113,10 +113,10 @@ const styles = StyleSheet.create({
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.xs,
   },
   headerIcon: {
     fontSize: 16,
+    marginRight: theme.spacing.xs,
   },
   headerTitle: {
     ...theme.typography.bodyMedium,
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textMuted,
   },
   scrollContent: {
-    gap: theme.spacing.sm,
+    paddingRight: theme.spacing.sm,
   },
   item: {
     backgroundColor: theme.colors.backgroundLight,
@@ -136,11 +136,12 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.xs,
     minWidth: 80,
+    marginRight: theme.spacing.sm,
   },
   itemIcon: {
     fontSize: 16,
+    marginRight: theme.spacing.xs,
   },
   itemName: {
     ...theme.typography.small,

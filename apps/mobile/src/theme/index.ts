@@ -78,24 +78,24 @@ export const theme = {
   // Button presets (calm, reduced heights)
   buttons: {
     lg: {
-      height: 48,  // Reduced from 56
+      height: 48,
       paddingHorizontal: 20,
       fontSize: 16,
-      fontWeight: '600' as const,
+      fontWeight: '600',
       borderRadius: radius.sm,
     },
     md: {
-      height: 44,  // Reduced from 48
+      height: 44,
       paddingHorizontal: 18,
       fontSize: 15,
-      fontWeight: '600' as const,
+      fontWeight: '600',
       borderRadius: radius.sm,
     },
     sm: {
-      height: 36,  // Reduced from 40
+      height: 36,
       paddingHorizontal: 14,
       fontSize: 14,
-      fontWeight: '500' as const,
+      fontWeight: '500',
       borderRadius: radius.sm,
     },
   },
@@ -133,7 +133,7 @@ export const theme = {
     minimal: {
       borderRadius: radius.sm,
       padding: spacing.md,
-      borderWidth: 0,  // No border for flat sections
+      borderWidth: 0,
     },
     compact: {
       borderRadius: radius.sm,
@@ -149,7 +149,7 @@ export const theme = {
       paddingVertical: spacing.sm,
     },
     item: {
-      minHeight: 56,  // Reduced from 64
+      minHeight: 56,
       paddingVertical: spacing.md,
       paddingHorizontal: spacing.base,
     },
@@ -170,4 +170,3 @@ export type ThemeColors = keyof typeof theme.colors;
 
 // Default export for compatibility
 export default theme;
-

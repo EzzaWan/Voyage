@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, SafeAreaView, ScrollView, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, SafeAreaView, ScrollView, TextInput, Platform, StatusBar } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import { apiFetch } from '../src/api/client';
 import { useUser } from '@clerk/clerk-expo';
 import { theme } from '../src/theme';
+import { useToast } from '../src/context/ToastContext';
 
 type OrderData = {
   id: string;
@@ -34,6 +35,7 @@ type PlanDetails = {
 
 export default function Checkout() {
   const router = useRouter();
+  const toast = useToast();
   const { user, isLoaded: userLoaded } = useUser();
   const params = useLocalSearchParams<{ orderId: string }>();
   
@@ -105,12 +107,12 @@ export default function Checkout() {
 
   async function handleApplyPromo() {
     if (!promoCode.trim()) {
-      Alert.alert('Invalid Code', 'Please enter a promo code.');
+      toast.warning('Invalid Code', 'Please enter a promo code.');
       return;
     }
 
     if (appliedPromo) {
-      Alert.alert('Promo Applied', 'You already have a promo code applied. Remove it first to apply a different one.');
+      toast.info('Promo Applied', 'You already have a promo code applied. Remove it first to apply a different one.');
       return;
     }
 
@@ -153,11 +155,11 @@ export default function Checkout() {
         } : null);
         
         setPromoCode('');
-        Alert.alert('Success', `${result.discountPercent}% discount applied!`);
+        toast.success('Success', `${result.discountPercent}% discount applied!`);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Invalid promo code';
-      Alert.alert('Invalid Code', errorMessage);
+      toast.error('Invalid Code', errorMessage);
     } finally {
       setApplyingPromo(false);
     }
@@ -184,7 +186,7 @@ export default function Checkout() {
 
       setAppliedPromo(null);
       setPromoDiscount(null);
-      Alert.alert('Removed', 'Promo code removed and original price restored.');
+      toast.success('Removed', 'Promo code removed and original price restored.');
     } catch (err) {
       // Still remove from UI even if backend call fails
       if (promoDiscount && order) {
@@ -202,14 +204,14 @@ export default function Checkout() {
   async function handleProceedToPayment() {
     // Validate email for guests
     if (!user && !email.trim()) {
-      Alert.alert('Email Required', 'Please enter your email address to receive your eSIM.');
+      toast.warning('Email Required', 'Please enter your email address to receive your eSIM.');
       return;
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!user && !emailRegex.test(email.trim())) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      toast.warning('Invalid Email', 'Please enter a valid email address.');
       return;
     }
 
@@ -229,7 +231,7 @@ export default function Checkout() {
           );
         } catch (err) {
           const errorMessage = err instanceof Error ? err.message : 'Failed to update email';
-          Alert.alert('Error', errorMessage);
+          toast.error('Error', errorMessage);
           setUpdatingEmail(false);
           setProcessing(false);
           return;
@@ -255,7 +257,7 @@ export default function Checkout() {
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to start payment';
-      Alert.alert('Payment Error', errorMessage);
+      toast.error('Payment Error', errorMessage);
       console.error('Error starting payment:', err);
     } finally {
       setProcessing(false);
@@ -319,6 +321,8 @@ export default function Checkout() {
   if (loading) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={styles.loadingText}>Loading order...</Text>
@@ -331,6 +335,8 @@ export default function Checkout() {
   if (error || !order) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -390,6 +396,8 @@ export default function Checkout() {
 
   return (
     <View style={styles.container}>
+      {/* Safe area spacer - prevents content from scrolling behind status bar */}
+      <View style={styles.safeAreaSpacer} />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Text style={styles.backButtonText}>← Back</Text>
@@ -587,7 +595,7 @@ export default function Checkout() {
 
         {/* Security Badge */}
         <View style={styles.securityBadge}>
-          <Text style={styles.securityIcon}>🔒</Text>
+          <Ionicons name="lock-closed" size={18} color={theme.colors.success} />
           <Text style={styles.securityText}>Secure payment powered by Stripe</Text>
         </View>
 
@@ -604,12 +612,16 @@ const styles = StyleSheet.create({
   },
   
   // Header
+  safeAreaSpacer: {
+    height: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 8,
+    backgroundColor: theme.colors.background,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingBottom: theme.spacing.sm,
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
     backgroundColor: theme.colors.card,

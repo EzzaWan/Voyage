@@ -181,11 +181,11 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.md,
     borderWidth: 1,
     borderColor: theme.colors.border,
-    gap: 6,
   },
   selectorText: {
     ...theme.typography.bodyMedium,
     color: theme.colors.text,
+    marginRight: 6,
   },
   chevron: {
     fontSize: 10,
@@ -279,11 +279,11 @@ const styles = StyleSheet.create({
   currencyRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
   },
   currencySymbol: {
     ...theme.typography.body,
     color: theme.colors.textSecondary,
+    marginRight: 10,
   },
   currencySymbolSelected: {
     color: theme.colors.primary,

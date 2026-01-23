@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Platform, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUser, useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
@@ -91,6 +91,8 @@ export default function MyTickets() {
   if (isLoaded && !isSignedIn) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         <View style={styles.content}>
           <View style={styles.signInCard}>
             <View style={styles.iconContainer}>
@@ -117,6 +119,8 @@ export default function MyTickets() {
   if (loading) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={styles.loadingText}>Loading tickets...</Text>
@@ -177,6 +181,8 @@ export default function MyTickets() {
 
   return (
     <View style={styles.container}>
+      {/* Safe area spacer - prevents content from scrolling behind status bar */}
+      <View style={styles.safeAreaSpacer} />
       <FlatList
         data={tickets}
         renderItem={renderTicket}
@@ -192,7 +198,7 @@ export default function MyTickets() {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>💬</Text>
+            <Ionicons name="chatbubble-outline" size={48} color={theme.colors.textMuted} style={{ opacity: 0.5 }} />
             <Text style={styles.emptyTitle}>No Tickets Yet</Text>
             <Text style={styles.emptyText}>
               You haven't submitted any support tickets. Need help?
@@ -312,7 +318,13 @@ const styles = StyleSheet.create({
   },
   
   // Header
+  safeAreaSpacer: {
+    height: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 8,
+    backgroundColor: theme.colors.background,
+  },
   header: {
+    paddingLeft: 16,
+    paddingRight: 16,
     marginBottom: theme.spacing.lg,
   },
   headerTop: {

@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
   checkmark: {
     fontSize: 44,
     color: theme.colors.white,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   successTitle: {
     fontSize: 32,

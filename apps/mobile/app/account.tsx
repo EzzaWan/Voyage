@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Platform, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUser, useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
@@ -84,7 +84,7 @@ export default function Account() {
     },
     {
       id: 'affiliate',
-      icon: '💸',
+      icon: 'cash-outline' as keyof typeof Ionicons.glyphMap,
       title: 'Affiliate Program',
       description: 'Earn 10% commission on referrals',
       route: '/affiliate',
@@ -92,7 +92,7 @@ export default function Account() {
     },
     {
       id: 'support-tickets',
-      icon: '📩',
+      icon: 'mail-outline' as keyof typeof Ionicons.glyphMap,
       title: 'Support Tickets',
       description: 'View your support conversations',
       route: '/my-tickets',
@@ -103,6 +103,8 @@ export default function Account() {
   if (isLoaded && !isSignedIn) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         <View style={styles.content}>
           <View style={styles.signInCard}>
             <View style={styles.iconContainer}>
@@ -134,6 +136,8 @@ export default function Account() {
 
   return (
     <View style={styles.container}>
+      {/* Safe area spacer - prevents content from scrolling behind status bar */}
+      <View style={styles.safeAreaSpacer} />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -161,7 +165,7 @@ export default function Account() {
         >
           <View style={styles.vcashHeader}>
             <View style={styles.vcashIcon}>
-              <Text style={styles.vcashIconText}>💰</Text>
+              <Ionicons name="wallet" size={24} color={theme.colors.primary} />
             </View>
             <View style={styles.vcashInfo}>
               <Text style={styles.vcashLabel}>V-Cash Balance</Text>
@@ -336,7 +340,13 @@ const styles = StyleSheet.create({
   },
   
   // Header
+  safeAreaSpacer: {
+    height: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 8,
+    backgroundColor: theme.colors.background,
+  },
   header: {
+    paddingLeft: 16,
+    paddingRight: 16,
     marginBottom: theme.spacing.lg,
   },
   headerTitle: {
@@ -373,9 +383,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: theme.spacing.md,
-  },
-  vcashIconText: {
-    fontSize: 24,
   },
   vcashInfo: {
     flex: 1,

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Alert, Platform, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../src/theme';
@@ -23,6 +23,8 @@ export default function Support() {
 
   return (
     <View style={styles.container}>
+      {/* Safe area spacer - prevents content from scrolling behind status bar */}
+      <View style={styles.safeAreaSpacer} />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -47,7 +49,7 @@ export default function Support() {
             <Text style={styles.menuLabel}>Chat with us</Text>
             <Ionicons name="chevron-forward" size={20} color={theme.colors.textMuted} />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.menuItem, styles.lastMenuItem]} onPress={() => Linking.openURL('mailto:support@voyage.com')}>
+          <TouchableOpacity style={[styles.menuItem, styles.lastMenuItem]} onPress={() => Linking.openURL('mailto:support@voyoesim.com')}>
             <View style={styles.menuIconContainer}>
               <Ionicons name="mail-outline" size={20} color={theme.colors.primary} />
             </View>
@@ -72,7 +74,7 @@ export default function Support() {
               <Ionicons 
                 name={tab.icon} 
                 size={18} 
-                color={activeTab === tab.key ? theme.colors.primary : theme.colors.textMuted} 
+                color={activeTab === tab.key ? theme.colors.white : theme.colors.textMuted} 
               />
               <Text style={[
                 styles.tabLabel,
@@ -98,6 +100,7 @@ export default function Support() {
 
 function InstallGuideContent() {
   const [expandedStep, setExpandedStep] = useState<number | null>(0);
+  const [expandedPlatform, setExpandedPlatform] = useState<'ios' | 'android'>('ios');
 
   const iosSteps = [
     { title: 'Open Camera App', content: 'Open Camera and scan the QR code.' },
@@ -106,26 +109,78 @@ function InstallGuideContent() {
     { title: 'Enable Roaming', content: 'Settings -> Cellular -> [eSIM] -> Enable Data Roaming.' },
   ];
 
+  const androidSteps = [
+    { title: 'Open Settings', content: 'Go to Settings -> Network & internet -> SIMs.' },
+    { title: 'Add eSIM', content: 'Tap "Add mobile plan" or "Download a SIM instead".' },
+    { title: 'Scan QR Code', content: 'Select "Scan QR code" and scan your eSIM QR code.' },
+    { title: 'Enable Roaming', content: 'Settings -> Network & internet -> [eSIM] -> Enable Data Roaming.' },
+  ];
+
   return (
     <View style={styles.contentSection}>
-      <View style={styles.guideCard}>
-        <View style={styles.guideHeader}>
-          <Text style={styles.guideTitle}>iPhone Installation</Text>
-        </View>
-        {iosSteps.map((step, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[styles.stepItem, index === iosSteps.length - 1 && styles.lastStepItem]}
-            onPress={() => setExpandedStep(expandedStep === index ? null : index)}
-          >
-            <View style={styles.stepHeader}>
-              <View style={styles.stepNumber}><Text style={styles.stepNumberText}>{index + 1}</Text></View>
-              <Text style={styles.stepTitle}>{step.title}</Text>
-            </View>
-            {expandedStep === index && <Text style={styles.stepContent}>{step.content}</Text>}
-          </TouchableOpacity>
-        ))}
+      {/* Platform Toggle */}
+      <View style={styles.platformToggle}>
+        <TouchableOpacity
+          style={[styles.platformButton, expandedPlatform === 'ios' && styles.platformButtonActive]}
+          onPress={() => setExpandedPlatform('ios')}
+        >
+          <Text style={[styles.platformButtonText, expandedPlatform === 'ios' && styles.platformButtonTextActive]}>
+            iPhone
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.platformButton, expandedPlatform === 'android' && styles.platformButtonActive]}
+          onPress={() => setExpandedPlatform('android')}
+        >
+          <Text style={[styles.platformButtonText, expandedPlatform === 'android' && styles.platformButtonTextActive]}>
+            Android
+          </Text>
+        </TouchableOpacity>
       </View>
+
+      {/* iPhone Installation */}
+      {expandedPlatform === 'ios' && (
+        <View style={styles.guideCard}>
+          <View style={styles.guideHeader}>
+            <Text style={styles.guideTitle}>iPhone Installation</Text>
+          </View>
+          {iosSteps.map((step, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[styles.stepItem, index === iosSteps.length - 1 && styles.lastStepItem]}
+              onPress={() => setExpandedStep(expandedStep === index ? null : index)}
+            >
+              <View style={styles.stepHeader}>
+                <View style={styles.stepNumber}><Text style={styles.stepNumberText}>{index + 1}</Text></View>
+                <Text style={styles.stepTitle}>{step.title}</Text>
+              </View>
+              {expandedStep === index && <Text style={styles.stepContent}>{step.content}</Text>}
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
+      {/* Android Installation */}
+      {expandedPlatform === 'android' && (
+        <View style={styles.guideCard}>
+          <View style={styles.guideHeader}>
+            <Text style={styles.guideTitle}>Android Installation</Text>
+          </View>
+          {androidSteps.map((step, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[styles.stepItem, index === androidSteps.length - 1 && styles.lastStepItem]}
+              onPress={() => setExpandedStep(expandedStep === index ? null : index)}
+            >
+              <View style={styles.stepHeader}>
+                <View style={styles.stepNumber}><Text style={styles.stepNumberText}>{index + 1}</Text></View>
+                <Text style={styles.stepTitle}>{step.title}</Text>
+              </View>
+              {expandedStep === index && <Text style={styles.stepContent}>{step.content}</Text>}
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
@@ -227,9 +282,12 @@ const styles = StyleSheet.create({
     paddingBottom: theme.spacing.xl * 2,
   },
   // Saily Header Style
+  safeAreaSpacer: {
+    height: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 8,
+    backgroundColor: theme.colors.background,
+  },
   header: {
     alignItems: 'center',
-    paddingTop: 4,
     marginBottom: theme.spacing.lg,
   },
   headerIconContainer: {
@@ -368,14 +426,14 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: (theme.colors as any).primaryMuted || theme.colors.primarySoft,
+    backgroundColor: theme.colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: theme.spacing.md,
   },
   stepNumberText: {
     fontSize: 12,
-    color: theme.colors.primary,
+    color: theme.colors.white,
     fontWeight: '700' as const,
   },
   stepTitle: {
@@ -389,5 +447,32 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.sm,
     marginLeft: 36,
     lineHeight: 20,
+  },
+  // Platform Toggle
+  platformToggle: {
+    flexDirection: 'row',
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.lg,
+    padding: 4,
+    marginBottom: theme.spacing.md,
+  },
+  platformButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: theme.borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  platformButtonActive: {
+    backgroundColor: theme.colors.primary,
+  },
+  platformButtonText: {
+    fontSize: 14,
+    fontWeight: '500' as const,
+    color: theme.colors.textSecondary,
+  },
+  platformButtonTextActive: {
+    color: theme.colors.white,
+    fontWeight: '600' as const,
   },
 });

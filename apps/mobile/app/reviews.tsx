@@ -1,9 +1,10 @@
 import { useState, useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ActivityIndicator, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ActivityIndicator, Modal, Platform, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUser } from '@clerk/clerk-expo';
 import { apiFetch } from '../src/api/client';
 import { theme } from '../src/theme';
+import { useToast } from '../src/context/ToastContext';
 
 interface Review {
   id: string;
@@ -79,6 +80,7 @@ function generateMockReviews(count: number): Review[] {
 
 export default function Reviews() {
   const router = useRouter();
+  const toast = useToast();
   const { user, isLoaded } = useUser();
   
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -125,7 +127,7 @@ export default function Reviews() {
   
   const handleSubmitReview = async () => {
     if (!user) {
-      Alert.alert('Sign in required', 'Please sign in to leave a review.');
+      toast.info('Sign in required', 'Please sign in to leave a review.');
       return;
     }
     
@@ -147,12 +149,12 @@ export default function Reviews() {
         }),
       });
       
-      Alert.alert('Thank you!', 'Your review has been submitted and will be reviewed by our team.');
+      toast.success('Thank you!', 'Your review has been submitted and will be reviewed by our team.');
       setShowWriteModal(false);
       setNewComment('');
       setNewRating(5);
     } catch (error) {
-      Alert.alert('Error', 'Failed to submit review. Please try again.');
+      toast.error('Error', 'Failed to submit review. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -400,6 +402,9 @@ const styles = StyleSheet.create({
   
   // Header Section
   headerSection: {
+    paddingTop: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 8,
+    paddingLeft: 16,
+    paddingRight: 16,
     marginBottom: theme.spacing.lg,
   },
   summaryCard: {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, RefreshControl, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, RefreshControl, ActivityIndicator, TextInput, Platform, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUser, useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,6 +7,7 @@ import { apiFetch } from '../src/api/client';
 import { theme } from '../src/theme';
 import BottomNav from '../src/components/BottomNav';
 import { useCurrency } from '../src/context/CurrencyContext';
+import { getLowestPriceFromPlans } from '../src/utils/planUtils';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -25,6 +26,10 @@ type Plan = {
   name: string;
   price: number;
   currency?: string;
+  volume?: number; // in MB from API
+  duration?: number;
+  durationUnit?: string;
+  fup1Mbps?: boolean;
 };
 
 // Popular countries to show on homepage
@@ -117,7 +122,7 @@ export default function Home() {
   const router = useRouter();
   const { user, isLoaded: userLoaded } = useUser();
   const { isSignedIn, isLoaded: authLoaded } = useAuth();
-  const { convert, formatPrice: formatCurrencyPrice } = useCurrency();
+  const { convert, convertFromCurrency, formatPrice: formatCurrencyPrice } = useCurrency();
   const isLoaded = userLoaded && authLoaded;
   
   const [popularCountries, setPopularCountries] = useState<Country[]>([]);
@@ -164,8 +169,8 @@ export default function Home() {
             setLoadingPrices(prev => ({ ...prev, [country.code]: true }));
             const plans = await apiFetch<Plan[]>(`/countries/${country.code}/plans`);
             if (plans && plans.length > 0) {
-              const prices = plans.map(p => p.price).filter(p => p > 0);
-              const lowestPrice = prices.length > 0 ? Math.min(...prices) : undefined;
+              // Use the same filtering logic as web app - only get price from plans we actually sell
+              const lowestPrice = getLowestPriceFromPlans(plans);
               const currency = plans[0]?.currency || 'USD';
               return { ...country, lowestPrice, currency };
             }
@@ -213,9 +218,11 @@ export default function Home() {
     });
   };
 
-  const formatPrice = (price?: number) => {
+  const formatPrice = (price?: number, currency?: string) => {
     if (!price) return 'View plans';
-    return `From ${formatCurrencyPrice(convert(price))}`;
+    // Convert from the source currency (from API) to user's selected currency
+    const convertedPrice = currency ? convertFromCurrency(price, currency) : convert(price);
+    return `From ${formatCurrencyPrice(convertedPrice)}`;
   };
 
   const handleTabPress = (tabId: string) => {
@@ -273,7 +280,28 @@ export default function Home() {
         a.name.localeCompare(b.name)
       );
 
-      setRegionCountries(sorted);
+      // Fetch prices for each country in the region
+      const countriesWithPrices = await Promise.all(
+        sorted.map(async (country) => {
+          try {
+            setLoadingPrices(prev => ({ ...prev, [country.code]: true }));
+            const plans = await apiFetch<Plan[]>(`/countries/${country.code}/plans`);
+            if (plans && plans.length > 0) {
+              // Use the same filtering logic as web app - only get price from plans we actually sell
+              const lowestPrice = getLowestPriceFromPlans(plans);
+              const currency = plans[0]?.currency || 'USD';
+              return { ...country, lowestPrice, currency };
+            }
+          } catch (err) {
+            console.warn(`Failed to fetch plans for ${country.code}:`, err);
+          } finally {
+            setLoadingPrices(prev => ({ ...prev, [country.code]: false }));
+          }
+          return country;
+        })
+      );
+
+      setRegionCountries(countriesWithPrices);
     } catch (err) {
       console.error('Error fetching region countries:', err);
     } finally {
@@ -283,6 +311,8 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
+      {/* Safe area spacer - prevents content from scrolling behind status bar */}
+      <View style={styles.safeAreaSpacer} />
       {/* Fixed Header Area */}
       <View style={styles.headerContainer}>
         <Text style={styles.headerTitle}>Data plans</Text>
@@ -336,85 +366,90 @@ export default function Home() {
           />
         }
       >
-        {/* Regional Tab Content */}
+        {/* Regional Tab Content - Accordion Style */}
         {activeTab === 'regional' && !searchQuery && (
           <>
-            {!selectedRegion ? (
-              <>
-                {/* Regions List */}
-                <Text style={styles.sectionTitle}>Browse by Region</Text>
-                <View style={styles.groupedList}>
-                  {REGIONS.map((region, index) => (
-                    <TouchableOpacity
-                      key={region.code}
-                      style={[
-                        styles.regionItem,
-                        index === REGIONS.length - 1 && styles.lastListItem
-                      ]}
-                      onPress={() => handleRegionPress(region)}
-                      activeOpacity={0.7}
-                    >
-                      <View style={styles.regionIcon}>
-                        <Text style={styles.regionIconText}>{region.icon}</Text>
-                      </View>
-                      <Text style={styles.regionName}>{region.name}</Text>
-                      <Text style={styles.chevron}>›</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </>
-            ) : (
-              <>
-                {/* Countries in Selected Region */}
-                {loadingRegionCountries ? (
-                  <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="small" color={theme.colors.primary} />
-                    <Text style={styles.loadingText}>Loading countries...</Text>
-                  </View>
-                ) : regionCountries.length > 0 ? (
-                  <>
-                    <Text style={styles.sectionTitle}>
-                      {REGIONS.find(r => r.code === selectedRegion)?.name} Countries
-                    </Text>
-                    <View style={styles.groupedList}>
-                      {regionCountries.map((country, index) => (
-                        <TouchableOpacity
-                          key={country.code}
-                          style={[
-                            styles.listItem,
-                            index === regionCountries.length - 1 && styles.lastListItem
-                          ]}
-                          onPress={() => handleCountryPress(country)}
-                          activeOpacity={0.7}
-                        >
-                          <View style={styles.flagContainer}>
-                            {!imageErrors[country.code] ? (
-                              <Image
-                                source={{ uri: getFlagUrl(country) }}
-                                style={styles.flag}
-                                resizeMode="cover"
-                                onError={() => handleImageError(country.code)}
-                              />
-                            ) : (
-                              <Text style={{ fontSize: 20 }}>🌍</Text>
-                            )}
-                          </View>
-                          <View style={styles.listItemContent}>
-                            <Text style={styles.countryName}>{country.name}</Text>
-                            <Text style={styles.priceText}>View plans</Text>
-                          </View>
-                          <Ionicons name="chevron-forward" size={20} color={theme.colors.textMuted} style={styles.chevron} />
-                        </TouchableOpacity>
-                      ))}
+            <Text style={styles.sectionTitle}>Browse by Region</Text>
+            <View style={styles.groupedList}>
+              {REGIONS.map((region, regionIndex) => (
+                <View key={region.code}>
+                  {/* Region Item */}
+                  <TouchableOpacity
+                    style={[
+                      styles.regionItem,
+                      selectedRegion === region.code && styles.regionItemSelected,
+                      regionIndex === REGIONS.length - 1 && selectedRegion !== region.code && styles.lastListItem
+                    ]}
+                    onPress={() => handleRegionPress(region)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.regionIcon}>
+                      <Text style={styles.regionIconText}>{region.icon}</Text>
                     </View>
-                  </>
-                ) : (
-                  <View style={styles.emptyContainer}>
-                    <Text style={styles.emptyText}>No countries found in this region</Text>
-                  </View>
-                )}
-              </>
-            )}
+                    <Text style={styles.regionName}>{region.name}</Text>
+                    <Text style={[
+                      styles.chevron,
+                      selectedRegion === region.code && styles.chevronExpanded
+                    ]}>
+                      {selectedRegion === region.code ? '−' : '›'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {/* Expanded Countries */}
+                  {selectedRegion === region.code && (
+                    <>
+                      {loadingRegionCountries ? (
+                        <View style={styles.loadingContainer}>
+                          <ActivityIndicator size="small" color={theme.colors.primary} />
+                          <Text style={styles.loadingText}>Loading countries...</Text>
+                        </View>
+                      ) : regionCountries.length > 0 ? (
+                        <>
+                          {regionCountries.map((country, countryIndex) => (
+                            <TouchableOpacity
+                              key={country.code}
+                              style={[
+                                styles.countryItem,
+                                regionIndex === REGIONS.length - 1 && countryIndex === regionCountries.length - 1 && styles.lastListItem
+                              ]}
+                              onPress={() => handleCountryPress(country)}
+                              activeOpacity={0.7}
+                            >
+                              <View style={styles.countryIndent} />
+                              <View style={styles.flagContainer}>
+                                {!imageErrors[country.code] ? (
+                                  <Image
+                                    source={{ uri: getFlagUrl(country) }}
+                                    style={styles.flag}
+                                    resizeMode="cover"
+                                    onError={() => handleImageError(country.code)}
+                                  />
+                                ) : (
+                                  <Ionicons name="globe-outline" size={20} color={theme.colors.textMuted} />
+                                )}
+                              </View>
+                              <View style={styles.listItemContent}>
+                                <Text style={styles.countryName}>{country.name}</Text>
+                                {loadingPrices[country.code] ? (
+                                  <ActivityIndicator size="small" color={theme.colors.textMuted} />
+                                ) : (
+                                  <Text style={styles.priceText}>{formatPrice(country.lowestPrice, country.currency)}</Text>
+                                )}
+                              </View>
+                              <Ionicons name="chevron-forward" size={20} color={theme.colors.textMuted} />
+                            </TouchableOpacity>
+                          ))}
+                        </>
+                      ) : (
+                        <View style={styles.emptyContainer}>
+                          <Text style={styles.emptyText}>No countries found</Text>
+                        </View>
+                      )}
+                    </>
+                  )}
+                </View>
+              ))}
+            </View>
           </>
         )}
 
@@ -445,7 +480,7 @@ export default function Home() {
                       onError={() => handleImageError(country.code)}
                     />
                   ) : (
-                    <Text style={{ fontSize: 20 }}>🌍</Text>
+                    <Ionicons name="globe-outline" size={20} color={theme.colors.textMuted} />
                   )}
                 </View>
                 
@@ -454,7 +489,7 @@ export default function Home() {
                   {loadingPrices[country.code] ? (
                     <ActivityIndicator size="small" color={theme.colors.textMuted} />
                   ) : (
-                    <Text style={styles.priceText}>{formatPrice(country.lowestPrice)}</Text>
+                    <Text style={styles.priceText}>{formatPrice(country.lowestPrice, country.currency)}</Text>
                   )}
                 </View>
                 
@@ -496,16 +531,20 @@ export default function Home() {
                         onError={() => handleImageError(country.code)}
                       />
                     ) : (
-                      <Text style={{ fontSize: 20 }}>🌍</Text>
+                      <Ionicons name="globe-outline" size={20} color={theme.colors.textMuted} />
                     )}
                   </View>
                   
                   <View style={styles.listItemContent}>
                     <Text style={styles.countryName}>{country.name}</Text>
-                    <Text style={styles.priceText}>From US$3.99</Text> 
+                    {loadingPrices[country.code] ? (
+                      <ActivityIndicator size="small" color={theme.colors.textMuted} />
+                    ) : (
+                      <Text style={styles.priceText}>{formatPrice(country.lowestPrice, country.currency)}</Text>
+                    )}
                   </View>
                   
-                  <Ionicons name="chevron-forward" size={20} color={theme.colors.textMuted} style={styles.chevron} />
+                  <Ionicons name="chevron-forward" size={20} color={theme.colors.textMuted} />
                 </TouchableOpacity>
               ))}
             </View>
@@ -524,10 +563,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background, // Voyage Navy (Saily is Light Gray)
   },
+  safeAreaSpacer: {
+    height: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 8,
+    backgroundColor: theme.colors.background,
+  },
   headerContainer: {
     backgroundColor: theme.colors.background,
-    paddingTop: 4, // Minimal top padding - Stack header already provides spacing
-    paddingBottom: theme.spacing.xs,
+    paddingBottom: theme.spacing.md,
   },
   headerTitle: {
     fontSize: 24, // Saily uses large bold headers
@@ -643,7 +685,12 @@ const styles = StyleSheet.create({
     color: theme.colors.textMuted, // "From US$..."
   },
   chevron: {
-    marginLeft: theme.spacing.sm,
+    fontSize: 22,
+    color: theme.colors.textMuted,
+    fontWeight: '300',
+  },
+  chevronExpanded: {
+    color: theme.colors.white,
   },
   // Region styles
   regionItem: {
@@ -652,6 +699,22 @@ const styles = StyleSheet.create({
     padding: theme.spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
+  },
+  regionItemSelected: {
+    backgroundColor: theme.colors.backgroundLight,
+  },
+  countryItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: theme.spacing.md,
+    paddingRight: theme.spacing.md,
+    paddingLeft: theme.spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+    backgroundColor: theme.colors.backgroundLight,
+  },
+  countryIndent: {
+    width: 20,
   },
   regionIcon: {
     width: 40,

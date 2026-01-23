@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, TextInput, Image, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, TextInput, Image, Keyboard, Platform, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { apiFetch } from '../src/api/client';
@@ -121,7 +121,7 @@ export default function Countries() {
                 onError={() => handleImageError(item.code)}
               />
             ) : (
-              <Text style={styles.countryIconFallback}>🌍</Text>
+              <Ionicons name="globe-outline" size={20} color={theme.colors.textMuted} />
             )}
           </View>
           <View style={styles.countryInfo}>
@@ -138,6 +138,8 @@ export default function Countries() {
 
   return (
     <View style={styles.container}>
+      {/* Safe area spacer - prevents content from scrolling behind status bar */}
+      <View style={styles.safeAreaSpacer} />
       {/* Search Header */}
       <View style={styles.searchSection}>
         <View style={styles.searchInputContainer}>
@@ -252,10 +254,13 @@ const styles = StyleSheet.create({
   },
   
   // Search
+  safeAreaSpacer: {
+    height: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 8,
+    backgroundColor: theme.colors.background,
+  },
   searchSection: {
     paddingLeft: 16, // Explicit 16px padding
     paddingRight: 16, // Explicit 16px padding
-    paddingTop: theme.spacing.sm,
     paddingBottom: theme.spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,

@@ -7,6 +7,7 @@ interface CurrencyContextType {
   setCurrency: (currency: string) => void;
   rates: Record<string, number>;
   convert: (amountUSD: number) => number;
+  convertFromCurrency: (amount: number, fromCurrency: string) => number;
   formatPrice: (amount: number) => string;
   loading: boolean;
 }
@@ -16,6 +17,7 @@ const defaultContext: CurrencyContextType = {
   setCurrency: () => {},
   rates: { USD: 1 },
   convert: (amount: number) => amount,
+  convertFromCurrency: (amount: number, _: string) => amount,
   formatPrice: (amount: number) => `$${amount.toFixed(2)}`,
   loading: true,
 };
@@ -38,16 +40,50 @@ export const SUPPORTED_CURRENCIES = [
   { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
   { code: 'CHF', symbol: 'CHF', name: 'Swiss Franc' },
   { code: 'NZD', symbol: 'NZ$', name: 'New Zealand Dollar' },
+  { code: 'SEK', symbol: 'kr', name: 'Swedish Krona' },
+  { code: 'NOK', symbol: 'kr', name: 'Norwegian Krone' },
+  { code: 'DKK', symbol: 'kr', name: 'Danish Krone' },
   { code: 'HKD', symbol: 'HK$', name: 'Hong Kong Dollar' },
+  { code: 'TWD', symbol: 'NT$', name: 'Taiwan Dollar' },
   { code: 'KRW', symbol: '₩', name: 'South Korean Won' },
   { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
   { code: 'BRL', symbol: 'R$', name: 'Brazilian Real' },
   { code: 'MXN', symbol: '$', name: 'Mexican Peso' },
   { code: 'THB', symbol: '฿', name: 'Thai Baht' },
+  { code: 'ZAR', symbol: 'R', name: 'South African Rand' },
+  { code: 'SAR', symbol: '﷼', name: 'Saudi Riyal' },
   { code: 'TRY', symbol: '₺', name: 'Turkish Lira' },
   { code: 'IDR', symbol: 'Rp', name: 'Indonesian Rupiah' },
   { code: 'PHP', symbol: '₱', name: 'Philippine Peso' },
   { code: 'VND', symbol: '₫', name: 'Vietnamese Dong' },
+  { code: 'HUF', symbol: 'Ft', name: 'Hungarian Forint' },
+  { code: 'CZK', symbol: 'Kč', name: 'Czech Koruna' },
+  { code: 'RON', symbol: 'lei', name: 'Romanian Leu' },
+  { code: 'BGN', symbol: 'лв', name: 'Bulgarian Lev' },
+  { code: 'COP', symbol: '$', name: 'Colombian Peso' },
+  { code: 'CLP', symbol: '$', name: 'Chilean Peso' },
+  { code: 'PEN', symbol: 'S/', name: 'Peruvian Sol' },
+  { code: 'NGN', symbol: '₦', name: 'Nigerian Naira' },
+  { code: 'KES', symbol: 'KSh', name: 'Kenyan Shilling' },
+  { code: 'GHS', symbol: 'GH₵', name: 'Ghanaian Cedi' },
+  { code: 'MAD', symbol: 'د.م.', name: 'Moroccan Dirham' },
+  { code: 'EGP', symbol: 'E£', name: 'Egyptian Pound' },
+  { code: 'QAR', symbol: '﷼', name: 'Qatari Riyal' },
+  { code: 'KWD', symbol: 'د.ك', name: 'Kuwaiti Dinar' },
+  { code: 'BHD', symbol: '.د.ب', name: 'Bahraini Dinar' },
+  { code: 'OMR', symbol: '﷼', name: 'Omani Rial' },
+  { code: 'JOD', symbol: 'د.ا', name: 'Jordanian Dinar' },
+  { code: 'BDT', symbol: '৳', name: 'Bangladeshi Taka' },
+  { code: 'PKR', symbol: '₨', name: 'Pakistani Rupee' },
+  { code: 'LKR', symbol: '₨', name: 'Sri Lankan Rupee' },
+  { code: 'NPR', symbol: '₨', name: 'Nepalese Rupee' },
+  { code: 'MMK', symbol: 'K', name: 'Myanmar Kyat' },
+  { code: 'KZT', symbol: '₸', name: 'Kazakhstani Tenge' },
+  { code: 'UZS', symbol: 'лв', name: 'Uzbekistani Som' },
+  { code: 'AZN', symbol: '₼', name: 'Azerbaijani Manat' },
+  { code: 'GEL', symbol: '₾', name: 'Georgian Lari' },
+  { code: 'CRC', symbol: '₡', name: 'Costa Rican Colón' },
+  { code: 'UYU', symbol: '$U', name: 'Uruguayan Peso' },
 ];
 
 export function CurrencyProvider({ children }: { children: ReactNode }) {
@@ -135,6 +171,34 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     return amountUSD * rate;
   };
 
+  const convertFromCurrency = (amount: number, fromCurrency: string): number => {
+    const from = fromCurrency.toUpperCase();
+    const to = selectedCurrency.toUpperCase();
+
+    // No conversion needed if currencies match
+    if (from === to) {
+      return amount;
+    }
+
+    // If source is USD, use the regular convert function
+    if (from === 'USD') {
+      return convert(amount);
+    }
+
+    // Convert from source currency to USD first, then to target currency
+    const fromRate = rates[from];
+    if (!fromRate || fromRate === 0) {
+      // If we don't have the rate, return as-is
+      return amount;
+    }
+
+    // Convert to USD first
+    const amountInUSD = amount / fromRate;
+
+    // Then convert to target currency
+    return convert(amountInUSD);
+  };
+
   const formatPrice = (amount: number): string => {
     const currencyInfo = SUPPORTED_CURRENCIES.find(c => c.code === selectedCurrency);
     
@@ -163,6 +227,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         setCurrency,
         rates,
         convert,
+        convertFromCurrency,
         formatPrice,
         loading,
       }}

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Image, Platform, StatusBar } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { apiFetch } from '../src/api/client';
 import { useUser } from '@clerk/clerk-expo';
 import { theme } from '../src/theme';
+import { useToast } from '../src/context/ToastContext';
 
 interface TopUpOption {
   packageCode: string;
@@ -27,6 +29,7 @@ interface EsimProfile {
 export default function TopUp() {
   const router = useRouter();
   const { user } = useUser();
+  const toast = useToast();
   const params = useLocalSearchParams<{ iccid: string }>();
   
   const [profile, setProfile] = useState<EsimProfile | null>(null);
@@ -85,7 +88,7 @@ export default function TopUp() {
 
   const handleTopUp = async (plan: TopUpOption) => {
     if (!plan.packageCode) {
-      Alert.alert('Error', 'Plan code is missing');
+      toast.error('Error', 'Plan code is missing');
       return;
     }
 
@@ -119,7 +122,7 @@ export default function TopUp() {
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to start top-up';
-      Alert.alert('Error', errorMessage);
+      toast.error('Error', errorMessage);
       console.error('Error starting top-up:', err);
     } finally {
       setProcessingPlan(null);
@@ -152,12 +155,12 @@ export default function TopUp() {
         {/* Specs */}
         <View style={styles.specs}>
           <View style={styles.specItem}>
-            <Text style={styles.specIcon}>📊</Text>
+            <Ionicons name="stats-chart-outline" size={14} color={theme.colors.textMuted} />
             <Text style={styles.specText}>{dataSize}</Text>
           </View>
           <View style={styles.specDivider} />
           <View style={styles.specItem}>
-            <Text style={styles.specIcon}>📅</Text>
+            <Ionicons name="calendar-outline" size={14} color={theme.colors.textMuted} />
             <Text style={styles.specText}>{validity}</Text>
           </View>
         </View>
@@ -187,6 +190,8 @@ export default function TopUp() {
   if (loading) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={styles.loadingText}>Loading top-up options...</Text>
@@ -198,6 +203,8 @@ export default function TopUp() {
   if (error) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         <View style={styles.errorContainer}>
           <Ionicons name="warning" size={48} color={theme.colors.warning} />
           <Text style={styles.errorTitle}>Unable to Load</Text>
@@ -212,10 +219,12 @@ export default function TopUp() {
 
   return (
     <View style={styles.container}>
+      {/* Safe area spacer - prevents content from scrolling behind status bar */}
+      <View style={styles.safeAreaSpacer} />
       {/* Header Card */}
       <View style={styles.headerCard}>
         <View style={styles.headerIcon}>
-          <Text style={styles.headerIconText}>📶</Text>
+          <Ionicons name="stats-chart" size={28} color={theme.colors.primary} />
         </View>
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>
@@ -233,7 +242,7 @@ export default function TopUp() {
       {/* Options List */}
       {options.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyIcon}>📦</Text>
+          <Ionicons name="cube-outline" size={48} color={theme.colors.textMuted} style={{ opacity: 0.5 }} />
           <Text style={styles.emptyTitle}>No Top-Up Plans</Text>
           <Text style={styles.emptyText}>
             No compatible top-up plans were found for this eSIM. Contact support if you need assistance.
@@ -311,11 +320,17 @@ const styles = StyleSheet.create({
     ...theme.typography.bodyBold,
   },
   
+  safeAreaSpacer: {
+    height: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 8,
+    backgroundColor: theme.colors.background,
+  },
   // Header Card
   headerCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    margin: theme.spacing.md,
+    marginTop: theme.spacing.md,
+    marginHorizontal: theme.spacing.md,
+    marginBottom: theme.spacing.md,
     padding: theme.spacing.lg,
     backgroundColor: theme.colors.card,
     borderRadius: theme.borderRadius.xl,
@@ -330,9 +345,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: theme.spacing.md,
-  },
-  headerIconText: {
-    fontSize: 28,
   },
   headerContent: {
     flex: 1,
@@ -411,10 +423,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-  },
-  specIcon: {
-    fontSize: 12,
-    marginRight: 4,
+    gap: 4,
   },
   specText: {
     ...theme.typography.tiny,

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Keyboard, Platform, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { apiFetch } from '../src/api/client';
 import { theme } from '../src/theme';
+import { useToast } from '../src/context/ToastContext';
 
 interface DeviceCompatibility {
   model: string;
@@ -15,6 +16,7 @@ interface DeviceCompatibility {
 
 export default function DeviceCheck() {
   const router = useRouter();
+  const toast = useToast();
   const [deviceQuery, setDeviceQuery] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [selectedDevice, setSelectedDevice] = useState('');
@@ -56,7 +58,7 @@ export default function DeviceCheck() {
 
   const handleCheckCompatibility = async () => {
     if (!selectedDevice && !deviceQuery) {
-      Alert.alert('Device Required', 'Please enter or select a device model');
+      toast.warning('Device Required', 'Please enter or select a device model');
       return;
     }
 
@@ -73,7 +75,7 @@ export default function DeviceCheck() {
       setResult(data);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to check compatibility';
-      Alert.alert('Error', errorMessage);
+      toast.error('Error', errorMessage);
       console.error('Compatibility check failed:', error);
     } finally {
       setLoading(false);
@@ -81,11 +83,14 @@ export default function DeviceCheck() {
   };
 
   return (
-    <ScrollView 
-      style={styles.container} 
-      contentContainerStyle={styles.content}
-      keyboardShouldPersistTaps="handled"
-    >
+    <View style={styles.container}>
+      {/* Safe area spacer - prevents content from scrolling behind status bar */}
+      <View style={styles.safeAreaSpacer} />
+      <ScrollView 
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerIconContainer}>
@@ -220,10 +225,9 @@ export default function DeviceCheck() {
               <TouchableOpacity
                 style={styles.supportButton}
                 onPress={() => {
-                  Alert.alert(
+                  toast.info(
                     'Contact Support',
-                    'If you believe your device should support eSIM, please contact our support team.',
-                    [{ text: 'OK' }]
+                    'If you believe your device should support eSIM, please contact our support team.'
                   );
                 }}
                 activeOpacity={0.85}
@@ -263,7 +267,8 @@ export default function DeviceCheck() {
       </View>
 
       <View style={{ height: 40 }} />
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -280,7 +285,13 @@ const styles = StyleSheet.create({
   },
   
   // Header
+  safeAreaSpacer: {
+    height: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 8,
+    backgroundColor: theme.colors.background,
+  },
   header: {
+    paddingLeft: 16,
+    paddingRight: 16,
     alignItems: 'center',
     marginBottom: theme.spacing.lg,
   },

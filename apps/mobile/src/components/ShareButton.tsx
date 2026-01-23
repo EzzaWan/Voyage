@@ -1,5 +1,7 @@
-import { TouchableOpacity, Text, Share, StyleSheet, Alert, View } from 'react-native';
+import { TouchableOpacity, Text, Share, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../theme';
+import { useToast } from '../context/ToastContext';
 
 interface ShareButtonProps {
   title: string;
@@ -16,6 +18,8 @@ export function ShareButton({
   buttonText = 'Share',
   style = 'secondary',
 }: ShareButtonProps) {
+  const toast = useToast();
+  
   const handleShare = async () => {
     try {
       const shareContent: { message: string; title: string; url?: string } = {
@@ -41,7 +45,7 @@ export function ShareButton({
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to share';
-      Alert.alert('Error', errorMessage);
+      toast.error('Error', errorMessage);
     }
   };
 
@@ -52,7 +56,7 @@ export function ShareButton({
         onPress={handleShare}
         activeOpacity={0.8}
       >
-        <Text style={styles.iconEmoji}>📤</Text>
+        <Ionicons name="share-outline" size={18} color={theme.colors.primary} />
       </TouchableOpacity>
     );
   }
@@ -66,7 +70,11 @@ export function ShareButton({
       onPress={handleShare}
       activeOpacity={0.85}
     >
-      <Text style={styles.buttonIcon}>📤</Text>
+      <Ionicons 
+        name="share-outline" 
+        size={18} 
+        color={style === 'primary' ? theme.colors.white : theme.colors.primary} 
+      />
       <Text style={[
         styles.buttonText,
         style === 'primary' ? styles.buttonTextPrimary : styles.buttonTextSecondary,
@@ -140,7 +148,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: theme.borderRadius.md,
-    gap: 8,
   },
   buttonPrimary: {
     backgroundColor: theme.colors.primary,
@@ -157,6 +164,7 @@ const styles = StyleSheet.create({
   },
   buttonIcon: {
     fontSize: 16,
+    marginRight: 8,
   },
   buttonText: {
     ...theme.typography.bodyMedium,
@@ -176,9 +184,6 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  iconEmoji: {
-    fontSize: 18,
   },
 });
 

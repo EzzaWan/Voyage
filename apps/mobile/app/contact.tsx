@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUser } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
@@ -121,6 +121,8 @@ export default function ContactSupport() {
   if (success) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         <View style={styles.successContainer}>
           <View style={styles.successIconContainer}>
             <Ionicons name="checkmark-circle" size={48} color={theme.colors.success} />
@@ -155,6 +157,8 @@ export default function ContactSupport() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      {/* Safe area spacer - prevents content from scrolling behind status bar */}
+      <View style={styles.safeAreaSpacer} />
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -309,7 +313,10 @@ export default function ContactSupport() {
             {loading ? (
               <ActivityIndicator color={theme.colors.white} />
             ) : (
-              <Text style={styles.submitButtonText}>📤 Send Message</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Ionicons name="send-outline" size={18} color={theme.colors.white} />
+                <Text style={styles.submitButtonText}>Send Message</Text>
+              </View>
             )}
           </TouchableOpacity>
         </View>
@@ -333,7 +340,13 @@ const styles = StyleSheet.create({
   },
   
   // Header
+  safeAreaSpacer: {
+    height: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 8,
+    backgroundColor: theme.colors.background,
+  },
   header: {
+    paddingLeft: 16,
+    paddingRight: 16,
     marginBottom: theme.spacing.lg,
   },
   headerTitle: {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image, RefreshControl, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image, RefreshControl } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useUser } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +9,7 @@ import { theme } from '../src/theme';
 import { useCurrency } from '../src/context/CurrencyContext';
 import { getStatusLabel, getStatusColor } from '../src/utils/statusUtils';
 import { formatDataSize, calculateRemainingData, calculateUsagePercentage, formatExpiryDate } from '../src/utils/dataUtils';
+import { useToast } from '../src/context/ToastContext';
 
 interface EsimProfile {
   id: string;
@@ -45,6 +46,7 @@ interface TopupHistory {
 export default function EsimDetail() {
   const router = useRouter();
   const { user } = useUser();
+  const toast = useToast();
   const { convert, formatPrice } = useCurrency();
   const params = useLocalSearchParams<{ iccid: string }>();
   
@@ -95,14 +97,14 @@ export default function EsimDetail() {
   const handleCopyIccid = async () => {
     if (profile?.iccid) {
       await Clipboard.setStringAsync(profile.iccid);
-      Alert.alert('Copied', 'ICCID copied to clipboard');
+      toast.success('Copied', 'ICCID copied to clipboard');
     }
   };
 
   const handleCopyActivationCode = async () => {
     if (profile?.ac) {
       await Clipboard.setStringAsync(profile.ac);
-      Alert.alert('Copied', 'Activation code copied to clipboard');
+      toast.success('Copied', 'Activation code copied to clipboard');
     }
   };
 
@@ -245,7 +247,10 @@ export default function EsimDetail() {
         {/* QR Code Section */}
         {(profile.qrCodeUrl || profile.ac) && (
           <View style={styles.qrSection}>
-            <Text style={styles.sectionTitle}>📱 Install eSIM</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Ionicons name="phone-portrait-outline" size={18} color={theme.colors.primary} />
+              <Text style={styles.sectionTitle}>Install eSIM</Text>
+            </View>
             
             {profile.qrCodeUrl && (
               <View style={styles.qrContainer}>

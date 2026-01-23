@@ -78,10 +78,10 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.full,
     borderWidth: 1,
     borderColor: theme.colors.border,
-    gap: 4,
   },
   infoBadgeIcon: {
     fontSize: 10,
+    marginRight: 4,
   },
   infoBadgeText: {
     fontSize: 9,

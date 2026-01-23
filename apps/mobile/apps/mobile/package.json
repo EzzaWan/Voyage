@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "expo-splash-screen": "^31.0.13",
+    "react-native-safe-area-context": "^5.6.2"
+  }
+}

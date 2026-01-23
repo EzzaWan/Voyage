@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, StatusBar } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useUser } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { apiFetch } from '../src/api/client';
 import { theme } from '../src/theme';
+import { useToast } from '../src/context/ToastContext';
 
 interface SupportTicketReply {
   id: string;
@@ -27,6 +28,7 @@ interface SupportTicket {
 
 export default function TicketDetail() {
   const router = useRouter();
+  const toast = useToast();
   const { user } = useUser();
   const params = useLocalSearchParams<{ ticketId: string }>();
   
@@ -67,15 +69,15 @@ export default function TicketDetail() {
     if (!user?.primaryEmailAddress?.emailAddress || !params.ticketId) return;
     
     if (!replyMessage.trim()) {
-      Alert.alert('Error', 'Please enter a message');
+      toast.warning('Error', 'Please enter a message');
       return;
     }
     if (replyMessage.trim().length < 10) {
-      Alert.alert('Error', 'Message must be at least 10 characters');
+      toast.warning('Error', 'Message must be at least 10 characters');
       return;
     }
     if (replyMessage.trim().length > 1000) {
-      Alert.alert('Error', 'Message must be no more than 1000 characters');
+      toast.warning('Error', 'Message must be no more than 1000 characters');
       return;
     }
 
@@ -92,12 +94,12 @@ export default function TicketDetail() {
         body: JSON.stringify({ message: replyMessage.trim() }),
       });
 
-      Alert.alert('Success', 'Your reply has been sent');
+      toast.success('Success', 'Your reply has been sent');
       setReplyMessage('');
       fetchTicket(); // Refresh to show new reply
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to send reply';
-      Alert.alert('Error', errorMessage);
+      toast.error('Error', errorMessage);
     } finally {
       setReplying(false);
     }
@@ -117,6 +119,8 @@ export default function TicketDetail() {
   if (loading) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={styles.loadingText}>Loading ticket...</Text>
@@ -129,6 +133,8 @@ export default function TicketDetail() {
   if (error || !ticket) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         <View style={styles.errorContainer}>
           <Ionicons name="warning" size={48} color={theme.colors.warning} />
           <Text style={styles.errorTitle}>Unable to Load</Text>
@@ -151,6 +157,8 @@ export default function TicketDetail() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      {/* Safe area spacer - prevents content from scrolling behind status bar */}
+      <View style={styles.safeAreaSpacer} />
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -335,7 +343,13 @@ const styles = StyleSheet.create({
   },
   
   // Header
+  safeAreaSpacer: {
+    height: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 8,
+    backgroundColor: theme.colors.background,
+  },
   header: {
+    paddingLeft: 16,
+    paddingRight: 16,
     marginBottom: theme.spacing.lg,
   },
   headerTitle: {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl, Image, Platform, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUser } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
@@ -141,18 +141,27 @@ export default function MyEsims() {
       >
         <View style={styles.esimContent}>
           <View style={styles.esimHeader}>
-            <Text style={styles.countryName}>{countryName}</Text>
-            <View style={[styles.statusBadge, { backgroundColor: statusColor + '20' }]}>
+            <View style={styles.esimHeaderLeft}>
+              <Text style={styles.countryName}>{countryName}</Text>
+              <Text style={styles.planName}>{planName}</Text>
+            </View>
+            <View style={[styles.statusBadge, { backgroundColor: statusColor + '15', borderColor: statusColor + '30' }]}>
+              <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
               <Text style={[styles.statusText, { color: statusColor }]}>{statusLabel}</Text>
             </View>
           </View>
-          <Text style={styles.planName}>{planName}</Text>
           
           {item.totalVolume && (
             <View style={styles.dataUsageContainer}>
               <View style={styles.dataUsageRow}>
-                <Text style={styles.dataUsageText}>{remainingData} left</Text>
-                <Text style={styles.dataUsageTotal}>{formatDataSize(item.totalVolume)}</Text>
+                <View style={styles.dataUsageLeft}>
+                  <Text style={styles.dataUsageLabel}>REMAINING DATA</Text>
+                  <Text style={styles.dataUsageText}>{remainingData}</Text>
+                </View>
+                <View style={styles.dataUsageRight}>
+                  <Text style={styles.dataUsageLabel}>TOTAL</Text>
+                  <Text style={styles.dataUsageTotal}>{formatDataSize(item.totalVolume)}</Text>
+                </View>
               </View>
               <View style={styles.progressBarContainer}>
                 <View 
@@ -165,9 +174,14 @@ export default function MyEsims() {
             </View>
           )}
           
-          <Text style={styles.validityText}>{expiryText}</Text>
+          <View style={styles.esimFooter}>
+            <View style={styles.footerItem}>
+              <Ionicons name="time-outline" size={14} color={theme.colors.textMuted} />
+              <Text style={styles.validityText}>{expiryText}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={theme.colors.primary} />
+          </View>
         </View>
-        <Ionicons name="chevron-forward" size={20} color={theme.colors.textMuted} />
       </TouchableOpacity>
     );
   };
@@ -177,9 +191,11 @@ export default function MyEsims() {
   if (isAuthError && cachedEsims.length === 0 && !loading) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         <View style={styles.emptyContainer}>
           <View style={styles.illustrationCircle}>
-             <Text style={styles.illustrationIcon}>🔒</Text>
+            <Ionicons name="lock-closed" size={48} color={theme.colors.textMuted} style={{ opacity: 0.5 }} />
           </View>
           <Text style={styles.emptyTitle}>Sign In Required</Text>
           <Text style={styles.emptyText}>Login or sign up to access your eSIMs</Text>
@@ -197,6 +213,8 @@ export default function MyEsims() {
   if (esims.length === 0 && !loading && !error) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         <View style={styles.header}>
             <Text style={styles.title}>My eSIMs</Text>
         </View>
@@ -220,11 +238,17 @@ export default function MyEsims() {
 
   return (
     <View style={styles.container}>
+      {/* Safe area spacer - prevents content from scrolling behind status bar */}
+      <View style={styles.safeAreaSpacer} />
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.title}>My eSIMs</Text>
           <TouchableOpacity onPress={onRefresh} disabled={refreshing} style={styles.refreshButton}>
-            {refreshing ? <ActivityIndicator size="small" color={theme.colors.primary} /> : <Text style={styles.refreshButtonText}>↻</Text>}
+            {refreshing ? (
+              <ActivityIndicator size="small" color={theme.colors.primary} />
+            ) : (
+              <Ionicons name="refresh" size={22} color={theme.colors.primary} />
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -252,9 +276,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.backgroundLight,
   },
+  safeAreaSpacer: {
+    height: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 8,
+    backgroundColor: theme.colors.background,
+  },
   header: {
-    paddingTop: 4,
-    paddingBottom: theme.spacing.xs,
+    paddingBottom: theme.spacing.md,
     paddingLeft: 16, // Explicit 16px padding
     paddingRight: 16, // Explicit 16px padding
     backgroundColor: theme.colors.backgroundLight,
@@ -274,10 +301,7 @@ const styles = StyleSheet.create({
   },
   refreshButton: {
     padding: 8,
-  },
-  refreshButtonText: {
-    fontSize: 20,
-    color: theme.colors.primary,
+    marginRight: -8,
   },
   listContent: {
     paddingLeft: 16, // Explicit 16px padding
@@ -285,21 +309,19 @@ const styles = StyleSheet.create({
     paddingTop: theme.spacing.base,
     paddingBottom: 100,
   },
-  // List Item (Flat)
+  // List Item (Redesigned)
   esimItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.background,
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.lg,
     marginBottom: theme.spacing.md,
     borderWidth: 1,
     borderColor: theme.colors.border,
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   esimContent: {
     flex: 1,
@@ -307,64 +329,113 @@ const styles = StyleSheet.create({
   esimHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
+    alignItems: 'flex-start',
+    marginBottom: theme.spacing.lg,
+  },
+  esimHeaderLeft: {
+    flex: 1,
+    marginRight: theme.spacing.md,
   },
   countryName: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '700',
     color: theme.colors.text,
+    marginBottom: 4,
+    letterSpacing: -0.4,
   },
   statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    flexShrink: 0,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
   },
   statusText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '700',
     textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
   planName: {
-    fontSize: 14,
+    fontSize: 15,
     color: theme.colors.textSecondary,
-    marginBottom: theme.spacing.md,
+    lineHeight: 20,
+    fontWeight: '500',
   },
   dataUsageContainer: {
-    marginBottom: theme.spacing.sm,
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.md,
   },
   dataUsageRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    marginBottom: theme.spacing.md,
+  },
+  dataUsageLeft: {
+    flex: 1,
+  },
+  dataUsageRight: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  dataUsageLabel: {
+    fontSize: 10,
+    color: theme.colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    fontWeight: '700',
+    marginBottom: 6,
   },
   dataUsageText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: theme.colors.text,
+    fontSize: 20,
+    fontWeight: '700',
+    color: theme.colors.primary,
+    letterSpacing: -0.4,
   },
   dataUsageTotal: {
-    fontSize: 13,
-    color: theme.colors.textSecondary,
+    fontSize: 20,
+    fontWeight: '700',
+    color: theme.colors.text,
+    letterSpacing: -0.4,
   },
   progressBarContainer: {
-    height: 4,
+    height: 6,
     backgroundColor: theme.colors.backgroundLight,
-    borderRadius: 2,
+    borderRadius: 3,
     overflow: 'hidden',
+    marginTop: 4,
   },
   progressBarFill: {
     height: '100%',
-    borderRadius: 2,
+    borderRadius: 3,
+  },
+  esimFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: theme.spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border + '40',
+  },
+  footerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   validityText: {
-    fontSize: 12,
+    fontSize: 13,
     color: theme.colors.textMuted,
-  },
-  arrow: {
-    fontSize: 20,
-    color: theme.colors.textMuted,
-    marginLeft: theme.spacing.md,
+    fontWeight: '500',
   },
   // Empty State
   emptyContainer: {

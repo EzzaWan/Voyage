@@ -114,7 +114,7 @@ export default function SignInScreen() {
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.logoContainer}>
-              <Text style={styles.logoIcon}>✈️</Text>
+              <Ionicons name="airplane" size={36} color={theme.colors.primary} />
             </View>
             <Text style={styles.title}>Welcome back</Text>
             <Text style={styles.subtitle}>Sign in to your Voyage account</Text>
@@ -189,7 +189,7 @@ export default function SignInScreen() {
               <>
                 <View style={styles.verificationHeader}>
                   <View style={styles.verificationIconContainer}>
-                    <Text style={styles.verificationIcon}>🔐</Text>
+                    <Ionicons name="lock-closed" size={28} color={theme.colors.primary} />
                   </View>
                   <Text style={styles.verificationTitle}>Two-Factor Authentication</Text>
                   <Text style={styles.verificationSubtitle}>
@@ -296,9 +296,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: theme.spacing.lg,
-  },
-  logoIcon: {
-    fontSize: 36,
   },
   title: {
     ...theme.typography.display,
@@ -411,9 +408,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: theme.spacing.md,
-  },
-  verificationIcon: {
-    fontSize: 28,
   },
   verificationTitle: {
     ...theme.typography.h2,

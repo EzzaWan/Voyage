@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUser, useAuth } from '@clerk/clerk-expo';
 import { apiFetch } from '../src/api/client';
 import { theme } from '../src/theme';
 import { useCurrency } from '../src/context/CurrencyContext';
+import { useToast } from '../src/context/ToastContext';
 
 type TabKey = 'request' | 'method' | 'history';
 
@@ -36,6 +37,7 @@ const MIN_PAYOUT = 2000; // $20 minimum in cents
 
 export default function AffiliatePayout() {
   const router = useRouter();
+  const toast = useToast();
   const { user, isLoaded: userLoaded } = useUser();
   const { isSignedIn, isLoaded: authLoaded } = useAuth();
   const { convert, formatPrice } = useCurrency();
@@ -136,12 +138,12 @@ export default function AffiliatePayout() {
     const amountCents = Math.round(parseFloat(amount) * 100);
     
     if (isNaN(amountCents) || amountCents < MIN_PAYOUT) {
-      Alert.alert('Error', `Minimum payout is ${formatCurrency(MIN_PAYOUT)}`);
+      toast.warning('Error', `Minimum payout is ${formatCurrency(MIN_PAYOUT)}`);
       return;
     }
 
     if (amountCents > availableBalance) {
-      Alert.alert('Error', 'Requested amount exceeds available balance');
+      toast.warning('Error', 'Requested amount exceeds available balance');
       return;
     }
 
@@ -158,12 +160,12 @@ export default function AffiliatePayout() {
         body: JSON.stringify({ amountCents }),
       });
 
-      Alert.alert('Success', 'Payout request submitted successfully');
+      toast.success('Success', 'Payout request submitted successfully');
       setAmount('');
       fetchData(); // Refresh data
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to submit request';
-      Alert.alert('Error', errorMessage);
+      toast.error('Error', errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -173,12 +175,12 @@ export default function AffiliatePayout() {
     if (!user?.primaryEmailAddress?.emailAddress) return;
 
     if (methodType === 'paypal' && !paypalEmail.trim()) {
-      Alert.alert('Error', 'PayPal email is required');
+      toast.warning('Error', 'PayPal email is required');
       return;
     }
 
     if (methodType === 'bank' && (!bankHolderName.trim() || !bankIban.trim())) {
-      Alert.alert('Error', 'Account holder name and IBAN are required');
+      toast.warning('Error', 'Account holder name and IBAN are required');
       return;
     }
 
@@ -206,11 +208,11 @@ export default function AffiliatePayout() {
         body: JSON.stringify(requestBody),
       });
 
-      Alert.alert('Success', 'Payout method saved successfully');
+      toast.success('Success', 'Payout method saved successfully');
       fetchData();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to save method';
-      Alert.alert('Error', errorMessage);
+      toast.error('Error', errorMessage);
     } finally {
       setSavingMethod(false);
     }

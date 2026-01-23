@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Share } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Share, Platform, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUser, useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
@@ -42,6 +42,7 @@ export default function VCash() {
       fetchReferralCode();
     } else if (isLoaded && !isSignedIn) {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [isLoaded, isSignedIn]);
 
@@ -93,8 +94,68 @@ export default function VCash() {
 
   if (!isLoaded) return null;
 
+  // Not signed in state - show informational page
+  if (isLoaded && !isSignedIn) {
+    return (
+      <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
+        <View style={styles.infoContent}>
+          <View style={styles.infoTopSection}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="wallet" size={40} color={theme.colors.primary} />
+            </View>
+            <Text style={styles.infoTitle}>V-Cash Rewards</Text>
+            <Text style={styles.infoDescription}>
+              Store credit for your eSIM purchases. Earn through refunds, referrals, and special promotions.
+            </Text>
+          </View>
+
+          <View style={styles.benefitsSection}>
+            <View style={styles.benefitItem}>
+              <Ionicons name="checkmark-circle" size={20} color={theme.colors.success} />
+              <Text style={styles.benefitText}>Instant checkout discounts</Text>
+            </View>
+            <View style={styles.benefitItem}>
+              <Ionicons name="checkmark-circle" size={20} color={theme.colors.success} />
+              <Text style={styles.benefitText}>10% lifetime commission</Text>
+            </View>
+            <View style={styles.benefitItem}>
+              <Ionicons name="checkmark-circle" size={20} color={theme.colors.success} />
+              <Text style={styles.benefitText}>Automatic refund credits</Text>
+            </View>
+            <View style={styles.benefitItem}>
+              <Ionicons name="checkmark-circle" size={20} color={theme.colors.success} />
+              <Text style={styles.benefitText}>Full earning history</Text>
+            </View>
+          </View>
+
+          <View style={styles.infoBottomSection}>
+            <TouchableOpacity
+              style={styles.signInButton}
+              onPress={() => router.push('/(auth)/sign-in')}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.signInButtonText}>Sign In</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.signUpButton}
+              onPress={() => router.push('/(auth)/sign-up')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.signUpButtonText}>Create Account</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <BottomNav activeTab="v-cash" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
+      {/* Safe area spacer - prevents content from scrolling behind status bar */}
+      <View style={styles.safeAreaSpacer} />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Your V-Cash</Text>
       </View>
@@ -202,11 +263,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
+  safeAreaSpacer: {
+    height: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 8,
+    backgroundColor: theme.colors.background,
+  },
   header: {
-    paddingTop: 4,
     paddingLeft: 16, // Explicit 16px padding
     paddingRight: 16, // Explicit 16px padding
-    paddingBottom: theme.spacing.xs,
+    paddingBottom: theme.spacing.md,
   },
   headerTitle: {
     fontSize: 24,
@@ -388,5 +452,102 @@ const styles = StyleSheet.create({
   },
   textError: {
     color: theme.colors.error,
+  },
+  // Info Content (Not signed in)
+  infoContent: {
+    flex: 1,
+    paddingLeft: 16,
+    paddingRight: 16,
+    paddingTop: theme.spacing.xl,
+    paddingBottom: 100, // Add space for bottom nav + button
+    justifyContent: 'space-between',
+  },
+  infoTopSection: {
+    alignItems: 'center',
+  },
+  iconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 28,
+    backgroundColor: (theme.colors as any).primaryMuted || theme.colors.primarySoft,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+  icon: {
+    fontSize: 40,
+  },
+  infoTitle: {
+    fontSize: 28,
+    fontWeight: '700' as const,
+    lineHeight: 36,
+    letterSpacing: -0.5,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.md,
+    textAlign: 'center',
+  },
+  infoDescription: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    paddingHorizontal: theme.spacing.sm,
+  },
+  benefitsSection: {
+    gap: theme.spacing.md,
+    paddingVertical: theme.spacing.lg,
+  },
+  benefitItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+    backgroundColor: theme.colors.card,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  benefitText: {
+    flex: 1,
+    fontSize: 15,
+    lineHeight: 22,
+    color: theme.colors.text,
+    fontWeight: '500' as const,
+  },
+  infoBottomSection: {
+    gap: theme.spacing.sm,
+  },
+  signInButton: {
+    width: '100%',
+    backgroundColor: theme.colors.primary,
+    paddingVertical: 16,
+    borderRadius: theme.borderRadius.lg,
+    alignItems: 'center',
+    shadowColor: '#1E90FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  signInButtonText: {
+    color: theme.colors.white,
+    fontSize: 16,
+    fontWeight: '600' as const,
+    lineHeight: 24,
+  },
+  signUpButton: {
+    width: '100%',
+    backgroundColor: 'transparent',
+    paddingVertical: 16,
+    borderRadius: theme.borderRadius.lg,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  signUpButtonText: {
+    color: theme.colors.text,
+    fontSize: 16,
+    fontWeight: '500' as const,
+    lineHeight: 24,
   },
 });

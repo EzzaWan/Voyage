@@ -1,30 +1,27 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Image, TouchableOpacity, Alert, Linking, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Image, TouchableOpacity, Linking, Platform, Share, StatusBar } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { apiFetch } from '../src/api/client';
 import { theme } from '../src/theme';
 import { getStatusLabel, getStatusColor } from '../src/utils/statusUtils';
 import { formatDataSize, calculateRemainingData, calculateUsagePercentage, formatExpiryDate } from '../src/utils/dataUtils';
+import { useToast } from '../src/context/ToastContext';
 
-// Clipboard copy function
-const copyToClipboard = async (text: string, label: string = 'Text'): Promise<boolean> => {
+// Clipboard copy function (needs toast passed in)
+const copyToClipboard = async (text: string, label: string, toast: any): Promise<boolean> => {
   try {
     const ReactNative = require('react-native');
     if (ReactNative.Clipboard && ReactNative.Clipboard.setString) {
       await ReactNative.Clipboard.setString(text);
-      Alert.alert('Copied', `${label} copied to clipboard`);
+      toast.success('Copied', `${label} copied to clipboard`);
       return true;
     }
   } catch (err) {
     // Clipboard not available
   }
   
-  Alert.alert(
-    label,
-    `${label}: ${text}\n\nPlease copy this text manually.`,
-    [{ text: 'OK' }]
-  );
+  toast.info(label, `${label}: ${text}\n\nPlease copy this text manually.`);
   return false;
 };
 
@@ -43,27 +40,101 @@ const formatDate = (dateString?: string | null): string => {
   }
 };
 
-// Open device settings (platform-specific)
-const openDeviceSettings = async () => {
+// Open device settings (platform-specific) - deprecated, using Universal Links instead
+// Keeping for backward compatibility but not actively used
+const openDeviceSettings = async (toast: any) => {
   try {
     if (Platform.OS === 'ios') {
       await Linking.openURL('App-Prefs:root=MOBILE_DATA_SETTINGS_ID');
     } else if (Platform.OS === 'android') {
-      await Linking.openURL('android.settings.WIRELESS_SETTINGS');
+      // Try multiple Android settings URLs in order of preference
+      const settingsUrls = [
+        'android.settings:WIRELESS_SETTINGS',
+        'android.settings:NETWORK_OPERATOR_SETTINGS',
+        'android.settings:',
+      ];
+      
+      let opened = false;
+      for (const url of settingsUrls) {
+        try {
+          const canOpen = await Linking.canOpenURL(url);
+          if (canOpen) {
+            await Linking.openURL(url);
+            opened = true;
+            break;
+          }
+        } catch (e) {
+          // Try next URL
+          continue;
+        }
+      }
+      
+      if (!opened) {
+        throw new Error('Cannot open settings');
+      }
     } else {
-      Alert.alert(
-        'Open Settings',
-        'Please go to your device Settings → Cellular/Mobile Data to manage your eSIM.',
-        [{ text: 'OK' }]
-      );
+      toast.info('Open Settings', 'Please go to your device Settings → Cellular/Mobile Data to manage your eSIM.');
     }
   } catch (error) {
     // Fallback to instructions if deep linking fails
-    Alert.alert(
-      'Open Settings',
-      'Please go to your device Settings → Cellular/Mobile Data to manage your eSIM.',
-      [{ text: 'OK' }]
-    );
+    toast.info('Open Settings', 'Please go to your device Settings → Cellular/Mobile Data to manage your eSIM.');
+  }
+};
+
+// Auto-install eSIM using Universal Links (iOS 17.4+ and Android 10+)
+const autoInstallEsim = async (activationCode: string, toast: any) => {
+  // Copy activation code as fallback
+  await copyToClipboard(activationCode, 'Activation Code', toast);
+  
+  try {
+    let universalLinkUrl = '';
+    
+    if (Platform.OS === 'ios') {
+      // iOS Universal Link (iOS 17.4+)
+      universalLinkUrl = `https://esimsetup.apple.com/esim_qrcode_provisioning?carddata=${encodeURIComponent(activationCode)}`;
+      
+      try {
+        const canOpen = await Linking.canOpenURL(universalLinkUrl);
+        if (canOpen) {
+          await Linking.openURL(universalLinkUrl);
+          return;
+        }
+      } catch (error) {
+        console.log('iOS Universal Link not supported, showing fallback instructions');
+      }
+      
+      // Fallback for older iOS versions
+      toast.info(
+        'Install eSIM',
+        'Activation code copied!\n\n1. Open Settings → Cellular → Add Plan\n2. Paste the activation code or scan QR\n\nNote: One-tap install requires iOS 17.4+'
+      );
+      
+    } else if (Platform.OS === 'android') {
+      // Android Universal Link (Android 10+)
+      universalLinkUrl = `https://esimsetup.android.com/esim_qrcode_provisioning?carddata=${encodeURIComponent(activationCode)}`;
+      
+      try {
+        const canOpen = await Linking.canOpenURL(universalLinkUrl);
+        if (canOpen) {
+          await Linking.openURL(universalLinkUrl);
+          return;
+        }
+      } catch (error) {
+        console.log('Android Universal Link not supported, showing fallback instructions');
+      }
+      
+      // Fallback for older Android versions
+      toast.info(
+        'Install eSIM',
+        'Activation code copied!\n\n1. Settings → Network & internet → SIMs\n2. Add mobile plan → Paste code or scan QR\n\nNote: Requires Android 10+'
+      );
+      
+    } else {
+      toast.info('Install eSIM', 'Activation code copied! Go to Settings → Cellular → Add Plan and paste the code.');
+    }
+  } catch (error) {
+    console.error('Auto-install error:', error);
+    toast.info('Installation Instructions', 'Activation code copied! Follow the steps below to install your eSIM.');
   }
 };
 
@@ -94,6 +165,7 @@ type OrderData = {
 export default function EsimSetup() {
   const router = useRouter();
   const params = useLocalSearchParams<{ orderId?: string }>();
+  const toast = useToast();
   const [order, setOrder] = useState<OrderData | null>(null);
   const [cachedOrder, setCachedOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -160,12 +232,12 @@ export default function EsimSetup() {
 
   const handleCopyOrderId = async () => {
     if (!order?.id) return;
-    await copyToClipboard(order.id, 'Order ID');
+    await copyToClipboard(order.id, 'Order ID', toast);
   };
 
   const handleCopyActivationCode = async () => {
     if (!activationCode) return;
-    await copyToClipboard(activationCode, 'Activation Code');
+    await copyToClipboard(activationCode, 'Activation Code', toast);
   };
 
   const handleResendEmail = async () => {
@@ -179,24 +251,23 @@ export default function EsimSetup() {
       );
 
       if (result.success) {
-        Alert.alert('Email Sent', result.message || 'eSIM email has been resent to your email address.');
+        toast.success('Email Sent', result.message || 'eSIM email has been resent to your email address.');
       } else {
-        Alert.alert('Error', 'Failed to resend email. Please try again later.');
+        toast.error('Error', 'Failed to resend email. Please try again later.');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to resend email';
       console.error('Error resending email:', err);
-      Alert.alert('Error', errorMessage);
+      toast.error('Error', errorMessage);
     } finally {
       setResendingEmail(false);
     }
   };
 
   const handleContactSupport = () => {
-    Alert.alert(
+    toast.info(
       'Contact Support',
-      `For support, please email us with your Order ID: ${order?.id || 'N/A'}\n\nYou can also visit our support page for more help.`,
-      [{ text: 'OK', style: 'default' }]
+      `For support, please email us with your Order ID: ${order?.id || 'N/A'}\n\nYou can also visit our support page for more help.`
     );
   };
 
@@ -243,29 +314,73 @@ export default function EsimSetup() {
 
           {hasQrCode && (
             <View style={styles.qrCard}>
-              <Text style={styles.qrCardTitle}>Install your eSIM</Text>
+              <View style={styles.qrHeader}>
+                <View style={styles.qrHeaderIcon}>
+                  <Ionicons name="qr-code" size={28} color={theme.colors.white} />
+                </View>
+                <View style={styles.qrHeaderText}>
+                  <Text style={styles.qrCardTitle}>Install your eSIM</Text>
+                  <Text style={styles.qrCardSubtitle}>Scan or auto-install</Text>
+                </View>
+              </View>
+
               <View style={styles.qrContainer}>
-                <Image
-                  source={{ uri: esimProfile.qrCodeUrl! }}
-                  style={styles.qrCode}
-                  resizeMode="contain"
-                />
+                <View style={styles.qrCodeWrapper}>
+                  <Image
+                    source={{ uri: esimProfile.qrCodeUrl! }}
+                    style={styles.qrCode}
+                    resizeMode="contain"
+                  />
+                </View>
               </View>
-              <Text style={styles.qrHint}>
-                Scan this QR code with your phone's camera or Settings app
-              </Text>
-              <View style={styles.qrTip}>
-                <Text style={styles.qrTipIcon}>💡</Text>
-                <Text style={styles.qrTipText}>After installing, make sure Data Roaming is enabled for this eSIM</Text>
-              </View>
+
               {activationCode && (
-                <TouchableOpacity
-                  style={styles.copyQRCodeButton}
-                  onPress={handleCopyActivationCode}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.copyQRCodeButtonText}>Copy Activation Code</Text>
-                </TouchableOpacity>
+                <View style={styles.installButtonsContainer}>
+                  <TouchableOpacity
+                    style={styles.autoInstallButton}
+                    onPress={() => autoInstallEsim(activationCode, toast)}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons name="download-outline" size={20} color={theme.colors.white} />
+                    <Text style={styles.autoInstallButtonText}>Auto Install eSIM</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.copyCodeButton}
+                    onPress={handleCopyActivationCode}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="copy-outline" size={18} color={theme.colors.primary} />
+                    <Text style={styles.copyCodeButtonText}>Copy Code</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              <View style={styles.qrTip}>
+                <Ionicons name="information-circle" size={18} color={theme.colors.primary} />
+                <Text style={styles.qrTipText}>
+                  Tap "Auto Install" for one-tap setup (iOS 17.4+ / Android 10+) or scan the QR code. Make sure Data Roaming is enabled after installation.
+                </Text>
+              </View>
+
+              {/* Activation Code in QR Card */}
+              {activationCode && (
+                <View style={styles.activationCodeInQR}>
+                  <View style={styles.activationCodeHeader}>
+                    <Text style={styles.activationCodeLabel}>Activation Code</Text>
+                    <TouchableOpacity
+                      style={styles.copyActivationButtonInQR}
+                      onPress={handleCopyActivationCode}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="copy-outline" size={16} color={theme.colors.primary} />
+                      <Text style={styles.copyActivationButtonTextInQR}>Copy</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.activationCodeValue} numberOfLines={1} ellipsizeMode="middle">
+                    {activationCode}
+                  </Text>
+                </View>
               )}
             </View>
           )}
@@ -396,21 +511,74 @@ export default function EsimSetup() {
         </View>
         {hasQrCode && (
           <View style={styles.qrCard}>
-            <Text style={styles.qrCardTitle}>Install your eSIM</Text>
+            <View style={styles.qrHeader}>
+              <View style={styles.qrHeaderIcon}>
+                <Ionicons name="qr-code" size={28} color={theme.colors.white} />
+              </View>
+              <View style={styles.qrHeaderText}>
+                <Text style={styles.qrCardTitle}>Install your eSIM</Text>
+                <Text style={styles.qrCardSubtitle}>Scan or auto-install</Text>
+              </View>
+            </View>
+
             <View style={styles.qrContainer}>
-              <Image
-                source={{ uri: esimProfile.qrCodeUrl! }}
-                style={styles.qrCode}
-                resizeMode="contain"
-              />
+              <View style={styles.qrCodeWrapper}>
+                <Image
+                  source={{ uri: esimProfile.qrCodeUrl! }}
+                  style={styles.qrCode}
+                  resizeMode="contain"
+                />
+              </View>
             </View>
-            <Text style={styles.qrHint}>
-              Scan this QR code with your phone's camera or Settings app
-            </Text>
+
+            {activationCode && (
+              <View style={styles.installButtonsContainer}>
+                <TouchableOpacity
+                  style={styles.autoInstallButton}
+                  onPress={() => autoInstallEsim(activationCode)}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="download-outline" size={20} color={theme.colors.white} />
+                  <Text style={styles.autoInstallButtonText}>Auto Install eSIM</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.copyCodeButton}
+                  onPress={handleCopyActivationCode}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="copy-outline" size={18} color={theme.colors.primary} />
+                  <Text style={styles.copyCodeButtonText}>Copy Code</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
             <View style={styles.qrTip}>
-              <Text style={styles.qrTipIcon}>💡</Text>
-              <Text style={styles.qrTipText}>After installing, make sure Data Roaming is enabled for this eSIM</Text>
+              <Ionicons name="information-circle" size={18} color={theme.colors.primary} />
+              <Text style={styles.qrTipText}>
+                Tap "Auto Install" for one-tap setup (iOS 17.4+ / Android 10+) or scan the QR code. Make sure Data Roaming is enabled after installation.
+              </Text>
             </View>
+
+            {/* Activation Code in QR Card */}
+            {activationCode && (
+              <View style={styles.activationCodeInQR}>
+                <View style={styles.activationCodeHeader}>
+                  <Text style={styles.activationCodeLabel}>Activation Code</Text>
+                  <TouchableOpacity
+                    style={styles.copyActivationButtonInQR}
+                    onPress={handleCopyActivationCode}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="copy-outline" size={16} color={theme.colors.primary} />
+                    <Text style={styles.copyActivationButtonTextInQR}>Copy</Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.activationCodeValue} numberOfLines={1} ellipsizeMode="middle">
+                  {activationCode}
+                </Text>
+              </View>
+            )}
           </View>
         )}
         {hasQrCode && <View style={styles.divider} />}
@@ -422,59 +590,83 @@ export default function EsimSetup() {
   const renderInstallInstructions = () => (
     <>
       <View style={styles.instructionsSection}>
-        <Text style={styles.sectionTitle}>Installation Steps</Text>
+        <Text style={styles.instructionsTitle}>INSTALLATION STEPS</Text>
+        
         <View style={styles.platformSection}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Ionicons name="logo-apple" size={20} color={theme.colors.text} />
+          <View style={styles.platformHeader}>
+            <Ionicons name="logo-apple" size={22} color={theme.colors.text} />
             <Text style={styles.platformTitle}>iOS (iPhone)</Text>
           </View>
           <View style={styles.stepsList}>
             <View style={styles.step}>
-              <Text style={styles.stepNumber}>1</Text>
+              <View style={styles.stepNumberContainer}>
+                <Text style={styles.stepNumber}>1</Text>
+              </View>
               <Text style={styles.stepText}>Open Settings app on your iPhone</Text>
             </View>
             <View style={styles.step}>
-              <Text style={styles.stepNumber}>2</Text>
+              <View style={styles.stepNumberContainer}>
+                <Text style={styles.stepNumber}>2</Text>
+              </View>
               <Text style={styles.stepText}>Tap on "Cellular" or "Mobile Data"</Text>
             </View>
             <View style={styles.step}>
-              <Text style={styles.stepNumber}>3</Text>
+              <View style={styles.stepNumberContainer}>
+                <Text style={styles.stepNumber}>3</Text>
+              </View>
               <Text style={styles.stepText}>Tap "Add Cellular Plan" or "Add eSIM"</Text>
             </View>
             <View style={styles.step}>
-              <Text style={styles.stepNumber}>4</Text>
+              <View style={styles.stepNumberContainer}>
+                <Text style={styles.stepNumber}>4</Text>
+              </View>
               <Text style={styles.stepText}>
                 {hasQrCode ? 'Scan the QR code above' : 'Use the QR code provided in your email'}
               </Text>
             </View>
             <View style={styles.step}>
-              <Text style={styles.stepNumber}>5</Text>
+              <View style={styles.stepNumberContainer}>
+                <Text style={styles.stepNumber}>5</Text>
+              </View>
               <Text style={styles.stepText}>Follow on-screen instructions</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.platformSection}>
-          <Text style={styles.platformTitle}>🤖 Android</Text>
+          <View style={styles.platformHeader}>
+            <Ionicons name="logo-android" size={22} color={theme.colors.text} />
+            <Text style={styles.platformTitle}>Android</Text>
+          </View>
           <View style={styles.stepsList}>
             <View style={styles.step}>
-              <Text style={styles.stepNumber}>1</Text>
+              <View style={styles.stepNumberContainer}>
+                <Text style={styles.stepNumber}>1</Text>
+              </View>
               <Text style={styles.stepText}>Open Settings on your Android device</Text>
             </View>
             <View style={styles.step}>
-              <Text style={styles.stepNumber}>2</Text>
+              <View style={styles.stepNumberContainer}>
+                <Text style={styles.stepNumber}>2</Text>
+              </View>
               <Text style={styles.stepText}>Tap "Network & internet" or "Connections"</Text>
             </View>
             <View style={styles.step}>
-              <Text style={styles.stepNumber}>3</Text>
+              <View style={styles.stepNumberContainer}>
+                <Text style={styles.stepNumber}>3</Text>
+              </View>
               <Text style={styles.stepText}>Tap "SIMs" or "SIM card manager"</Text>
             </View>
             <View style={styles.step}>
-              <Text style={styles.stepNumber}>4</Text>
+              <View style={styles.stepNumberContainer}>
+                <Text style={styles.stepNumber}>4</Text>
+              </View>
               <Text style={styles.stepText}>Tap "Add mobile plan" or "Download a SIM instead"</Text>
             </View>
             <View style={styles.step}>
-              <Text style={styles.stepNumber}>5</Text>
+              <View style={styles.stepNumberContainer}>
+                <Text style={styles.stepNumber}>5</Text>
+              </View>
               <Text style={styles.stepText}>
                 {hasQrCode ? 'Scan the QR code above' : 'Use QR code from email'}
               </Text>
@@ -484,17 +676,17 @@ export default function EsimSetup() {
       </View>
 
       <View style={styles.notesSection}>
-        <Text style={styles.sectionTitle}>Important Notes</Text>
+        <Text style={styles.notesTitle}>IMPORTANT NOTES</Text>
         <View style={styles.note}>
-          <Text style={styles.noteBullet}>•</Text>
+          <View style={styles.noteBulletContainer} />
           <Text style={styles.noteText}>Ensure stable internet connection</Text>
         </View>
         <View style={styles.note}>
-          <Text style={styles.noteBullet}>•</Text>
+          <View style={styles.noteBulletContainer} />
           <Text style={styles.noteText}>Device must be eSIM compatible</Text>
         </View>
         <View style={styles.note}>
-          <Text style={styles.noteBullet}>•</Text>
+          <View style={styles.noteBulletContainer} />
           <Text style={styles.noteText}>You can keep your primary SIM active</Text>
         </View>
       </View>
@@ -505,6 +697,8 @@ export default function EsimSetup() {
 
   return (
     <View style={styles.container}>
+      {/* Safe area spacer - prevents content from scrolling behind status bar */}
+      <View style={styles.safeAreaSpacer} />
       {showStaleDataWarning && (
         <View style={styles.staleDataBanner}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -574,25 +768,6 @@ export default function EsimSetup() {
           </View>
         )}
         
-        {/* Copy Activation Code */}
-        {activationCode && (
-          <View style={styles.activationCodeSection}>
-            <View style={styles.activationCodeRow}>
-              <View style={styles.activationCodeLeft}>
-                <Text style={styles.activationCodeLabel}>Activation Code</Text>
-                <Text style={styles.activationCodeValue} numberOfLines={1}>{activationCode}</Text>
-              </View>
-              <TouchableOpacity
-                style={styles.copyActivationButton}
-                onPress={handleCopyActivationCode}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.copyActivationButtonText}>Copy</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-        
         {/* Troubleshooting Section */}
         <View style={styles.troubleshootingSection}>
           <TouchableOpacity
@@ -641,41 +816,31 @@ export default function EsimSetup() {
           )}
         </View>
         
-        {/* Open Device Settings */}
-        <TouchableOpacity
-          style={styles.openSettingsButton}
-          onPress={openDeviceSettings}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.openSettingsIcon}>⚙️</Text>
-          <Text style={styles.openSettingsText}>Open Device Settings</Text>
-        </TouchableOpacity>
-        
-        <View style={styles.supportSection}>
-          <Text style={styles.supportSectionTitle}>Order Information</Text>
+        <View style={styles.orderInfoSection}>
+          <Text style={styles.orderInfoSectionTitle}>Order Information</Text>
           
           {order?.userEmail && (
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Purchase Email:</Text>
-              <Text style={styles.infoValue}>{order.userEmail}</Text>
+            <View style={styles.orderInfoRow}>
+              <Text style={styles.orderInfoLabel}>PURCHASE EMAIL</Text>
+              <Text style={styles.orderInfoValue}>{order.userEmail}</Text>
             </View>
           )}
 
-          <View style={styles.orderIdRow}>
-            <View style={styles.orderIdLeft}>
-              <Text style={styles.infoLabel}>Order ID:</Text>
-              <Text style={styles.orderIdValue}>{order?.id || 'N/A'}</Text>
+          <View style={styles.orderInfoRow}>
+            <View style={styles.orderInfoLeft}>
+              <Text style={styles.orderInfoLabel}>ORDER ID</Text>
+              <Text style={styles.orderInfoIdValue} numberOfLines={1} ellipsizeMode="middle">{order?.id || 'N/A'}</Text>
             </View>
             <TouchableOpacity
-              style={styles.copyButton}
+              style={styles.orderInfoCopyButton}
               onPress={handleCopyOrderId}
               activeOpacity={0.7}
             >
-              <Text style={styles.copyButtonText}>Copy</Text>
+              <Ionicons name="copy-outline" size={16} color={theme.colors.primary} />
             </TouchableOpacity>
           </View>
 
-          {/* Top Up Button */}
+          {/* Action Buttons */}
           <TouchableOpacity
             style={styles.topUpButton}
             onPress={() => {
@@ -686,39 +851,39 @@ export default function EsimSetup() {
                   params: { iccid },
                 });
               } else {
-                Alert.alert('Error', 'eSIM ICCID not found');
+                toast.error('Error', 'eSIM ICCID not found');
               }
             }}
             activeOpacity={0.85}
           >
-            <Text style={styles.topUpButtonIcon}>⚡</Text>
+            <Ionicons name="flash" size={20} color={theme.colors.white} />
             <Text style={styles.topUpButtonText}>Top Up Data</Text>
           </TouchableOpacity>
 
-          <View style={styles.actionsContainer}>
+          <View style={styles.orderActionsContainer}>
             <TouchableOpacity
-              style={[styles.actionButton, styles.resendButton]}
+              style={styles.orderActionButton}
               onPress={handleResendEmail}
               disabled={resendingEmail}
               activeOpacity={0.7}
             >
               {resendingEmail ? (
-                <ActivityIndicator size="small" color="#ffffff" />
+                <ActivityIndicator size="small" color={theme.colors.white} />
               ) : (
                 <>
-                  <Ionicons name="mail-outline" size={18} color={theme.colors.primary} />
-                  <Text style={styles.actionButtonText}>Resend eSIM Email</Text>
+                  <Ionicons name="mail-outline" size={20} color={theme.colors.white} />
+                  <Text style={styles.orderActionButtonText}>Resend eSIM Email</Text>
                 </>
               )}
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.actionButton, styles.supportButton]}
+              style={styles.orderActionButton}
               onPress={handleContactSupport}
               activeOpacity={0.7}
             >
-              <Ionicons name="chatbubble-outline" size={18} color={theme.colors.primary} />
-              <Text style={styles.actionButtonText}>Contact Support</Text>
+              <Ionicons name="chatbubble-outline" size={20} color={theme.colors.white} />
+              <Text style={styles.orderActionButtonText}>Contact Support</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -732,10 +897,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
+  safeAreaSpacer: {
+    height: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 8,
+    backgroundColor: theme.colors.background,
+  },
   scrollContent: {
     paddingLeft: 16, // Explicit 16px padding
     paddingRight: 16, // Explicit 16px padding
-    paddingTop: theme.spacing.base,
+    paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing.xxxl,
   },
   loadingContainer: {
@@ -767,27 +936,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   qrCard: {
-    backgroundColor: theme.colors.backgroundLight,
-    borderRadius: theme.borderRadius.sm,
-    padding: theme.spacing.md,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.xl,
     marginBottom: theme.spacing.lg,
     borderWidth: 1,
     borderColor: theme.colors.border,
-    alignItems: 'center',
     width: '100%',
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  qrHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+  qrHeaderIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: theme.colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: theme.spacing.md,
+  },
+  qrHeaderText: {
+    flex: 1,
   },
   qrCardTitle: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '700',
     color: theme.colors.text,
-    marginBottom: theme.spacing.md,
-    width: '100%',
-    textAlign: 'left',
+    marginBottom: 2,
+    letterSpacing: -0.3,
+  },
+  qrCardSubtitle: {
+    fontSize: 14,
+    color: theme.colors.textSecondary,
+    fontWeight: '500',
   },
   sectionTitle: {
     fontSize: 13,
@@ -799,61 +988,133 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.lg,
   },
   qrContainer: {
-    width: 240,
-    height: 240,
-    backgroundColor: theme.colors.white,
-    borderRadius: theme.borderRadius.sm,
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+  qrCodeWrapper: {
+    width: 280,
+    height: 280,
+    backgroundColor: theme.colors.white,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   qrCode: {
     width: '100%',
     height: '100%',
   },
-  qrHint: {
-    fontSize: 13,
-    color: theme.colors.textSecondary,
-    textAlign: 'left',
-    paddingHorizontal: 0,
+  installButtonsContainer: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
     marginBottom: theme.spacing.md,
-    lineHeight: 19,
-    opacity: 0.8,
+  },
+  autoInstallButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.primary,
+    paddingVertical: 16,
+    paddingHorizontal: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    gap: 8,
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  autoInstallButtonText: {
+    color: theme.colors.white,
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+  },
+  copyCodeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.background,
+    paddingVertical: 16,
+    paddingHorizontal: theme.spacing.lg,
+    borderRadius: theme.borderRadius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    gap: 6,
+  },
+  copyCodeButtonText: {
+    color: theme.colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
   },
   qrTip: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: theme.colors.background,
-    borderRadius: theme.borderRadius.sm,
+    backgroundColor: theme.colors.primarySoft + '40',
+    borderRadius: theme.borderRadius.md,
     padding: theme.spacing.md,
-    marginTop: theme.spacing.sm,
-    width: '100%',
     borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  qrTipIcon: {
-    display: 'none', // Remove icon
+    borderColor: theme.colors.primary + '30',
+    gap: 10,
   },
   qrTipText: {
     flex: 1,
-    fontSize: 12,
-    color: theme.colors.textSecondary,
-    lineHeight: 18,
-  },
-  copyQRCodeButton: {
-    marginTop: theme.spacing.sm,
-    paddingVertical: 10,
-    paddingHorizontal: theme.spacing.md,
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.borderRadius.sm,
-    alignItems: 'center',
-    width: '100%',
-  },
-  copyQRCodeButtonText: {
-    color: theme.colors.white,
     fontSize: 13,
+    color: theme.colors.text,
+    lineHeight: 19,
+    opacity: 0.85,
+  },
+  activationCodeInQR: {
+    marginTop: theme.spacing.md,
+    paddingTop: theme.spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+  },
+  activationCodeHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.xs,
+  },
+  activationCodeLabel: {
+    fontSize: 12,
     fontWeight: '600',
+    color: theme.colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  copyActivationButtonInQR: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.borderRadius.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  copyActivationButtonTextInQR: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: theme.colors.primary,
+  },
+  activationCodeValue: {
+    fontSize: 13,
+    fontFamily: 'monospace',
+    color: theme.colors.text,
+    backgroundColor: theme.colors.background,
+    padding: theme.spacing.sm,
+    borderRadius: theme.borderRadius.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   divider: {
     height: 1,
@@ -863,67 +1124,92 @@ const styles = StyleSheet.create({
   instructionsSection: {
     marginBottom: theme.spacing.xl,
   },
-  platformSection: {
+  instructionsTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    color: theme.colors.textMuted,
     marginBottom: theme.spacing.lg,
+  },
+  platformSection: {
+    marginBottom: theme.spacing.xl,
+  },
+  platformHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: theme.spacing.md,
   },
   platformTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
     color: theme.colors.text,
-    marginBottom: theme.spacing.md,
   },
   stepsList: {
-    gap: 12,
+    gap: 14,
   },
   step: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    gap: 12,
+  },
+  stepNumberContainer: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexShrink: 0,
   },
   stepNumber: {
-    width: 24,
-    height: 24,
-    borderRadius: theme.borderRadius.xs,
-    backgroundColor: theme.colors.primary,
     color: theme.colors.white,
-    fontSize: 12,
-    fontWeight: '600',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginRight: theme.spacing.md,
+    fontSize: 14,
+    fontWeight: '700',
   },
   stepText: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 15,
     color: theme.colors.text,
-    lineHeight: 21,
+    lineHeight: 22,
+    paddingTop: 2,
   },
   notesSection: {
     marginBottom: theme.spacing.lg,
-    backgroundColor: theme.colors.backgroundLight,
-    borderRadius: theme.borderRadius.sm,
-    padding: theme.spacing.md,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.lg,
     borderWidth: 1,
     borderColor: theme.colors.border,
+  },
+  notesTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    color: theme.colors.textMuted,
+    marginBottom: theme.spacing.md,
   },
   note: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginBottom: 12,
+    gap: 12,
   },
-  noteBullet: {
-    fontSize: 16,
-    color: theme.colors.primary,
-    fontWeight: 'bold',
-    marginRight: 8,
-    marginTop: 2,
+  noteBulletContainer: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: theme.colors.primary,
+    marginTop: 7,
+    flexShrink: 0,
   },
   noteText: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 15,
     color: theme.colors.textSecondary,
-    lineHeight: 20,
-    opacity: 0.85,
+    lineHeight: 22,
   },
   statusBadge: {
     flexDirection: 'row',
@@ -1046,102 +1332,109 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
   },
-  supportSection: {
-    marginTop: theme.spacing.xl,
-    padding: theme.spacing.base,
-    backgroundColor: theme.colors.backgroundLight,
-    borderRadius: theme.borderRadius.sm,
+  orderInfoSection: {
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.lg,
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  orderInfoSectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: theme.colors.text,
+    marginBottom: theme.spacing.lg,
+    letterSpacing: -0.3,
+  },
+  orderInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingVertical: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border + '40',
+  },
+  orderInfoLeft: {
+    flex: 1,
+    marginRight: theme.spacing.md,
+  },
+  orderInfoLabel: {
+    fontSize: 11,
+    color: theme.colors.textMuted,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 6,
+  },
+  orderInfoValue: {
+    fontSize: 15,
+    color: theme.colors.text,
+    fontWeight: '500',
+  },
+  orderInfoIdValue: {
+    fontSize: 13,
+    color: theme.colors.text,
+    fontFamily: 'monospace',
+    fontWeight: '500',
+  },
+  orderInfoCopyButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: theme.colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
-  supportSectionTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: theme.colors.text,
-    marginBottom: theme.spacing.md,
-  },
-  orderIdRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  orderIdLeft: {
-    flex: 1,
-    marginRight: 12,
-  },
-  orderIdValue: {
-    fontSize: 14,
-    color: theme.colors.text,
-    fontFamily: 'monospace',
-    marginTop: 4,
-  },
-  copyButton: {
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: 8,
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.borderRadius.sm,
-    minWidth: 60,
-    alignItems: 'center',
-  },
-  copyButtonText: {
-    color: theme.colors.white,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  actionsContainer: {
-    marginTop: 8,
-    gap: 12,
+  orderActionsContainer: {
+    marginTop: theme.spacing.md,
+    gap: theme.spacing.sm,
   },
   topUpButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.colors.primary,
-    paddingVertical: 18,
+    paddingVertical: 16,
     paddingHorizontal: 24,
     borderRadius: theme.borderRadius.lg,
     marginBottom: theme.spacing.md,
-    gap: 10,
-    shadowColor: '#1E90FF',
+    gap: 8,
+    shadowColor: theme.colors.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
-  topUpButtonIcon: {
-    fontSize: 20,
-  },
   topUpButtonText: {
     color: theme.colors.white,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
+    letterSpacing: -0.2,
   },
-  actionButton: {
+  orderActionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: theme.borderRadius.md,
-    gap: 8,
-  },
-  resendButton: {
-    backgroundColor: theme.colors.backgroundLight,
+    gap: 10,
+    backgroundColor: theme.colors.card,
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
-  supportButton: {
-    backgroundColor: theme.colors.cardHover,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  actionButtonIcon: {
-    fontSize: 18,
-  },
-  actionButtonText: {
+  orderActionButtonText: {
     color: theme.colors.white,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
   },
   errorContainer: {
@@ -1153,7 +1446,7 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: theme.colors.text,
     marginBottom: 16,
     textAlign: 'center',
@@ -1251,47 +1544,6 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 4,
   },
-  activationCodeSection: {
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.md,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  activationCodeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  activationCodeLeft: {
-    flex: 1,
-    marginRight: theme.spacing.md,
-  },
-  activationCodeLabel: {
-    fontSize: 14,
-    color: theme.colors.textSecondary,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  activationCodeValue: {
-    fontSize: 14,
-    color: theme.colors.text,
-    fontFamily: 'monospace',
-  },
-  copyActivationButton: {
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.borderRadius.sm,
-    minWidth: 70,
-    alignItems: 'center',
-  },
-  copyActivationButtonText: {
-    color: theme.colors.white,
-    fontSize: 14,
-    fontWeight: '600',
-  },
   troubleshootingSection: {
     backgroundColor: theme.colors.card,
     borderRadius: theme.borderRadius.lg,
@@ -1304,11 +1556,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: theme.spacing.md,
+    padding: theme.spacing.lg,
   },
   troubleshootingTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
     color: theme.colors.text,
   },
   troubleshootingChevron: {
@@ -1347,25 +1599,5 @@ const styles = StyleSheet.create({
     color: theme.colors.white,
     fontSize: 14,
     fontWeight: '600',
-  },
-  openSettingsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.md,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  openSettingsIcon: {
-    fontSize: 18,
-    marginRight: theme.spacing.sm,
-  },
-  openSettingsText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.colors.text,
   },
 });

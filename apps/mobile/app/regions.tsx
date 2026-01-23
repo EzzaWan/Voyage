@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image, Platform, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { apiFetch } from '../src/api/client';
 import { theme } from '../src/theme';
@@ -151,6 +151,8 @@ export default function Regions() {
 
   return (
     <View style={styles.container}>
+      {/* Safe area spacer - prevents content from scrolling behind status bar */}
+      <View style={styles.safeAreaSpacer} />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Browse by Region</Text>
       </View>
@@ -159,78 +161,79 @@ export default function Regions() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Regions List */}
+        {/* Regions List with Inline Countries */}
         <View style={styles.groupedList}>
-          {REGIONS.map((region, index) => (
-            <TouchableOpacity
-              key={region.code}
-              style={[
-                styles.regionItem,
-                selectedRegion === region.code && styles.regionItemSelected,
-                index === REGIONS.length - 1 && !selectedRegion && styles.lastRegionItem
-              ]}
-              onPress={() => handleRegionPress(region)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.regionIcon}>
-                <Text style={styles.regionIconText}>{region.icon}</Text>
-              </View>
-              <Text style={styles.regionName}>{region.name}</Text>
-              <Text style={styles.chevron}>
-                {selectedRegion === region.code ? '−' : '›'}
-              </Text>
-            </TouchableOpacity>
+          {REGIONS.map((region, regionIndex) => (
+            <View key={region.code}>
+              {/* Region Item */}
+              <TouchableOpacity
+                style={[
+                  styles.regionItem,
+                  selectedRegion === region.code && styles.regionItemSelected,
+                  regionIndex === REGIONS.length - 1 && selectedRegion !== region.code && styles.lastRegionItem
+                ]}
+                onPress={() => handleRegionPress(region)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.regionIcon}>
+                  <Text style={styles.regionIconText}>{region.icon}</Text>
+                </View>
+                <Text style={styles.regionName}>{region.name}</Text>
+                <Text style={styles.chevron}>
+                  {selectedRegion === region.code ? '−' : '›'}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Expanded Countries */}
+              {selectedRegion === region.code && (
+                <>
+                  {loading ? (
+                    <View style={styles.loadingContainer}>
+                      <ActivityIndicator size="small" color={theme.colors.primary} />
+                      <Text style={styles.loadingText}>Loading countries...</Text>
+                    </View>
+                  ) : regionCountries.length > 0 ? (
+                    <>
+                      {regionCountries.map((country, countryIndex) => (
+                        <TouchableOpacity
+                          key={country.code}
+                          style={[
+                            styles.countryItem,
+                            regionIndex === REGIONS.length - 1 && countryIndex === regionCountries.length - 1 && styles.lastCountryItem
+                          ]}
+                          onPress={() => handleCountryPress(country)}
+                          activeOpacity={0.7}
+                        >
+                          <View style={styles.countryIndent} />
+                          <View style={styles.flagContainer}>
+                            {country.locationLogo ? (
+                              <Image
+                                source={{ uri: country.locationLogo }}
+                                style={styles.flag}
+                                resizeMode="cover"
+                              />
+                            ) : (
+                              <Ionicons name="globe-outline" size={20} color={theme.colors.textMuted} />
+                            )}
+                          </View>
+                          <View style={styles.countryTextContainer}>
+                            <Text style={styles.countryName}>{country.name}</Text>
+                            <Text style={styles.viewPlansText}>View plans</Text>
+                          </View>
+                          <Text style={styles.chevron}>›</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </>
+                  ) : (
+                    <View style={styles.emptyContainer}>
+                      <Text style={styles.emptyText}>No countries found</Text>
+                    </View>
+                  )}
+                </>
+              )}
+            </View>
           ))}
         </View>
-
-        {/* Countries in Selected Region */}
-        {selectedRegion && (
-          <>
-            {loading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="small" color={theme.colors.primary} />
-                <Text style={styles.loadingText}>Loading countries...</Text>
-              </View>
-            ) : regionCountries.length > 0 ? (
-              <>
-                <Text style={styles.sectionTitle}>
-                  {REGIONS.find(r => r.code === selectedRegion)?.name} Countries
-                </Text>
-                <View style={styles.groupedList}>
-                  {regionCountries.map((country, index) => (
-                    <TouchableOpacity
-                      key={country.code}
-                      style={[
-                        styles.countryItem,
-                        index === regionCountries.length - 1 && styles.lastCountryItem
-                      ]}
-                      onPress={() => handleCountryPress(country)}
-                      activeOpacity={0.7}
-                    >
-                      <View style={styles.flagContainer}>
-                        {country.locationLogo ? (
-                          <Image
-                            source={{ uri: country.locationLogo }}
-                            style={styles.flag}
-                            resizeMode="cover"
-                          />
-                        ) : (
-                          <Text style={styles.flagFallback}>🌍</Text>
-                        )}
-                      </View>
-                      <Text style={styles.countryName}>{country.name}</Text>
-                      <Text style={styles.chevron}>›</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </>
-            ) : (
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>No countries found in this region</Text>
-              </View>
-            )}
-          </>
-        )}
 
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -243,11 +246,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
+  safeAreaSpacer: {
+    height: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 8,
+    backgroundColor: theme.colors.background,
+  },
   header: {
-    paddingTop: 4,
     paddingLeft: 16, // Explicit 16px padding
     paddingRight: 16, // Explicit 16px padding
-    paddingBottom: theme.spacing.xs,
+    paddingBottom: theme.spacing.md,
   },
   headerTitle: {
     fontSize: 24,
@@ -328,17 +334,18 @@ const styles = StyleSheet.create({
   countryItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+    paddingRight: theme.spacing.md,
+    paddingLeft: theme.spacing.xs,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    backgroundColor: theme.colors.backgroundLight,
   },
   lastCountryItem: {
     borderBottomWidth: 0,
+  },
+  countryIndent: {
+    width: 20,
   },
   flagContainer: {
     width: 32,
@@ -346,11 +353,11 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     marginRight: theme.spacing.md,
-    backgroundColor: theme.colors.backgroundLight,
+    backgroundColor: theme.colors.background,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: theme.colors.border.muted,
+    borderColor: theme.colors.border,
   },
   flag: {
     width: '100%',
@@ -359,11 +366,18 @@ const styles = StyleSheet.create({
   flagFallback: {
     fontSize: 18,
   },
-  countryName: {
+  countryTextContainer: {
     flex: 1,
+  },
+  countryName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: theme.colors.text,
+    marginBottom: 2,
+  },
+  viewPlansText: {
+    fontSize: 13,
+    color: theme.colors.textMuted,
   },
   emptyContainer: {
     padding: theme.spacing.xl,

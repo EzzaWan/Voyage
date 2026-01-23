@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Image, Alert, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Image, TextInput, Platform, StatusBar } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { apiFetch } from '../src/api/client';
@@ -10,6 +10,7 @@ import { SharePlanButton } from '../src/components/ShareButton';
 import { useCurrency } from '../src/context/CurrencyContext';
 import { AnimatedButton } from '../src/components/AnimatedButton';
 import { FadeInView } from '../src/components/FadeInView';
+import { useToast } from '../src/context/ToastContext';
 import {
   Plan,
   calculateGB,
@@ -82,6 +83,7 @@ const getCountryName = (code?: string): string => {
 
 export default function PlanDetail() {
   const router = useRouter();
+  const toast = useToast();
   const { user } = useUser();
   const { convert, formatPrice } = useCurrency();
   const params = useLocalSearchParams<{
@@ -179,7 +181,7 @@ export default function PlanDetail() {
 
   const handleCompleteOrder = async () => {
     if (!plan?.packageCode) {
-      Alert.alert('Error', 'Plan code is missing');
+      toast.error('Error', 'Plan code is missing');
       return;
     }
 
@@ -235,7 +237,7 @@ export default function PlanDetail() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create order';
       setError(errorMessage);
-      Alert.alert('Error', errorMessage);
+      toast.error('Error', errorMessage);
       console.error('Error creating order:', err);
     } finally {
       setProcessing(false);
@@ -245,6 +247,8 @@ export default function PlanDetail() {
   if (loading) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={styles.loadingText}>Loading plan details...</Text>
@@ -256,6 +260,8 @@ export default function PlanDetail() {
   if (error || !plan) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         <View style={styles.errorContainer}>
           <Ionicons name="warning" size={48} color={theme.colors.warning} />
           <Text style={styles.errorTitle}>Plan Not Found</Text>
@@ -276,13 +282,15 @@ export default function PlanDetail() {
 
   return (
     <View style={styles.container}>
+      {/* Safe area spacer - prevents content from scrolling behind status bar */}
+      <View style={styles.safeAreaSpacer} />
       <FadeInView duration={180}>
         <ScrollView 
           contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header Card with Flag */}
-        <View style={styles.headerCard}>
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header Card with Flag */}
+          <View style={styles.headerCard}>
           <View style={styles.flagContainer}>
             {!imageError && locationCode ? (
               <Image
@@ -291,8 +299,8 @@ export default function PlanDetail() {
                 resizeMode="cover"
                 onError={() => setImageError(true)}
               />
-            ) : (
-              <Text style={styles.flagFallback}>🌍</Text>
+              ) : (
+              <Ionicons name="globe-outline" size={20} color={theme.colors.textMuted} />
             )}
           </View>
           
@@ -395,7 +403,7 @@ export default function PlanDetail() {
                   onError={() => setImageError(true)}
                 />
               ) : (
-                <Text style={styles.coverageFlagFallback}>🌍</Text>
+                <Ionicons name="globe-outline" size={20} color={theme.colors.textMuted} />
               )}
             </View>
             <View style={styles.coverageInfo}>
@@ -461,7 +469,7 @@ export default function PlanDetail() {
 
         {/* Security Badge */}
         <View style={styles.securityBadge}>
-          <Text style={styles.securityIcon}>🔒</Text>
+          <Ionicons name="lock-closed" size={18} color={theme.colors.success} />
           <Text style={styles.securityText}>Secure Checkout • Instant Delivery</Text>
         </View>
 
@@ -476,6 +484,10 @@ export default function PlanDetail() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  safeAreaSpacer: {
+    height: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 8,
     backgroundColor: theme.colors.background,
   },
   scrollContent: {

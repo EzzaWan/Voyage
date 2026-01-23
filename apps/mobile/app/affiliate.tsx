@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Alert, Share } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Share, Platform, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUser, useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,6 +7,7 @@ import * as Clipboard from 'expo-clipboard';
 import { apiFetch } from '../src/api/client';
 import { theme } from '../src/theme';
 import { useCurrency } from '../src/context/CurrencyContext';
+import { useToast } from '../src/context/ToastContext';
 
 interface AffiliateDashboard {
   affiliate: {
@@ -39,6 +40,7 @@ interface AffiliateDashboard {
 
 export default function Affiliate() {
   const router = useRouter();
+  const toast = useToast();
   const { user, isLoaded: userLoaded } = useUser();
   const { isSignedIn, isLoaded: authLoaded } = useAuth();
   const { convert, formatPrice } = useCurrency();
@@ -101,9 +103,10 @@ export default function Affiliate() {
     try {
       await Clipboard.setStringAsync(dashboard.affiliate.referralLink);
       setCopied(true);
+      toast.success('Copied', 'Referral link copied to clipboard');
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      Alert.alert('Error', 'Failed to copy link');
+      toast.error('Error', 'Failed to copy link');
     }
   };
 
@@ -122,38 +125,29 @@ export default function Affiliate() {
   const handleConvertToVCash = async () => {
     if (!user || !dashboard?.remainingCommission || dashboard.remainingCommission <= 0) return;
     
-    Alert.alert(
-      'Convert to V-Cash',
-      `Convert ${formatPrice(convert(dashboard.remainingCommission / 100))} to V-Cash (store credit)?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Convert All',
-          onPress: async () => {
-            setConverting(true);
-            try {
-              const userEmail = user.primaryEmailAddress?.emailAddress || '';
-              await apiFetch('/affiliate/vcash/convert', {
-                method: 'POST',
-                headers: {
-                  'x-user-email': userEmail,
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ amountCents: dashboard.remainingCommission }),
-              });
-              
-              Alert.alert('Success', 'Commission converted to V-Cash successfully!');
-              fetchDashboard();
-            } catch (err) {
-              const errorMessage = err instanceof Error ? err.message : 'Failed to convert';
-              Alert.alert('Error', errorMessage);
-            } finally {
-              setConverting(false);
-            }
-          },
+    // Show info toast and proceed with conversion
+    toast.info('Converting', `Converting ${formatPrice(convert(dashboard.remainingCommission / 100))} to V-Cash...`);
+    
+    setConverting(true);
+    try {
+      const userEmail = user.primaryEmailAddress?.emailAddress || '';
+      await apiFetch('/affiliate/vcash/convert', {
+        method: 'POST',
+        headers: {
+          'x-user-email': userEmail,
+          'Content-Type': 'application/json',
         },
-      ]
-    );
+        body: JSON.stringify({ amountCents: dashboard.remainingCommission }),
+      });
+      
+      toast.success('Success', 'Commission converted to V-Cash successfully!');
+      fetchDashboard();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to convert';
+      toast.error('Error', errorMessage);
+    } finally {
+      setConverting(false);
+    }
   };
 
   const formatDate = (dateStr: string): string => {
@@ -172,10 +166,12 @@ export default function Affiliate() {
   if (isLoaded && !isSignedIn) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         <View style={styles.content}>
           <View style={styles.signInCard}>
             <View style={styles.iconContainer}>
-              <Text style={styles.icon}>💰</Text>
+              <Ionicons name="wallet" size={40} color={theme.colors.primary} />
             </View>
             <Text style={styles.title}>Affiliate Program</Text>
             <Text style={styles.description}>
@@ -198,6 +194,8 @@ export default function Affiliate() {
   if (loading) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={styles.loadingText}>Loading affiliate dashboard...</Text>
@@ -210,6 +208,8 @@ export default function Affiliate() {
   if (error || !dashboard?.affiliate) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         <View style={styles.errorContainer}>
           <Text style={styles.errorIcon}>🚀</Text>
           <Text style={styles.errorTitle}>Join Our Affiliate Program</Text>
@@ -229,6 +229,8 @@ export default function Affiliate() {
 
   return (
     <View style={styles.container}>
+      {/* Safe area spacer - prevents content from scrolling behind status bar */}
+      <View style={styles.safeAreaSpacer} />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -311,7 +313,8 @@ export default function Affiliate() {
               onPress={handleShare}
               activeOpacity={0.8}
             >
-              <Text style={styles.actionButtonSecondaryText}>📤 Share</Text>
+              <Ionicons name="share-outline" size={18} color={theme.colors.primary} />
+              <Text style={styles.actionButtonSecondaryText}>Share</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -360,7 +363,7 @@ export default function Affiliate() {
           
           {dashboard.recentPurchases.length === 0 ? (
             <View style={styles.emptyPurchases}>
-              <Text style={styles.emptyIcon}>📦</Text>
+              <Ionicons name="cube-outline" size={40} color={theme.colors.textMuted} style={{ opacity: 0.5 }} />
               <Text style={styles.emptyText}>No purchases yet from your referrals</Text>
               <Text style={styles.emptyHint}>Share your link to start earning!</Text>
             </View>
@@ -509,7 +512,13 @@ const styles = StyleSheet.create({
   },
   
   // Header
+  safeAreaSpacer: {
+    height: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 8,
+    backgroundColor: theme.colors.background,
+  },
   header: {
+    paddingLeft: 16,
+    paddingRight: 16,
     marginBottom: theme.spacing.lg,
   },
   headerTitle: {
@@ -634,10 +643,13 @@ const styles = StyleSheet.create({
   },
   actionButtonSecondary: {
     flex: 1,
+    flexDirection: 'row',
     backgroundColor: theme.colors.backgroundLight,
     paddingVertical: 14,
     borderRadius: theme.borderRadius.md,
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     borderWidth: 1,
     borderColor: theme.colors.border,
   },

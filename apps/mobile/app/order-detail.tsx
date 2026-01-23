@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image, Alert, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image, Linking, Platform, StatusBar } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useUser } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,6 +8,7 @@ import { apiFetch } from '../src/api/client';
 import { theme } from '../src/theme';
 import { useCurrency } from '../src/context/CurrencyContext';
 import { getStatusLabel, getStatusColor } from '../src/utils/statusUtils';
+import { useToast } from '../src/context/ToastContext';
 
 interface EsimProfile {
   id: string;
@@ -62,6 +63,7 @@ const ORDER_STATUS_COLORS: Record<string, { bg: string; text: string }> = {
 
 export default function OrderDetail() {
   const router = useRouter();
+  const toast = useToast();
   const { user } = useUser();
   const { convert, formatPrice } = useCurrency();
   const params = useLocalSearchParams<{ orderId: string }>();
@@ -131,7 +133,7 @@ export default function OrderDetail() {
   const handleCopyOrderId = async () => {
     if (order?.id) {
       await Clipboard.setStringAsync(order.id);
-      Alert.alert('Copied', 'Order ID copied to clipboard');
+      toast.success('Copied', 'Order ID copied to clipboard');
     }
   };
 
@@ -148,6 +150,8 @@ export default function OrderDetail() {
   if (loading) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={styles.loadingText}>Loading order...</Text>
@@ -160,6 +164,8 @@ export default function OrderDetail() {
   if (error || !order) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         <View style={styles.errorContainer}>
           <Ionicons name="warning" size={48} color={colors.status.warning.main} />
           <Text style={styles.errorTitle}>Unable to Load Order</Text>
@@ -183,6 +189,8 @@ export default function OrderDetail() {
 
   return (
     <View style={styles.container}>
+      {/* Safe area spacer - prevents content from scrolling behind status bar */}
+      <View style={styles.safeAreaSpacer} />
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -410,10 +418,16 @@ const styles = StyleSheet.create({
   },
   
   // Header
+  safeAreaSpacer: {
+    height: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 8,
+    backgroundColor: theme.colors.background,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingLeft: 16,
+    paddingRight: 16,
     marginBottom: theme.spacing.lg,
   },
   headerTitle: {

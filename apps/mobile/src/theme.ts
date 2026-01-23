@@ -53,10 +53,3 @@ export const theme = {
     small: { fontSize: 12, color: '#A8B5C8' },
   },
 };
-
-
-
-
-
-
-

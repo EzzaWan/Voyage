@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Image, ScrollView, Platform, StatusBar } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { apiFetch } from '../src/api/client';
@@ -165,7 +165,7 @@ export default function Plans() {
               onError={() => setImageError(true)}
             />
           ) : (
-            <Text style={styles.flagFallback}>🌍</Text>
+            <Ionicons name="globe-outline" size={20} color={theme.colors.textMuted} />
           )}
         </View>
         <View style={styles.countryInfo}>
@@ -333,6 +333,8 @@ export default function Plans() {
   if (loading) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={styles.loadingText}>Loading plans...</Text>
@@ -344,6 +346,8 @@ export default function Plans() {
   if (error && rawPlans.length === 0) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         <View style={styles.errorContainer}>
           <Ionicons name="warning" size={48} color={theme.colors.warning} />
           <Text style={styles.errorTitle}>Unable to Load Plans</Text>
@@ -363,6 +367,8 @@ export default function Plans() {
   if (total === 0) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         {renderHeader()}
         <View style={styles.emptyContainer}>
           <Ionicons name="phone-portrait-outline" size={48} color={theme.colors.textMuted} style={{ opacity: 0.5 }} />
@@ -387,6 +393,8 @@ export default function Plans() {
   if (paginatedPlans.length === 0) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         <ScrollView showsVerticalScrollIndicator={false}>
           {renderHeader()}
           <View style={styles.tabEmptyContainer}>
@@ -474,15 +482,19 @@ export default function Plans() {
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={paginatedPlans}
-        keyExtractor={(item) => item.packageCode || item.id || item.name}
-        renderItem={renderPlanItem}
-        contentContainerStyle={styles.listContent}
-        ListHeaderComponent={renderHeader}
-        ListFooterComponent={renderFooter}
-        showsVerticalScrollIndicator={false}
-      />
+      {/* Safe area spacer - prevents content from scrolling behind status bar */}
+      <View style={styles.safeAreaSpacer} />
+      <View style={styles.listWrapper}>
+        <FlatList
+          data={paginatedPlans}
+          keyExtractor={(item) => item.packageCode || item.id || item.name}
+          renderItem={renderPlanItem}
+          contentContainerStyle={styles.listContent}
+          ListHeaderComponent={renderHeader}
+          ListFooterComponent={renderFooter}
+          showsVerticalScrollIndicator={false}
+        />
+      </View>
       
       {error && (
         <View style={styles.errorBanner}>
@@ -500,11 +512,18 @@ const styles = StyleSheet.create({
   },
   
   // Header
+  safeAreaSpacer: {
+    height: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 8,
+    backgroundColor: theme.colors.background,
+  },
+  listWrapper: {
+    flex: 1,
+  },
   headerSection: {
-    paddingTop: 4, // Minimal top padding to match other pages
     paddingLeft: 16, // Explicit 16px padding
     paddingRight: 16, // Explicit 16px padding
-    paddingBottom: 0,
+    paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.md,
   },
   countryHeader: {
     flexDirection: 'row',
@@ -672,7 +691,7 @@ const styles = StyleSheet.create({
   
   // List
   listContent: {
-    paddingTop: theme.spacing.xs,
+    paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing.xl * 2,
     paddingLeft: 16, // Explicit 16px padding
     paddingRight: 16, // Explicit 16px padding

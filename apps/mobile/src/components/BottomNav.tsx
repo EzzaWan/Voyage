@@ -3,17 +3,17 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../theme';
 
-// Updated to match Saily's tabs: Home, Credits, Help, Profile
-type Tab = 'store' | 'v-cash' | 'support' | 'profile';
+// Bottom navigation tabs: Home, V-Cash, My eSIMs, Profile
+type Tab = 'store' | 'v-cash' | 'my-esims' | 'profile';
 
 interface BottomNavProps {
-  activeTab: Tab | 'my-esims'; // Keeping my-esims for backward compatibility if needed, but UI shows Saily structure
+  activeTab: Tab | 'support'; // Keeping support for backward compatibility if needed
 }
 
 const TABS: Array<{ id: Tab; label: string; icon: keyof typeof Ionicons.glyphMap; activeIcon: keyof typeof Ionicons.glyphMap; route: string }> = [
   { id: 'store', label: 'Home', icon: 'home-outline', activeIcon: 'home', route: '/' },
   { id: 'v-cash', label: 'V-Cash', icon: 'wallet-outline', activeIcon: 'wallet', route: '/v-cash' },
-  { id: 'support', label: 'Help', icon: 'help-circle-outline', activeIcon: 'help-circle', route: '/support' },
+  { id: 'my-esims', label: 'My eSIMs', icon: 'phone-portrait-outline', activeIcon: 'phone-portrait', route: '/my-esims' },
   { id: 'profile', label: 'Profile', icon: 'person-outline', activeIcon: 'person', route: '/profile' },
 ];
 
@@ -28,10 +28,6 @@ export default function BottomNav({ activeTab }: BottomNavProps) {
     <View style={styles.container}>
       <View style={styles.content}>
         {TABS.map((tab) => {
-          // Map internal activeTab names to the new structure if needed
-          const isSelected = activeTab === tab.id || (activeTab === 'my-esims' && tab.id === 'profile'); // Fallback or mapping? 
-          // Actually, if we are on "my-esims", we probably aren't highlighting any of these perfectly unless we decided "My eSIMs" is under Home or Profile.
-          // Let's just match exact ID for now.
           const active = activeTab === tab.id;
           
           return (
