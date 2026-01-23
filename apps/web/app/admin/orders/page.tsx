@@ -7,8 +7,10 @@ import { AdminTable } from "@/components/admin/AdminTable";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Trash2 } from "lucide-react";
 import { formatUsdDollars } from "@/lib/utils";
 import { getOrderStatusDisplay, getPlanNames } from "@/lib/admin-helpers";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Order {
   id: string;
@@ -33,8 +35,10 @@ interface Order {
 export default function AdminOrdersPage() {
   const { user } = useUser();
   const router = useRouter();
+  const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
   const [planNames, setPlanNames] = useState<Map<string, string>>(new Map());
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
@@ -67,6 +71,49 @@ export default function AdminOrdersPage() {
       fetchOrders();
     }
   }, [user, apiUrl]);
+
+  const handleDeleteOrder = async (orderId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent row click
+    
+    const order = orders.find((o) => o.id === orderId);
+    if (!order) return;
+
+    // Confirm deletion
+    if (!confirm(`Are you sure you want to delete order ${orderId}?\n\nThis will permanently delete the order and all related data. This action cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingOrderId(orderId);
+    try {
+      const res = await fetch(`${apiUrl}/admin/orders/${orderId}`, {
+        method: "DELETE",
+        headers: {
+          "x-admin-email": user?.primaryEmailAddress?.emailAddress || "",
+        },
+      });
+
+      if (res.ok) {
+        toast({
+          title: "Success",
+          description: "Order deleted successfully",
+        });
+        // Refresh orders list
+        const updatedOrders = orders.filter((o) => o.id !== orderId);
+        setOrders(updatedOrders);
+      } else {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to delete order");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete order",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingOrderId(null);
+    }
+  };
 
   const columns = useMemo(() => [
     {
@@ -139,7 +186,31 @@ export default function AdminOrdersPage() {
         }),
       className: "text-white",
     },
-  ], [planNames]);
+    {
+      header: "Actions",
+      accessor: () => "",
+      render: (row: Order) => {
+        // Only allow deletion of pending orders
+        const canDelete = row.status === "pending";
+        return (
+          <div className="flex items-center gap-2">
+            {canDelete && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => handleDeleteOrder(row.id, e)}
+                disabled={deletingOrderId === row.id}
+                className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        );
+      },
+      className: "text-white w-[80px]",
+    },
+  ], [planNames, deletingOrderId]);
 
   if (loading) {
     return (

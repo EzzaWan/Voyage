@@ -3,6 +3,7 @@ import {
   Get,
   Param,
   Post,
+  Delete,
   Body,
   UseGuards,
   Req,
@@ -435,6 +436,65 @@ export class AdminOrdersController {
       }
     } catch (error: any) {
       throw new BadRequestException(`Failed to resend receipt: ${error.message}`);
+    }
+  }
+
+  @Delete(':id')
+  async deleteOrder(@Param('id') id: string, @Req() req: any) {
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+      include: {
+        EsimProfile: true,
+        User: true,
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Order ${id} not found`);
+    }
+
+    // Prevent deletion of orders that have been paid (safety check)
+    if (order.status === 'paid' || order.status === 'active' || order.status === 'esim_created') {
+      throw new BadRequestException(
+        'Cannot delete orders with status "paid", "active", or "esim_created". Only pending orders can be deleted.'
+      );
+    }
+
+    try {
+      // Delete related records in correct order (respecting foreign key constraints)
+      
+      // 1. Delete commissions related to this order
+      await this.prisma.commission.deleteMany({
+        where: {
+          orderId: id,
+          orderType: 'order',
+        },
+      });
+
+      // 2. Delete eSIM profiles related to this order
+      await this.prisma.esimProfile.deleteMany({
+        where: {
+          orderId: id,
+        },
+      });
+
+      // 3. Delete the order itself
+      await this.prisma.order.delete({
+        where: { id },
+      });
+
+      // Log admin action
+      await this.adminService.logAction(
+        req.adminEmail,
+        'delete_order',
+        'order',
+        id,
+        { orderId: id, planId: order.planId, status: order.status },
+      );
+
+      return { success: true, message: 'Order deleted successfully' };
+    } catch (error: any) {
+      throw new BadRequestException(`Failed to delete order: ${error.message}`);
     }
   }
 }

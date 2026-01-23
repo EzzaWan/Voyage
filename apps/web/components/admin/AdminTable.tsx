@@ -1,11 +1,13 @@
 "use client";
 
 import { memo } from "react";
+import React from "react";
 
 interface Column<T> {
   header: string;
   accessor: keyof T | ((row: T) => string | number);
   className?: string | ((row: T) => string);
+  render?: (row: T) => React.ReactNode;
 }
 
 interface AdminTableProps<T> {
@@ -56,6 +58,20 @@ function AdminTableComponent<T extends { id: string }>({
               }`}
             >
               {columns.map((column, idx) => {
+                // If render function is provided, use it
+                if (column.render) {
+                  return (
+                    <td
+                      key={idx}
+                      className={`text-left px-4 py-3 text-sm break-words ${typeof column.className === "function" ? column.className(row) : (column.className || "text-white")}`}
+                      onClick={(e) => e.stopPropagation()} // Prevent row click for action cells
+                    >
+                      {column.render(row)}
+                    </td>
+                  );
+                }
+
+                // Otherwise, use accessor
                 let cellValue = "";
                 try {
                   if (typeof column.accessor === "function") {
