@@ -138,6 +138,47 @@ function hasNonHKIP(plan: Plan): boolean {
 }
 
 /**
+ * Check if a plan has FUP flag (any FUP, not just 1Mbps)
+ */
+function hasFUP(plan: Plan): boolean {
+  const nameLower = (plan.name || '').toLowerCase();
+  const fupPattern = /\bfup(\d+)?mbps?\b/i;
+  const fupStandalone = /\bfup\b/i;
+  return nameLower.match(fupPattern) !== null || 
+         nameLower.match(fupStandalone) !== null ||
+         (plan as any).fup === true ||
+         (plan as any).fairUsagePolicy === true ||
+         (typeof (plan as any).fup === 'string' && /^fup(\d+)?mbps?$/i.test((plan as any).fup));
+}
+
+/**
+ * Check if a plan is a 1GB 7 days plan (plain, not FUP or nonhkip)
+ */
+function is1GB7DaysPlan(plan: Plan): boolean {
+  const gb = calculateGB(plan.volume);
+  const roundedGB = Math.round(gb * 10) / 10;
+  
+  // Must be exactly 1GB
+  if (roundedGB !== 1.0) {
+    return false;
+  }
+  
+  // Must be exactly 7 days
+  const duration = plan.duration || 0;
+  const durationUnit = (plan.durationUnit || 'day').toLowerCase();
+  if (duration !== 7 || durationUnit !== 'day') {
+    return false;
+  }
+  
+  // Must NOT have FUP or nonhkip flags
+  if (hasFUP(plan) || hasNonHKIP(plan)) {
+    return false;
+  }
+  
+  return true;
+}
+
+/**
  * Check if a plan has IIJ flag
  */
 function hasIIJ(plan: Plan): boolean {
@@ -176,8 +217,8 @@ export function filterVisiblePlans(plans: Plan[], getDiscount?: (packageCode: st
     const gb = calculateGB(plan.volume);
     const isUnlimited = isDailyUnlimitedPlan(plan);
     
-    // Exclude all plans <= 1.5GB (except unlimited plans)
-    if (gb <= MIN_GB_SIZE && !isUnlimited) {
+    // Exclude all plans <= 1.5GB (except unlimited plans and 1GB 7 days)
+    if (gb <= MIN_GB_SIZE && !isUnlimited && !is1GB7DaysPlan(plan)) {
       return false;
     }
     
