@@ -170,9 +170,16 @@ export class OrdersController {
 
   @Post(':orderId/remove-promo')
   @RateLimit({ limit: 10, window: 60 })
-  async removePromoCode(@Param('orderId') orderId: string) {
+  async removePromoCode(
+    @Param('orderId') orderId: string,
+    @Body() body: { originalAmount?: number; originalDisplayAmount?: number },
+  ) {
     try {
-      await this.ordersService.removePromoCodeFromOrder(orderId);
+      await this.ordersService.removePromoCodeFromOrder(
+        orderId,
+        body.originalAmount,
+        body.originalDisplayAmount,
+      );
       return { success: true, message: 'Promo code removed' };
     } catch (error) {
       console.error('[REMOVE_PROMO_ERROR]', error);

@@ -123,22 +123,34 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
         }
 
         // Check if promo code was previously applied (stored in localStorage)
+        // IMPORTANT: Only restore if the order amount in DB matches the discounted amount
+        // If order amount matches original amount, promo was removed - clear localStorage
         const storedPromo = localStorage.getItem(`promo_${params.orderId}`);
         if (storedPromo) {
           try {
             const promoData = JSON.parse(storedPromo);
-            // Verify the stored promo matches the current order state
-            // If order amount matches expected discounted amount, restore promo state
             const expectedDiscounted = Math.round(promoData.originalAmount * (1 - promoData.discountPercent / 100));
-            if (Math.abs(orderData.amountCents - expectedDiscounted) < 10) { // Allow small rounding differences
+            const currentOrderAmount = orderData.amountCents;
+            const originalAmount = promoData.originalAmount;
+            
+            // Check if order amount matches the discounted amount (promo still applied in DB)
+            const matchesDiscounted = Math.abs(currentOrderAmount - expectedDiscounted) < 10;
+            // Check if order amount matches the original amount (promo was removed)
+            const matchesOriginal = Math.abs(currentOrderAmount - originalAmount) < 10;
+            
+            if (matchesDiscounted && !matchesOriginal) {
+              // Order is discounted, promo is still applied - restore UI state
               setAppliedPromo(promoData.promoCode);
               setPromoDiscount({
                 percent: promoData.discountPercent,
                 originalAmount: promoData.originalAmount,
                 originalDisplayAmount: promoData.originalDisplayAmount,
               });
+            } else if (matchesOriginal) {
+              // Order matches original amount - promo was removed, clear localStorage
+              localStorage.removeItem(`promo_${params.orderId}`);
             } else {
-              // Promo doesn't match, clear it
+              // Order amount doesn't match either - state is inconsistent, clear localStorage
               localStorage.removeItem(`promo_${params.orderId}`);
             }
           } catch (e) {
@@ -274,11 +286,16 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       
       // Call endpoint to remove promo and restore original amount
+      // Pass original amounts so backend can restore the order in database
       await safeFetch(
         `${apiUrl}/orders/${params.orderId}/remove-promo`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            originalAmount: promoDiscount.originalAmount,
+            originalDisplayAmount: promoDiscount.originalDisplayAmount,
+          }),
           errorMessage: "Failed to remove promo code.",
         }
       );

@@ -318,12 +318,9 @@ export class OrdersService {
       throw new BadRequestException(`Cannot apply promo code to order with status: ${order.status}`);
     }
 
-    // For now, we'll assume the current amount is the original amount
-    // In production, you'd want to store originalAmount separately
-    // Calculate: if we have discountedAmount and discountPercent, original = discounted / (1 - discount/100)
-    // But since we don't track that, we'll use current amount as original
-    // This means if promo is applied twice, it will double-discount (which we prevent by checking if promo already applied)
-    
+    // Use current amount as original amount
+    // NOTE: This assumes the order hasn't been discounted yet
+    // In production, store originalAmount when first applying promo to prevent double-discounting
     const originalAmount = order.amountCents;
     const discountAmount = Math.round(originalAmount * (discountPercent / 100));
     const discountedAmount = originalAmount - discountAmount;
@@ -371,10 +368,9 @@ export class OrdersService {
 
   /**
    * Remove promo code from an order and restore original amount
-   * Note: This assumes we can calculate original from discounted amount
-   * For production, store original amount when applying promo
+   * Accepts originalAmount from frontend to restore the order
    */
-  async removePromoCodeFromOrder(orderId: string) {
+  async removePromoCodeFromOrder(orderId: string, originalAmount?: number, originalDisplayAmount?: number) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
     });
@@ -387,15 +383,21 @@ export class OrdersService {
       throw new BadRequestException(`Cannot remove promo code from order with status: ${order.status}`);
     }
 
-    // For now, we can't easily restore the original amount without storing it
-    // This is a limitation - in production, you'd store originalAmount when applying promo
-    // For now, we'll need to fetch the order again or store original in metadata
-    // Since we don't have that, we'll just log a warning
-    this.logger.warn(`[PROMO] Cannot fully restore original amount for order ${orderId} - original amount not stored`);
-    
-    // In a real implementation, you'd restore from stored originalAmount
-    // For now, this endpoint exists but may not fully restore the amount
-    // The frontend will handle the restoration using stored values
+    // If original amounts are provided, use them to restore
+    // Otherwise, we can't restore (frontend should provide these)
+    if (originalAmount !== undefined) {
+      await this.prisma.order.update({
+        where: { id: orderId },
+        data: {
+          amountCents: originalAmount,
+          displayAmountCents: originalDisplayAmount !== undefined ? originalDisplayAmount : originalAmount,
+        },
+      });
+      this.logger.log(`[PROMO] Removed promo from order ${orderId}, restored to ${originalAmount} cents`);
+    } else {
+      this.logger.warn(`[PROMO] Cannot restore original amount for order ${orderId} - originalAmount not provided`);
+      throw new BadRequestException('Original amount required to remove promo code');
+    }
   }
 
   /**

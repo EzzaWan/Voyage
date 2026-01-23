@@ -211,15 +211,20 @@ export default function Checkout() {
     if (!appliedPromo || !promoDiscount) return;
 
     try {
+      // Pass original amounts to backend so it can restore the order in database
       await apiFetch(
         `/orders/${params.orderId}/remove-promo`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            originalAmount: promoDiscount.originalAmount,
+            originalDisplayAmount: promoDiscount.originalDisplayAmount,
+          }),
         }
       );
 
-      // Restore original amounts
+      // Restore original amounts in UI
       setOrder(prev => prev && promoDiscount ? {
         ...prev,
         amountCents: promoDiscount.originalAmount,
