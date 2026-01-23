@@ -320,12 +320,13 @@ model RateLimitLog {
 }
 
 model Referral {
-  id             String    @id
-  affiliateId    String
-  referredUserId String    @unique
-  createdAt      DateTime  @default(now())
-  Affiliate      Affiliate @relation(fields: [affiliateId], references: [id])
-  User           User      @relation(fields: [referredUserId], references: [id])
+  id                        String    @id
+  affiliateId               String
+  referredUserId            String    @unique
+  createdAt                 DateTime  @default(now())
+  firstPurchaseDiscountUsed Boolean   @default(false) // Tracks if the 10% first-purchase discount was used
+  Affiliate                 Affiliate @relation(fields: [affiliateId], references: [id])
+  User                      User      @relation(fields: [referredUserId], references: [id])
 
   @@index([affiliateId])
   @@index([referredUserId])

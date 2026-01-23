@@ -63,6 +63,9 @@ export default function Checkout() {
   const [promoDiscount, setPromoDiscount] = useState<PromoDiscount | null>(null);
   const [applyingPromo, setApplyingPromo] = useState(false);
   
+  // Referral discount state (Give 10% Get 10%)
+  const [referralDiscount, setReferralDiscount] = useState<{ eligible: boolean; discountPercent: number; message: string } | null>(null);
+  
   // Checkout step: 'summary' or 'payment'
   const [step, setStep] = useState<'summary' | 'payment'>('summary');
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
@@ -112,6 +115,18 @@ export default function Checkout() {
         } catch (err) {
           console.warn('Failed to fetch plan details:', err);
         }
+      }
+      
+      // Check referral discount eligibility (Give 10% Get 10%)
+      try {
+        const discountData = await apiFetch<{ eligible: boolean; discountPercent: number; message: string }>(
+          `/orders/${params.orderId}/referral-discount`
+        );
+        if (discountData) {
+          setReferralDiscount(discountData);
+        }
+      } catch (err) {
+        console.warn('Failed to check referral discount:', err);
       }
       
       // Set email from order if available and user not logged in
@@ -581,6 +596,23 @@ export default function Checkout() {
           )}
         </View>
 
+        {/* Referral Discount Banner (Give 10% Get 10%) */}
+        {referralDiscount?.eligible && (
+          <View style={styles.referralBanner}>
+            <View style={styles.referralBannerContent}>
+              <View style={styles.referralIconContainer}>
+                <Ionicons name="gift" size={20} color="#4ade80" />
+              </View>
+              <View style={styles.referralTextContainer}>
+                <Text style={styles.referralTitle}>🎉 10% First Purchase Discount!</Text>
+                <Text style={styles.referralSubtitle}>
+                  You were referred by a friend — your discount will be applied at checkout
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
+
         {/* Order Summary Card */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Order Summary</Text>
@@ -604,6 +636,13 @@ export default function Checkout() {
                   displayCurrency
                 )}
               </Text>
+            </View>
+          )}
+          
+          {referralDiscount?.eligible && !appliedPromo && (
+            <View style={styles.summaryRow}>
+              <Text style={styles.referralDiscountLabel}>Referral Discount (10%)</Text>
+              <Text style={styles.referralDiscountValue}>Applied at checkout</Text>
             </View>
           )}
 
@@ -1038,6 +1077,46 @@ const styles = StyleSheet.create({
   discountValue: {
     ...theme.typography.body,
     color: theme.colors.primary,
+  },
+  referralDiscountLabel: {
+    ...theme.typography.caption,
+    color: '#4ade80',
+  },
+  referralDiscountValue: {
+    ...theme.typography.body,
+    color: '#4ade80',
+    fontWeight: '500' as const,
+  },
+  referralBanner: {
+    backgroundColor: 'rgba(74, 222, 128, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(74, 222, 128, 0.3)',
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.md,
+  },
+  referralBannerContent: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: theme.spacing.sm,
+  },
+  referralIconContainer: {
+    backgroundColor: 'rgba(74, 222, 128, 0.2)',
+    borderRadius: theme.borderRadius.full,
+    padding: theme.spacing.sm,
+  },
+  referralTextContainer: {
+    flex: 1,
+  },
+  referralTitle: {
+    ...theme.typography.caption,
+    color: '#4ade80',
+    fontWeight: '600' as const,
+    marginBottom: 2,
+  },
+  referralSubtitle: {
+    ...theme.typography.small,
+    color: 'rgba(74, 222, 128, 0.8)',
   },
   summaryDivider: {
     height: 1,

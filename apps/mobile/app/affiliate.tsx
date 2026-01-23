@@ -115,7 +115,7 @@ export default function Affiliate() {
     
     try {
       await Share.share({
-        message: `Use my referral code ${dashboard.affiliate.referralCode} to get eSIM data for your travels! ${dashboard.affiliate.referralLink}`,
+        message: `Get 10% off your first eSIM purchase with my referral code ${dashboard.affiliate.referralCode}! Perfect for traveling. ${dashboard.affiliate.referralLink}`,
       });
     } catch (err) {
       console.error('Error sharing:', err);
@@ -245,7 +245,26 @@ export default function Affiliate() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Affiliate Dashboard</Text>
-          <Text style={styles.headerSubtitle}>Earn 10% lifetime commission</Text>
+          <Text style={styles.headerSubtitle}>Give 10%, Get 10% — Share the savings!</Text>
+        </View>
+
+        {/* Give 10% Get 10% Explainer */}
+        <View style={styles.explainerCard}>
+          <Text style={styles.explainerTitle}>🎁 Give 10%, Get 10%</Text>
+          <Text style={styles.explainerText}>
+            When you share your link, your friends get <Text style={styles.highlightGreen}>10% off</Text> their first purchase, 
+            and you earn <Text style={styles.highlightBlue}>10% commission</Text> on all their purchases — forever!
+          </Text>
+          <View style={styles.explainerStats}>
+            <View style={styles.explainerStatBox}>
+              <Text style={styles.explainerStatValue}>10%</Text>
+              <Text style={styles.explainerStatLabel}>They Save</Text>
+            </View>
+            <View style={[styles.explainerStatBox, styles.explainerStatBoxBlue]}>
+              <Text style={styles.explainerStatValueBlue}>10%</Text>
+              <Text style={styles.explainerStatLabel}>You Earn</Text>
+            </View>
+          </View>
         </View>
 
         {/* Frozen Warning */}
@@ -528,6 +547,68 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     ...theme.typography.caption,
     color: theme.colors.textSecondary,
+  },
+  
+  // Explainer Card
+  explainerCard: {
+    backgroundColor: 'rgba(74, 222, 128, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(74, 222, 128, 0.3)',
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.md,
+  },
+  explainerTitle: {
+    ...theme.typography.body,
+    fontWeight: '700' as const,
+    color: '#4ade80',
+    marginBottom: theme.spacing.sm,
+  },
+  explainerText: {
+    ...theme.typography.small,
+    color: theme.colors.textSecondary,
+    lineHeight: 20,
+    marginBottom: theme.spacing.md,
+  },
+  highlightGreen: {
+    color: '#4ade80',
+    fontWeight: '600' as const,
+  },
+  highlightBlue: {
+    color: theme.colors.primary,
+    fontWeight: '600' as const,
+  },
+  explainerStats: {
+    flexDirection: 'row' as const,
+    gap: theme.spacing.md,
+  },
+  explainerStatBox: {
+    flex: 1,
+    backgroundColor: 'rgba(74, 222, 128, 0.1)',
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.sm,
+    alignItems: 'center' as const,
+    borderWidth: 1,
+    borderColor: 'rgba(74, 222, 128, 0.3)',
+  },
+  explainerStatBoxBlue: {
+    backgroundColor: 'rgba(30, 144, 255, 0.1)',
+    borderColor: 'rgba(30, 144, 255, 0.3)',
+  },
+  explainerStatValue: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: '#4ade80',
+  },
+  explainerStatValueBlue: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: theme.colors.primary,
+  },
+  explainerStatLabel: {
+    ...theme.typography.small,
+    color: theme.colors.textSecondary,
+    marginTop: 2,
   },
   
   // Frozen Banner

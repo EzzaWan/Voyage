@@ -38,11 +38,29 @@ export function AffiliateTermsOfService() {
             </div>
           </section>
 
+          {/* Give 10% Get 10% Program */}
+          <section>
+            <h3 className="text-xl font-semibold text-white mb-3 flex items-center gap-2">
+              🎁
+              2. Give 10%, Get 10% Program
+            </h3>
+            <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-6 space-y-4">
+              <p className="text-white font-semibold mb-3">How it works:</p>
+              <ul className="list-disc list-inside space-y-2 text-[var(--voyo-muted)] ml-4">
+                <li><strong className="text-green-400">Your referrals save 10%:</strong> When someone uses your referral link, they get 10% off their first eSIM purchase. This makes it easier to share Voyo with friends and family.</li>
+                <li><strong className="text-[var(--voyo-accent)]">You earn 10%:</strong> You earn 10% commission on all purchases made by referred users — not just the first purchase, but forever!</li>
+                <li><strong className="text-white">First purchase only:</strong> The 10% discount for referred users only applies to their first eSIM purchase. Top-ups and subsequent orders are at full price.</li>
+                <li><strong className="text-white">Commission on discounted amount:</strong> For the first purchase, your commission is calculated on the discounted amount (after the 10% discount is applied).</li>
+                <li><strong className="text-white">No V-Cash discount:</strong> The 10% first-purchase discount does not apply to orders paid with V-Cash (store credit).</li>
+              </ul>
+            </div>
+          </section>
+
           {/* Eligibility */}
           <section>
             <h3 className="text-xl font-semibold text-white mb-3 flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-green-400" />
-              2. Eligibility
+              3. Eligibility
             </h3>
             <div className="text-[var(--voyo-muted)] space-y-2 ml-7">
               <p>To participate in the Voyo Affiliate Program, you must:</p>
@@ -64,7 +82,7 @@ export function AffiliateTermsOfService() {
           <section>
             <h3 className="text-xl font-semibold text-white mb-3 flex items-center gap-2">
               <FileText className="h-5 w-5 text-blue-400" />
-              3. Referral Rules
+              4. Referral Rules
             </h3>
             <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-6 space-y-4">
               <p className="text-white font-semibold mb-3">Referral Code Usage Rules:</p>
@@ -82,7 +100,7 @@ export function AffiliateTermsOfService() {
           <section>
             <h3 className="text-xl font-semibold text-white mb-3 flex items-center gap-2">
               <XCircle className="h-5 w-5 text-red-400" />
-              4. Prohibited Activities
+              5. Prohibited Activities
             </h3>
             <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-6 space-y-4">
               <p className="text-white font-semibold mb-3">The following activities are strictly prohibited and will result in immediate account termination and forfeiture of all commissions:</p>
@@ -110,7 +128,7 @@ export function AffiliateTermsOfService() {
           <section>
             <h3 className="text-xl font-semibold text-white mb-3 flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-green-400" />
-              5. Commission Structure
+              6. Commission Structure
             </h3>
             <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-6 space-y-4">
               <ul className="list-disc list-inside space-y-2 text-[var(--voyo-muted)] ml-4">
@@ -129,7 +147,7 @@ export function AffiliateTermsOfService() {
           <section>
             <h3 className="text-xl font-semibold text-white mb-3 flex items-center gap-2">
               <Clock className="h-5 w-5 text-yellow-400" />
-              6. Holding Period & Payout Rules
+              7. Holding Period & Payout Rules
             </h3>
             <div className="space-y-4">
               <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-6 space-y-4">
@@ -163,7 +181,7 @@ export function AffiliateTermsOfService() {
           <section>
             <h3 className="text-xl font-semibold text-white mb-3 flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-purple-400" />
-              7. V-Cash Conversion Rules
+              8. V-Cash Conversion Rules
             </h3>
             <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-6 space-y-4">
               <ul className="list-disc list-inside space-y-2 text-[var(--voyo-muted)] ml-4">
@@ -181,7 +199,7 @@ export function AffiliateTermsOfService() {
           <section>
             <h3 className="text-xl font-semibold text-white mb-3 flex items-center gap-2">
               <Shield className="h-5 w-5 text-orange-400" />
-              8. Fraud Detection & Account Freeze
+              9. Fraud Detection & Account Freeze
             </h3>
             <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-6 space-y-4">
               <p className="text-white font-semibold mb-3">Voyo employs both automated and manual fraud detection systems:</p>

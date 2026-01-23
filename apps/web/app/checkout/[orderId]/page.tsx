@@ -43,6 +43,7 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
   const [updatingEmail, setUpdatingEmail] = useState(false);
   const [planName, setPlanName] = useState<string | null>(null);
   const [planDetails, setPlanDetails] = useState<{ name: string; volume: number; packageCode: string } | null>(null);
+  const [referralDiscount, setReferralDiscount] = useState<{ eligible: boolean; discountPercent: number; message: string } | null>(null);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -101,6 +102,19 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
         // Set email from logged-in user if available
         if (userLoaded && user?.primaryEmailAddress?.emailAddress) {
           setEmail(user.primaryEmailAddress.emailAddress);
+        }
+
+        // Check referral discount eligibility (Give 10% Get 10%)
+        try {
+          const discountData = await safeFetch<{ eligible: boolean; discountPercent: number; message: string }>(
+            `${apiUrl}/orders/${params.orderId}/referral-discount`,
+            { showToast: false }
+          );
+          if (discountData) {
+            setReferralDiscount(discountData);
+          }
+        } catch (error) {
+          console.error('Failed to check referral discount:', error);
         }
 
         // Check if promo code was previously applied (stored in localStorage)
@@ -497,6 +511,25 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
                   </div>
                 )}
                 
+                {/* Referral Discount Banner (Give 10% Get 10%) */}
+                {referralDiscount?.eligible && (
+                  <div className="bg-green-500/10 border border-green-500/50 rounded-lg p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-green-500/20 rounded-full p-2">
+                        <Tag className="h-5 w-5 text-green-400" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-green-400">
+                          🎉 10% First Purchase Discount!
+                        </p>
+                        <p className="text-xs text-green-300/80 mt-0.5">
+                          You were referred by a friend — your discount will be applied at checkout
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Promo Code Section */}
                 <div className="space-y-3">
                   <h3 className="text-sm font-semibold text-white">Promo Code</h3>
@@ -563,6 +596,12 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
                           (promoDiscount.originalDisplayAmount || promoDiscount.originalAmount) - displayAmount, 
                           displayCurrency
                         )}</span>
+                      </div>
+                    )}
+                    {referralDiscount?.eligible && !appliedPromo && (
+                      <div className="flex justify-between text-sm text-green-400">
+                        <span>Referral Discount (10%)</span>
+                        <span>Applied at checkout</span>
                       </div>
                     )}
                     <div className="flex justify-between text-sm">
@@ -663,6 +702,12 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
                     )}</span>
                   </div>
                 )}
+                {referralDiscount?.eligible && !appliedPromo && (
+                  <div className="flex justify-between text-sm text-green-400">
+                    <span>Referral Discount</span>
+                    <span>-10%</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-[var(--voyo-muted)]">Tax</span>
                   <span className="text-white">Included</span>
@@ -670,9 +715,17 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
                 <div className="pt-3 border-t border-[var(--voyo-border)] flex justify-between">
                   <span className="font-semibold text-white">Total</span>
                   <span className="text-xl font-bold text-[var(--voyo-accent)]">
-                    {formatPrice(displayAmount, displayCurrency)}
+                    {referralDiscount?.eligible && !appliedPromo 
+                      ? `~${formatPrice(Math.round(displayAmount * 0.9), displayCurrency)}`
+                      : formatPrice(displayAmount, displayCurrency)
+                    }
                   </span>
                 </div>
+                {referralDiscount?.eligible && !appliedPromo && (
+                  <p className="text-xs text-green-400/80 text-center mt-2">
+                    Final price with 10% referral discount
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>

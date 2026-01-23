@@ -180,6 +180,17 @@ export class OrdersController {
     }
   }
 
+  @Get(':orderId/referral-discount')
+  @RateLimit({ limit: 20, window: 60 })
+  async checkReferralDiscount(@Param('orderId') orderId: string) {
+    try {
+      return await this.ordersService.checkReferralDiscountEligibility(orderId);
+    } catch (error) {
+      console.error('[CHECK_REFERRAL_DISCOUNT_ERROR]', error);
+      throw error;
+    }
+  }
+
   @Post(':orderId/update-email')
   @RateLimit({ limit: 5, window: 60 })
   async updateOrderEmail(

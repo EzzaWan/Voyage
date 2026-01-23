@@ -219,35 +219,42 @@ function AffiliateTermsContent() {
         These terms govern participation in the Voyo eSIM Affiliate Program.
       </Text>
 
-      <Section title="1. Program Overview">
+      <Section title="1. Give 10%, Get 10% Program">
+        <Text style={styles.sectionText}>• Your referrals get 10% off their first eSIM purchase.</Text>
+        <Text style={styles.sectionText}>• You earn 10% commission on all their purchases — forever!</Text>
+        <Text style={styles.sectionText}>• The discount applies only to the first purchase (not top-ups).</Text>
+        <Text style={styles.sectionText}>• Your commission is based on the discounted amount for first purchases.</Text>
+      </Section>
+
+      <Section title="2. Program Overview">
         <Text style={styles.sectionText}>• Earn 10% commission on all purchases made by users you refer.</Text>
         <Text style={styles.sectionText}>• Commissions apply to both initial purchases and top-ups.</Text>
         <Text style={styles.sectionText}>• Referrals are tracked via unique affiliate links and codes.</Text>
         <Text style={styles.sectionText}>• Commission rates may change with 30 days notice.</Text>
       </Section>
 
-      <Section title="2. Eligibility">
+      <Section title="3. Eligibility">
         <Text style={styles.sectionText}>• You must be 18 years or older to participate.</Text>
         <Text style={styles.sectionText}>• You must have an active Voyo account in good standing.</Text>
         <Text style={styles.sectionText}>• Self-referrals are not allowed and will result in account termination.</Text>
         <Text style={styles.sectionText}>• Multiple accounts per person are prohibited.</Text>
       </Section>
 
-      <Section title="3. Commission Terms">
+      <Section title="4. Commission Terms">
         <Text style={styles.sectionText}>• Commissions are calculated on the final purchase amount after discounts.</Text>
         <Text style={styles.sectionText}>• Commissions are credited after the order is confirmed paid.</Text>
         <Text style={styles.sectionText}>• Refunded orders will result in commission clawback.</Text>
         <Text style={styles.sectionText}>• Commissions can be converted to V-Cash or requested as cash payout.</Text>
       </Section>
 
-      <Section title="4. Payout Requirements">
+      <Section title="5. Payout Requirements">
         <Text style={styles.sectionText}>• Minimum payout threshold is $50 USD.</Text>
         <Text style={styles.sectionText}>• Payouts are processed within 7-14 business days of request.</Text>
         <Text style={styles.sectionText}>• You are responsible for any applicable taxes on earnings.</Text>
         <Text style={styles.sectionText}>• Payout methods include PayPal and bank transfer.</Text>
       </Section>
 
-      <Section title="5. Prohibited Activities">
+      <Section title="6. Prohibited Activities">
         <Text style={styles.sectionText}>• Using spam or misleading marketing tactics.</Text>
         <Text style={styles.sectionText}>• Creating fake accounts or fraudulent referrals.</Text>
         <Text style={styles.sectionText}>• Bidding on branded keywords in paid advertising.</Text>
@@ -255,13 +262,13 @@ function AffiliateTermsContent() {
         <Text style={styles.sectionText}>• Cookie stuffing or forced clicks.</Text>
       </Section>
 
-      <Section title="6. Account Suspension">
+      <Section title="7. Account Suspension">
         <Text style={styles.sectionText}>• We may freeze accounts suspected of fraud pending investigation.</Text>
         <Text style={styles.sectionText}>• Confirmed violations result in permanent termination and forfeiture of unpaid commissions.</Text>
         <Text style={styles.sectionText}>• You may appeal frozen accounts by contacting support.</Text>
       </Section>
 
-      <Section title="7. Program Changes">
+      <Section title="8. Program Changes">
         <Text style={styles.sectionText}>• We reserve the right to modify or discontinue the program at any time.</Text>
         <Text style={styles.sectionText}>• Major changes will be communicated with 30 days notice.</Text>
         <Text style={styles.sectionText}>• Continued participation constitutes acceptance of updated terms.</Text>

@@ -12,6 +12,7 @@ import { NavigationUserMenu } from "@/components/NavigationUserMenu";
 import { CurrencyProvider } from "@/components/providers/CurrencyProvider";
 import { CurrencySelector } from "@/components/CurrencySelector";
 import { ReferralTracker } from "@/components/ReferralTracker";
+import { ReferralDiscountBanner } from "@/components/ReferralDiscountBanner";
 import { SignupTracker } from "@/components/SignupTracker";
 import { LiveChat } from "@/components/LiveChat";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
@@ -92,6 +93,7 @@ export default function RootLayout({
                 <KeyboardNavigationProvider>
                   <div className="flex flex-col min-h-screen">
                     <Navbar />
+                    <ReferralDiscountBanner />
                     
                     <main className="flex-grow max-w-6xl mx-auto px-6 py-10 w-full">
                        <ReferralTracker />

@@ -1,5 +1,15 @@
 # Affiliate System Flow & Mock Mode Behavior
 
+## 🎁 Give 10%, Get 10% Program
+
+The Voyo affiliate program rewards both the referrer and the referred:
+- **Referred Users Get**: 10% off their first eSIM purchase
+- **Affiliates Get**: 10% commission on all purchases from referred users (lifetime)
+
+This creates a win-win situation that encourages sharing and grows the user base.
+
+---
+
 ## 📋 Complete Affiliate Flow
 
 ### Step 1: User Signs Up (Automatic)
@@ -14,12 +24,27 @@ When a **new user** is created (first purchase):
    - Frontend detects `?ref=ABC12345` in URL
    - Stores referral code in cookie (`voyage_ref`)
    - Cookie persists for 1 year
+   - **Banner appears**: "You've been referred! Get 10% off your first purchase"
 
 ### Step 3: New User Makes First Purchase
 When the referred user clicks "Buy Now":
 1. Referral code is read from cookie
 2. Referral code is sent to backend in checkout request
 3. Backend stores referral code in Stripe session metadata
+4. **10% discount is applied** to the checkout amount (first purchase only)
+   - Checkout page shows: "10% First Purchase Discount!"
+   - Discount is applied automatically at Stripe checkout
+
+### Step 3.5: First-Purchase Discount Logic
+The 10% discount is applied when:
+- ✅ User has a referral record (was referred by someone)
+- ✅ User's `firstPurchaseDiscountUsed` is `false`
+- ✅ User has no previous completed orders
+
+After the first purchase:
+- `Referral.firstPurchaseDiscountUsed` is set to `true`
+- Subsequent purchases are at full price
+- Affiliate still earns 10% commission on all purchases
 
 ### Step 4: Payment & User Creation
 After Stripe payment succeeds:
@@ -111,18 +136,26 @@ The affiliate dashboard shows:
 
 ## 💡 Key Points
 
-1. **Lifetime Commissions**: Once a referral link is used, ALL future purchases by that user generate commissions (forever)
+1. **Give 10%, Get 10%**: Referred users get 10% off their first purchase; affiliates earn 10% commission on all purchases
 
-2. **10% Commission**: Applied to:
-   - Initial eSIM purchases
+2. **First-Purchase Discount**:
+   - Applied automatically at checkout for referred users
+   - Only applies to the FIRST purchase (tracked by `firstPurchaseDiscountUsed` field)
+   - Does NOT apply to top-ups (only initial eSIM purchases)
+   - Does NOT apply to V-Cash payments
+
+3. **Lifetime Commissions**: Once a referral link is used, ALL future purchases by that user generate commissions (forever)
+
+4. **10% Commission**: Applied to:
+   - Initial eSIM purchases (based on discounted amount for first purchase)
    - All top-ups
    - Works in both mock and real mode
 
-3. **No Self-Referrals**: Users cannot refer themselves (system prevents this)
+5. **No Self-Referrals**: Users cannot refer themselves (system prevents this)
 
-4. **One Referral Per User**: Each user can only have ONE referrer (the first one who referred them)
+6. **One Referral Per User**: Each user can only have ONE referrer (the first one who referred them)
 
-5. **Cookie-Based Tracking**: Referral code stored in cookie, survives page refreshes and navigation
+7. **Cookie-Based Tracking**: Referral code stored in cookie, survives page refreshes and navigation
 
 ---
 
@@ -158,12 +191,14 @@ User
        └─ Commission[] (has many)
 
 Referral
-  └─ Points to: Affiliate (referrer) → User (referred)
+  ├─ Points to: Affiliate (referrer) → User (referred)
+  └─ firstPurchaseDiscountUsed: Boolean (default: false)
+     └─ Set to true after first purchase with discount
 
 Commission
   ├─ Links to: Affiliate
   ├─ Links to: Order or TopUp
-  └─ amountCents = 10% of purchase
+  └─ amountCents = 10% of purchase (discounted amount for first purchase)
 ```
 
 ---

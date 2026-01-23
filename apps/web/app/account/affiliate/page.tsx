@@ -264,9 +264,34 @@ export default function AffiliateDashboardPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">Affiliate Dashboard</h1>
-          <p className="text-[var(--voyo-muted)]">Earn 10% lifetime commissions on all referrals</p>
+          <p className="text-[var(--voyo-muted)]">Give 10%, Get 10% — Share the savings, earn together!</p>
         </div>
       </div>
+
+      {/* Give 10% Get 10% Explainer */}
+      <Card className="bg-gradient-to-r from-green-600/10 to-emerald-600/10 border-green-500/30">
+        <CardContent className="pt-6">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+            <div className="flex-1">
+              <h2 className="text-xl font-bold text-green-400 mb-2">🎁 Give 10%, Get 10%</h2>
+              <p className="text-[var(--voyo-muted)] text-sm">
+                When you share your referral link, your friends get <span className="text-green-400 font-semibold">10% off</span> their first purchase, 
+                and you earn <span className="text-[var(--voyo-accent)] font-semibold">10% commission</span> on all their purchases — forever!
+              </p>
+            </div>
+            <div className="flex gap-6 text-center">
+              <div className="bg-green-500/10 rounded-lg p-3 border border-green-500/30">
+                <p className="text-2xl font-bold text-green-400">10%</p>
+                <p className="text-xs text-[var(--voyo-muted)]">They Save</p>
+              </div>
+              <div className="bg-[var(--voyo-accent)]/10 rounded-lg p-3 border border-[var(--voyo-accent)]/30">
+                <p className="text-2xl font-bold text-[var(--voyo-accent)]">10%</p>
+                <p className="text-xs text-[var(--voyo-muted)]">You Earn</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Top Section: Referral Link & Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

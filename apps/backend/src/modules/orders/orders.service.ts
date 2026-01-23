@@ -486,9 +486,39 @@ export class OrdersService {
       }
 
       // Get amounts
-      const amountUSD = order.amountCents / 100;
+      let amountUSD = order.amountCents / 100;
+      const originalAmountUSD = amountUSD; // Store original for metadata
       const targetCurrency = (order.displayCurrency || order.currency || 'USD').toUpperCase();
-      const displayAmount = (order.displayAmountCents || order.amountCents) / 100;
+      
+      // Check for referral first-purchase discount eligibility (Give 10% Get 10%)
+      let referralDiscountApplied = false;
+      let referralId: string | null = null;
+      
+      // Check if user has a referral and hasn't used their first-purchase discount
+      const userReferral = await this.prisma.referral.findUnique({
+        where: { referredUserId: order.userId },
+      });
+      
+      if (userReferral && !userReferral.firstPurchaseDiscountUsed) {
+        // Check if this is the user's first order (no other completed orders)
+        const existingOrders = await this.prisma.order.count({
+          where: {
+            userId: order.userId,
+            status: { in: ['paid', 'active', 'esim_created', 'provisioning'] },
+            id: { not: order.id }, // Exclude current pending order
+          },
+        });
+        
+        if (existingOrders === 0) {
+          // Apply 10% discount
+          amountUSD = amountUSD * 0.9;
+          referralDiscountApplied = true;
+          referralId = userReferral.id;
+          this.logger.log(`[CHECKOUT] Applied 10% referral discount for first purchase: $${originalAmountUSD.toFixed(2)} -> $${amountUSD.toFixed(2)}`);
+        } else {
+          this.logger.log(`[CHECKOUT] User has ${existingOrders} previous orders, no first-purchase discount`);
+        }
+      }
 
       // Convert to target currency for Stripe
       let convertedAmount = amountUSD;
@@ -549,14 +579,21 @@ export class OrdersService {
         metadata: {
           orderId: order.id, // Store orderId in metadata for webhook
           planCode: order.planId,
-          amountUSD: amountUSD.toString(),
+          amountUSD: amountUSD.toString(), // Discounted amount
+          originalAmountUSD: originalAmountUSD.toString(), // Original amount before discount
           displayCurrency: targetCurrency,
           ...(referralCode ? { referralCode } : {}),
+          ...(referralDiscountApplied ? { referralDiscountApplied: 'true', referralId } : {}),
         },
       });
 
-      this.logger.log(`[CHECKOUT] Stripe session created: ${session.id} for order ${orderId}`);
-      return { url: session.url };
+      this.logger.log(`[CHECKOUT] Stripe session created: ${session.id} for order ${orderId}${referralDiscountApplied ? ' (with 10% referral discount)' : ''}`);
+      return { 
+        url: session.url,
+        referralDiscountApplied,
+        originalAmount: originalAmountUSD,
+        discountedAmount: referralDiscountApplied ? amountUSD : null,
+      };
     } catch (error) {
       this.logger.error('[CHECKOUT] Failed to create Stripe checkout session for order', error);
       
@@ -569,6 +606,61 @@ export class OrdersService {
           ? `Failed to create checkout: ${error.message}` 
           : 'Failed to create checkout. Please try again.'
       );
+    }
+  }
+
+  /**
+   * Check if user is eligible for the 10% first-purchase referral discount
+   * Returns discount info for display in checkout UI
+   */
+  async checkReferralDiscountEligibility(orderId: string): Promise<{
+    eligible: boolean;
+    discountPercent: number;
+    message: string;
+  }> {
+    try {
+      const order = await this.prisma.order.findUnique({
+        where: { id: orderId },
+      });
+
+      if (!order) {
+        return { eligible: false, discountPercent: 0, message: 'Order not found' };
+      }
+
+      // Check if user has a referral
+      const userReferral = await this.prisma.referral.findUnique({
+        where: { referredUserId: order.userId },
+      });
+
+      if (!userReferral) {
+        return { eligible: false, discountPercent: 0, message: 'No referral found' };
+      }
+
+      if (userReferral.firstPurchaseDiscountUsed) {
+        return { eligible: false, discountPercent: 0, message: 'First-purchase discount already used' };
+      }
+
+      // Check if this is the user's first order
+      const existingOrders = await this.prisma.order.count({
+        where: {
+          userId: order.userId,
+          status: { in: ['paid', 'active', 'esim_created', 'provisioning'] },
+          id: { not: order.id },
+        },
+      });
+
+      if (existingOrders > 0) {
+        return { eligible: false, discountPercent: 0, message: 'Not a first-time purchase' };
+      }
+
+      return { 
+        eligible: true, 
+        discountPercent: 10, 
+        message: '10% first-purchase discount will be applied!' 
+      };
+    } catch (error) {
+      this.logger.error(`[DISCOUNT] Error checking referral discount eligibility:`, error);
+      return { eligible: false, discountPercent: 0, message: 'Error checking eligibility' };
     }
   }
 
@@ -879,6 +971,19 @@ export class OrdersService {
 
       // Handle referral and affiliate setup
       await this.setupUserAffiliateAndReferral(user, referralCode);
+
+      // Mark first-purchase discount as used if it was applied
+      const referralDiscountApplied = session.metadata?.referralDiscountApplied === 'true';
+      const referralIdFromMeta = session.metadata?.referralId;
+      if (referralDiscountApplied && referralIdFromMeta) {
+        await this.prisma.referral.update({
+          where: { id: referralIdFromMeta },
+          data: { firstPurchaseDiscountUsed: true },
+        }).catch((err) => {
+          this.logger.error(`[CHECKOUT] Failed to mark first-purchase discount as used for referral ${referralIdFromMeta}:`, err);
+        });
+        this.logger.log(`[CHECKOUT] Marked first-purchase discount as used for referral ${referralIdFromMeta}`);
+      }
 
       // Continue with email sending and provisioning
       await this.processOrderCompletion(order, user, planCode);
