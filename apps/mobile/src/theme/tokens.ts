@@ -134,6 +134,7 @@ export const typography = {
       lineHeight: 34,
       letterSpacing: -0.5,
       color: colors.text.primary,
+      fontFamily: 'Inter_600SemiBold',
     },
     h1: { // Adding h1 alias for title
       fontSize: 28,
@@ -141,6 +142,7 @@ export const typography = {
       lineHeight: 34,
       letterSpacing: -0.5,
       color: colors.text.primary,
+      fontFamily: 'Inter_600SemiBold',
     },
     heading: {
       fontSize: 22,
@@ -148,6 +150,7 @@ export const typography = {
       lineHeight: 28,
       letterSpacing: -0.3,
       color: colors.text.primary,
+      fontFamily: 'Inter_600SemiBold',
     },
     h2: { // Adding h2 alias for heading
       fontSize: 22,
@@ -155,6 +158,7 @@ export const typography = {
       lineHeight: 28,
       letterSpacing: -0.3,
       color: colors.text.primary,
+      fontFamily: 'Inter_600SemiBold',
     },
     h3: {
       fontSize: 20,
@@ -162,6 +166,7 @@ export const typography = {
       lineHeight: 26,
       letterSpacing: -0.2,
       color: colors.text.primary,
+      fontFamily: 'Inter_600SemiBold',
     },
     body: {
       fontSize: 16,
@@ -169,6 +174,7 @@ export const typography = {
       lineHeight: 24,
       letterSpacing: -0.1,
       color: colors.text.primary,
+      fontFamily: 'Inter_400Regular',
     },
     bodyMedium: { // Kept for compatibility but refined
       fontSize: 16,
@@ -176,24 +182,28 @@ export const typography = {
       lineHeight: 24,
       letterSpacing: -0.1,
       color: colors.text.primary,
+      fontFamily: 'Inter_500Medium',
     },
     caption: {
       fontSize: 14,
       fontWeight: '400' as const,
       lineHeight: 20,
       color: colors.text.secondary,
+      fontFamily: 'Inter_400Regular',
     },
     small: {
       fontSize: 12,
       fontWeight: '400' as const,
       lineHeight: 16,
       color: colors.text.secondary,
+      fontFamily: 'Inter_400Regular',
     },
     tiny: {
       fontSize: 11,
       fontWeight: '500' as const,
       lineHeight: 14,
       color: colors.text.muted,
+      fontFamily: 'Inter_500Medium',
     },
   },
 } as const;

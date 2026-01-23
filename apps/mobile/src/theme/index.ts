@@ -99,6 +99,7 @@ export const theme = {
       fontSize: 16,
       fontWeight: '600' as const,
       borderRadius: radius.full, // Rounder
+      fontFamily: 'Inter_600SemiBold',
     },
     md: {
       height: 44,
@@ -106,6 +107,7 @@ export const theme = {
       fontSize: 15,
       fontWeight: '600' as const,
       borderRadius: radius.full,
+      fontFamily: 'Inter_600SemiBold',
     },
     sm: {
       height: 36,
@@ -113,6 +115,7 @@ export const theme = {
       fontSize: 14,
       fontWeight: '500' as const,
       borderRadius: radius.full,
+      fontFamily: 'Inter_500Medium',
     },
   },
   
@@ -123,12 +126,14 @@ export const theme = {
       paddingHorizontal: spacing.md,
       fontSize: 16,
       borderRadius: radius.md,
+      fontFamily: 'Inter_400Regular',
     },
     lg: {
       height: 56,
       paddingHorizontal: 20,
       fontSize: 17,
       borderRadius: radius.lg,
+      fontFamily: 'Inter_400Regular',
     },
   },
   

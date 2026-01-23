@@ -168,6 +168,11 @@ export function filterCountrySpecificPlans(plans: Plan[], countryCode: string): 
  */
 export function filterVisiblePlans(plans: Plan[], getDiscount?: (packageCode: string, gb: number) => number): Plan[] {
   return plans.filter((plan) => {
+    // TEMPORARY: Bypass all filters for Malaysia test plan PJJ7HCK42
+    if (plan.packageCode === 'PJJ7HCK42') {
+      return true;
+    }
+    
     const gb = calculateGB(plan.volume);
     const isUnlimited = isDailyUnlimitedPlan(plan);
     

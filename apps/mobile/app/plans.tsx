@@ -76,7 +76,32 @@ export default function Plans() {
         fetchDiscounts(), // This populates the cache
       ]);
       
-      setRawPlans(Array.isArray(plansData) ? plansData : []);
+      let plans = Array.isArray(plansData) ? plansData : [];
+      
+      // TEMPORARY: Add real Malaysia test plan (PJJ7HCK42) - bypasses all filters
+      if (params.countryId === 'MY' || params.countryId?.toUpperCase() === 'MY') {
+        // Remove any existing plan with this package code to avoid duplicates
+        plans = plans.filter(p => p.packageCode !== 'PJJ7HCK42' && p.id !== 'PJJ7HCK42');
+        
+        const testPlan: Plan = {
+          packageCode: 'PJJ7HCK42',
+          id: 'PJJ7HCK42',
+          name: 'Malaysia 500MB/Day (nonhkip)',
+          price: 0.50,
+          volume: 512, // 500MB in MB (0.5GB)
+          duration: 1,
+          durationUnit: 'day',
+          location: 'MY',
+          currencyCode: 'USD',
+          description: 'Temporary test plan for debugging - bypasses filters',
+        };
+        
+        // Add test plan to the beginning of the array
+        plans = [testPlan, ...plans];
+        console.log('[TEST] Added temporary test plan PJJ7HCK42 for Malaysia - bypasses filters');
+      }
+      
+      setRawPlans(plans);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch plans';
       setError(errorMessage);
