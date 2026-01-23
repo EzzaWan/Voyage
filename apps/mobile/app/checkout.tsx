@@ -489,7 +489,13 @@ export default function Checkout() {
           
           <View style={styles.orderInfoRow}>
             <Text style={styles.orderInfoLabel}>Order ID</Text>
-            <Text style={styles.orderInfoValue}>{params.orderId}</Text>
+            <Text 
+              style={styles.orderInfoValue} 
+              numberOfLines={1} 
+              ellipsizeMode="middle"
+            >
+              {params.orderId}
+            </Text>
           </View>
         </View>
 
@@ -499,7 +505,7 @@ export default function Checkout() {
           
           {user?.primaryEmailAddress?.emailAddress ? (
             <View style={styles.emailDisplay}>
-              <Ionicons name="mail-outline" size={20} color={theme.colors.textMuted} />
+              <Ionicons name="mail-outline" size={24} color={theme.colors.textMuted} style={{ marginRight: 12 }} />
               <View>
                 <Text style={styles.emailText}>{user.primaryEmailAddress.emailAddress}</Text>
                 <Text style={styles.emailHint}>eSIM will be sent here</Text>
@@ -524,32 +530,6 @@ export default function Checkout() {
             </>
           )}
         </View>
-
-        {/* V-Cash Section */}
-        {user && vCashBalance && vCashBalance.balanceCents > 0 && (
-          <View style={styles.card}>
-            <View style={styles.vCashHeader}>
-              <View style={styles.vCashTitleRow}>
-                <Ionicons name="wallet-outline" size={22} color={theme.colors.primary} />
-                <Text style={styles.cardTitleNoMargin}>Pay with V-Cash</Text>
-              </View>
-              <Switch
-                value={useVCash}
-                onValueChange={setUseVCash}
-                trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
-                thumbColor={theme.colors.white}
-              />
-            </View>
-            <Text style={styles.vCashBalance}>
-              Available balance: {formatPrice(vCashBalance.balanceCents, vCashBalance.currency)}
-            </Text>
-            {useVCash && (
-               <Text style={styles.vCashAppliedText}>
-                 Using {formatPrice(vCashDeduction, displayCurrency)} from your wallet
-               </Text>
-            )}
-          </View>
-        )}
 
         {/* Promo Code Card */}
         <View style={styles.card}>
@@ -648,6 +628,29 @@ export default function Checkout() {
             <Text style={styles.totalValue}>{formatPrice(finalTotal, displayCurrency)}</Text>
           </View>
         </View>
+
+        {/* V-Cash Toggle */}
+        {user && vCashBalance && vCashBalance.balanceCents > 0 && (
+          <View style={styles.vCashToggleContainer}>
+            <View style={styles.vCashLeft}>
+              <View style={styles.vCashIconContainer}>
+                <Ionicons name="wallet" size={20} color={theme.colors.primary} />
+              </View>
+              <View>
+                <Text style={styles.vCashLabel}>Pay with V-Cash</Text>
+                <Text style={styles.vCashBalanceSimple}>
+                  Balance: {formatPrice(vCashBalance.balanceCents, vCashBalance.currency)}
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={useVCash}
+              onValueChange={setUseVCash}
+              trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
+              thumbColor={theme.colors.white}
+            />
+          </View>
+        )}
 
         {/* Proceed to Payment Button */}
         <TouchableOpacity
@@ -863,31 +866,38 @@ const styles = StyleSheet.create({
   },
   
   // V-Cash
-  vCashHeader: {
+  vCashToggleContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: theme.spacing.sm,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
-  vCashTitleRow: {
+  vCashLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.sm,
+    gap: theme.spacing.md,
   },
-  cardTitleNoMargin: {
-    fontSize: 18,
+  vCashIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(30, 144, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  vCashLabel: {
+    ...theme.typography.body,
     fontWeight: '600' as const,
     color: theme.colors.text,
   },
-  vCashBalance: {
-    ...theme.typography.body,
-    color: theme.colors.textSecondary,
-    marginBottom: 4,
-  },
-  vCashAppliedText: {
+  vCashBalanceSimple: {
     ...theme.typography.small,
-    color: theme.colors.primary,
-    fontWeight: '600' as const,
+    color: theme.colors.textSecondary,
   },
 
   // Email
