@@ -1,5 +1,5 @@
 /**
- * Voyage Mobile Theme
+ * Voyo Mobile Theme
  * Main theme export with backward-compatible structure
  */
 

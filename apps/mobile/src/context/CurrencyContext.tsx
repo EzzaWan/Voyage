@@ -24,7 +24,7 @@ const defaultContext: CurrencyContextType = {
 
 const CurrencyContext = createContext<CurrencyContextType>(defaultContext);
 
-const CURRENCY_STORAGE_KEY = 'voyage_currency';
+const CURRENCY_STORAGE_KEY = 'voyo_currency';
 
 // Supported currencies with symbols
 export const SUPPORTED_CURRENCIES = [

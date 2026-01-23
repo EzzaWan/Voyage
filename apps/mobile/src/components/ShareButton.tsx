@@ -100,7 +100,7 @@ export function SharePlanButton({
   style = 'icon',
 }: SharePlanButtonProps) {
   const title = `${countryName} eSIM Plan`;
-  const message = `Check out this eSIM plan for ${countryName}: ${planName} for ${planPrice}. Get connected instantly with Voyage eSIM!`;
+  const message = `Check out this eSIM plan for ${countryName}: ${planName} for ${planPrice}. Get connected instantly with Voyo eSIM!`;
   const url = 'https://voyagedata.io';
 
   return (
@@ -126,7 +126,7 @@ export function ShareReferralButton({
   referralLink,
   style = 'primary',
 }: ShareReferralButtonProps) {
-  const title = 'Get eSIM with Voyage';
+  const title = 'Get eSIM with Voyo';
   const message = `Use my referral code "${referralCode}" to get great deals on eSIM data for your travels!`;
 
   return (

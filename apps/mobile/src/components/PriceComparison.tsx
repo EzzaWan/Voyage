@@ -32,9 +32,9 @@ export function PriceComparison() {
           </View>
         ))}
         
-        {/* Voyage - Highlighted */}
-        <View style={styles.voyageBox}>
-          <Text style={styles.voyageName}>Voyage</Text>
+        {/* Voyo - Highlighted */}
+        <View style={styles.voyoBox}>
+          <Text style={styles.voyoName}>Voyo</Text>
           <View style={styles.bestBadge}>
             <Ionicons name="checkmark" size={10} color={theme.colors.white} style={styles.bestBadgeIcon} />
             <Text style={styles.bestBadgeText}>Best</Text>
@@ -118,8 +118,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   
-  // Voyage
-  voyageBox: {
+  // Voyo
+  voyoBox: {
     flex: 1,
     backgroundColor: theme.colors.primary,
     borderRadius: theme.borderRadius.md,
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     minHeight: 60,
     ...theme.shadows.primaryGlow,
   },
-  voyageName: {
+  voyoName: {
     fontSize: 14,
     fontWeight: '700',
     color: theme.colors.white,

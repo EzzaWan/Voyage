@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
   },
   iconContainerActive: {
     backgroundColor: 'transparent', // Saily doesn't use pill background for active tab icons, just color change usually.
-    // But Voyage used pill. I'll remove pill bg to match Saily's cleaner look.
+    // But Voyo used pill. I'll remove pill bg to match Saily's cleaner look.
   },
   tabLabel: {
     ...theme.typography.small,

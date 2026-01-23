@@ -180,7 +180,7 @@ export default function Account() {
             <Ionicons name="chevron-forward" size={20} color={theme.colors.textMuted} />
           </View>
           <Text style={styles.vcashHint}>
-            Store credit for Voyage purchases. Earn from refunds or affiliate earnings.
+            Store credit for Voyo purchases. Earn from refunds or affiliate earnings.
           </Text>
         </TouchableOpacity>
 

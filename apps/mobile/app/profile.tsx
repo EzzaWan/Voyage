@@ -70,7 +70,7 @@ export default function Profile() {
     },
     {
       id: 'affiliate',
-      label: 'Voyage Affiliate',
+      label: 'Voyo Affiliate',
       onPress: () => router.push('/affiliate'),
       showArrow: true,
     },
@@ -162,7 +162,7 @@ export default function Profile() {
               </Text>
               {item.label === 'Marketing communication' && (
                 <Text style={styles.menuSubLabel}>
-                  Enable this option to receive exclusive Voyage offers and promotions.
+                  Enable this option to receive exclusive Voyo offers and promotions.
                 </Text>
               )}
             </View>

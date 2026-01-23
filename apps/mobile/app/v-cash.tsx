@@ -183,7 +183,7 @@ export default function VCash() {
         {/* Affiliate Program Card */}
         {isSignedIn && (
           <View style={styles.referralCard}>
-            <Text style={styles.referralTitle}>Voyage Affiliate Program</Text>
+            <Text style={styles.referralTitle}>Voyo Affiliate Program</Text>
             <Text style={styles.referralText}>
               Earn 10% lifetime commission on all purchases made by users you refer. Share your unique referral code and start earning today!
             </Text>

@@ -1,6 +1,6 @@
 /**
- * Voyage Mobile Design Tokens
- * Premium dark theme matching Voyage web brand
+ * Voyo Mobile Design Tokens
+ * Premium dark theme matching Voyo web brand
  * System fonts only, mobile-first readability
  */
 
@@ -9,9 +9,9 @@
 // ============================================================================
 
 export const colors = {
-  // Primary - Voyage Blue (matching web)
+  // Primary - Voyo Blue (matching web)
   primary: {
-    main: '#1E90FF',        // Dodger blue - Voyage brand
+    main: '#1E90FF',        // Dodger blue - Voyo brand
     soft: '#4BA3FF',        // Lighter variant
     muted: 'rgba(30, 144, 255, 0.10)',  // Lower opacity for subtler tints
     border: 'rgba(30, 144, 255, 0.30)', // Border variants

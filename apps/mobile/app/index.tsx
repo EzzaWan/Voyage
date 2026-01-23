@@ -561,7 +561,7 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background, // Voyage Navy (Saily is Light Gray)
+    backgroundColor: theme.colors.background, // Voyo Navy (Saily is Light Gray)
   },
   safeAreaSpacer: {
     height: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 8,
@@ -615,7 +615,7 @@ const styles = StyleSheet.create({
     marginRight: theme.spacing.sm,
   },
   activeTab: {
-    backgroundColor: theme.colors.primary, // Active tab (Blue for Voyage, Yellow for Saily)
+    backgroundColor: theme.colors.primary, // Active tab (Blue for Voyo, Yellow for Saily)
   },
   tabText: {
     fontSize: 14,

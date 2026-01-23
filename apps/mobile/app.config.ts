@@ -80,9 +80,9 @@ console.log('[app.config] Setting extra.apiBaseUrl to:', apiBaseUrlValue);
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'Voyage',
-  slug: 'voyage-mobile',
-  scheme: 'voyage',
+  name: 'Voyo',
+  slug: 'voyo-mobile',
+  scheme: 'voyo',
   sdkVersion: '54.0.0',
   version: '1.0.0',
   orientation: 'portrait',

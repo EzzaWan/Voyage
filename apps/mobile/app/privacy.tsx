@@ -22,7 +22,7 @@ export default function PrivacyPolicy() {
         {/* Introduction */}
         <View style={styles.section}>
           <Text style={styles.sectionText}>
-            Voyage eSIM ("we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application and services.
+            Voyo eSIM ("we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application and services.
           </Text>
         </View>
 

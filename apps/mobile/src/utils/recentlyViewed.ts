@@ -1,6 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
 
-const RECENTLY_VIEWED_KEY = 'voyage_recently_viewed';
+const RECENTLY_VIEWED_KEY = 'voyo_recently_viewed';
 const MAX_ITEMS = 10;
 
 export interface RecentlyViewedItem {

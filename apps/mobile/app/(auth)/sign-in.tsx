@@ -117,7 +117,7 @@ export default function SignInScreen() {
               <Ionicons name="airplane" size={36} color={theme.colors.primary} />
             </View>
             <Text style={styles.title}>Welcome back</Text>
-            <Text style={styles.subtitle}>Sign in to your Voyage account</Text>
+            <Text style={styles.subtitle}>Sign in to your Voyo account</Text>
           </View>
 
           {/* Error */}

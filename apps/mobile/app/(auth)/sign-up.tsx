@@ -92,7 +92,7 @@ export default function SignUpScreen() {
               <Ionicons name="globe" size={48} color={theme.colors.primary} />
             </View>
             <Text style={styles.title}>Create account</Text>
-            <Text style={styles.subtitle}>Start your journey with Voyage</Text>
+            <Text style={styles.subtitle}>Start your journey with Voyo</Text>
           </View>
 
           {/* Error */}

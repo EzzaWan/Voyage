@@ -145,12 +145,12 @@ function TermsOfServiceContent() {
     <View style={styles.policyContent}>
       <Text style={styles.policyTitle}>Terms of Service</Text>
       <Text style={styles.policyIntro}>
-        Please read these Terms of Service carefully before using Voyage eSIM services.
+        Please read these Terms of Service carefully before using Voyo eSIM services.
       </Text>
 
       <Section title="1. Definitions">
         <Text style={styles.sectionText}>
-          <Text style={styles.bold}>"Voyage"</Text> refers to our eSIM marketplace platform and services.
+          <Text style={styles.bold}>"Voyo"</Text> refers to our eSIM marketplace platform and services.
         </Text>
         <Text style={styles.sectionText}>
           <Text style={styles.bold}>"eSIM"</Text> refers to the electronic SIM profile provided through our platform.
@@ -216,7 +216,7 @@ function AffiliateTermsContent() {
     <View style={styles.policyContent}>
       <Text style={styles.policyTitle}>Affiliate Program Terms</Text>
       <Text style={styles.policyIntro}>
-        These terms govern participation in the Voyage eSIM Affiliate Program.
+        These terms govern participation in the Voyo eSIM Affiliate Program.
       </Text>
 
       <Section title="1. Program Overview">
@@ -228,7 +228,7 @@ function AffiliateTermsContent() {
 
       <Section title="2. Eligibility">
         <Text style={styles.sectionText}>• You must be 18 years or older to participate.</Text>
-        <Text style={styles.sectionText}>• You must have an active Voyage account in good standing.</Text>
+        <Text style={styles.sectionText}>• You must have an active Voyo account in good standing.</Text>
         <Text style={styles.sectionText}>• Self-referrals are not allowed and will result in account termination.</Text>
         <Text style={styles.sectionText}>• Multiple accounts per person are prohibited.</Text>
       </Section>
@@ -251,7 +251,7 @@ function AffiliateTermsContent() {
         <Text style={styles.sectionText}>• Using spam or misleading marketing tactics.</Text>
         <Text style={styles.sectionText}>• Creating fake accounts or fraudulent referrals.</Text>
         <Text style={styles.sectionText}>• Bidding on branded keywords in paid advertising.</Text>
-        <Text style={styles.sectionText}>• Misrepresenting Voyage services or pricing.</Text>
+        <Text style={styles.sectionText}>• Misrepresenting Voyo services or pricing.</Text>
         <Text style={styles.sectionText}>• Cookie stuffing or forced clicks.</Text>
       </Section>
 
@@ -276,7 +276,7 @@ function PrivacyPolicyContent() {
     <View style={styles.policyContent}>
       <Text style={styles.policyTitle}>Privacy Policy</Text>
       <Text style={styles.policyIntro}>
-        Voyage eSIM is committed to protecting your privacy. This policy explains how we collect, use, and safeguard your information.
+        Voyo eSIM is committed to protecting your privacy. This policy explains how we collect, use, and safeguard your information.
       </Text>
 
       <Section title="1. Information We Collect">
