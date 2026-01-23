@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 28,
-    backgroundColor: theme.colors.primaryMuted,
+    backgroundColor: 'rgba(30, 144, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: theme.spacing.lg,
@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
   },
   signInButtonText: {
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
   },
   
   // Header
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
   },
   newTicketHeaderButtonText: {
     color: theme.colors.white,
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
   },
   
   // Ticket Card
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
   },
   ticketId: {
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
     color: theme.colors.text,
     fontFamily: 'monospace',
   },
@@ -380,13 +380,13 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.backgroundLight,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.round,
   },
   badgeAccent: {
-    backgroundColor: theme.colors.primaryMuted,
+    backgroundColor: 'rgba(30, 144, 255, 0.15)',
   },
   badgeText: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.textSecondary,
   },
   badgeTextAccent: {
@@ -457,7 +457,7 @@ const styles = StyleSheet.create({
   },
   newTicketButtonText: {
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
   },
 });
 

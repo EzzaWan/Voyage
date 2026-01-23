@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image, Platform, StatusBar } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { apiFetch } from '../src/api/client';
 import { theme } from '../src/theme';
@@ -299,7 +300,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: theme.spacing.md,
     borderWidth: 1,
-    borderColor: theme.colors.border.muted,
+    borderColor: theme.colors.border,
   },
   regionIconText: {
     fontSize: 20,

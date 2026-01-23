@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 24,
-    backgroundColor: theme.colors.primaryMuted,
+    backgroundColor: 'rgba(30, 144, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: theme.spacing.lg,
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.md,
     marginBottom: theme.spacing.lg,
     borderWidth: 1,
-    borderColor: theme.colors.errorBorder,
+    borderColor: 'rgba(239, 68, 68, 0.25)',
   },
   errorIcon: {
     fontSize: 16,
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   inputLabel: {
-    ...theme.typography.captionMedium,
+    ...theme.typography.caption, fontWeight: '500' as const,
     color: theme.colors.text,
     marginBottom: theme.spacing.sm,
   },
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
   },
   primaryButtonText: {
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
     color: theme.colors.white,
   },
   secondaryButton: {
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.sm,
   },
   secondaryButtonText: {
-    ...theme.typography.captionMedium,
+    ...theme.typography.caption, fontWeight: '500' as const,
     color: theme.colors.primary,
   },
   
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 20,
-    backgroundColor: theme.colors.primaryMuted,
+    backgroundColor: 'rgba(30, 144, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: theme.spacing.md,
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
   },
   footerLink: {
-    ...theme.typography.captionMedium,
+    ...theme.typography.caption, fontWeight: '500' as const,
     color: theme.colors.primary,
   },
 });

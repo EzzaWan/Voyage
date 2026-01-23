@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
   },
   retryButtonText: {
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
   },
   
   // Header
@@ -437,7 +437,7 @@ const styles = StyleSheet.create({
   statusBadge: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.round,
   },
   statusText: {
     ...theme.typography.small,
@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textMuted,
   },
   cardValue: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
     color: theme.colors.text,
   },
   cardValueMono: {
@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   planName: {
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
     color: theme.colors.text,
     marginBottom: theme.spacing.xs,
   },
@@ -520,10 +520,10 @@ const styles = StyleSheet.create({
   esimStatusBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.round,
   },
   esimStatusText: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     fontWeight: '600',
   },
   
@@ -546,14 +546,14 @@ const styles = StyleSheet.create({
     height: 120,
   },
   viewEsimButton: {
-    backgroundColor: theme.colors.primaryMuted,
+    backgroundColor: 'rgba(30, 144, 255, 0.15)',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: theme.borderRadius.md,
   },
   viewEsimButtonText: {
     color: theme.colors.primary,
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
   },
   
   // Actions
@@ -574,7 +574,7 @@ const styles = StyleSheet.create({
   },
   primaryActionText: {
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
   },
   secondaryAction: {
     backgroundColor: theme.colors.backgroundLight,
@@ -586,7 +586,7 @@ const styles = StyleSheet.create({
   },
   secondaryActionText: {
     color: theme.colors.text,
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
   },
 });
 

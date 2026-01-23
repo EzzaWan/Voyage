@@ -94,7 +94,7 @@ export default function DeviceCheck() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerIconContainer}>
-          <Ionicons name="phone-portrait" size={80} color={theme.colors.primaryMuted} />
+          <Ionicons name="phone-portrait" size={80} color={'rgba(30, 144, 255, 0.15)'} />
         </View>
         <Text style={styles.title}>Device Compatibility</Text>
         <Text style={styles.subtitle}>
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 24,
-    backgroundColor: theme.colors.primaryMuted,
+    backgroundColor: 'rgba(30, 144, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: theme.spacing.md,
@@ -308,7 +308,8 @@ const styles = StyleSheet.create({
     fontSize: 40,
   },
   title: {
-    ...theme.typography.h1,
+    fontSize: 32,
+    fontWeight: '700' as const,
     color: theme.colors.text,
     textAlign: 'center',
     marginBottom: theme.spacing.xs,
@@ -329,7 +330,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
   },
   searchLabel: {
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
     color: theme.colors.text,
     marginBottom: theme.spacing.md,
   },
@@ -399,9 +400,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
   },
   checkButtonText: {
-    color: theme.colors.white,
-    ...theme.typography.bodyBold,
+    ...theme.typography.body,
+    fontWeight: '600' as const,
     fontSize: 16,
+    color: theme.colors.white,
   },
   
   // Result Card
@@ -419,7 +421,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.round,
     marginBottom: theme.spacing.md,
     gap: 6,
   },
@@ -453,7 +455,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   deviceInfoValue: {
-    ...theme.typography.h3,
+    fontSize: 20,
+    fontWeight: '600' as const,
     color: theme.colors.text,
   },
   
@@ -462,7 +465,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   notesTitle: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
     color: theme.colors.text,
     marginBottom: theme.spacing.sm,
   },
@@ -507,8 +510,9 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   browsePlansButtonText: {
+    ...theme.typography.body,
+    fontWeight: '600' as const,
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
   },
   browsePlansButtonIcon: {
     color: theme.colors.white,
@@ -525,8 +529,9 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
   },
   supportButtonText: {
+    ...theme.typography.body,
+    fontWeight: '600' as const,
     color: theme.colors.text,
-    ...theme.typography.bodyBold,
   },
   
   // Info Card
@@ -538,7 +543,8 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
   },
   infoTitle: {
-    ...theme.typography.h3,
+    fontSize: 20,
+    fontWeight: '600' as const,
     color: theme.colors.text,
     marginBottom: theme.spacing.sm,
   },

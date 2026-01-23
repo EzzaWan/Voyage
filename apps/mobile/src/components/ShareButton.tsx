@@ -167,7 +167,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   buttonText: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body,
+    fontWeight: '500',
   },
   buttonTextPrimary: {
     color: theme.colors.white,

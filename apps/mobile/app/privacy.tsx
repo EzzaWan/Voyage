@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
   },
   contactButtonText: {
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
   },
 });
 

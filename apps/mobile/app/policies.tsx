@@ -389,14 +389,14 @@ const styles = StyleSheet.create({
   tab: {
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.round,
     backgroundColor: 'transparent',
   },
   tabActive: {
     backgroundColor: theme.colors.primary,
   },
   tabText: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
     color: theme.colors.textSecondary,
   },
   tabTextActive: {
@@ -408,7 +408,8 @@ const styles = StyleSheet.create({
     gap: theme.spacing.lg,
   },
   policyTitle: {
-    ...theme.typography.h1,
+    fontSize: 32,
+    fontWeight: '700' as const,
     color: theme.colors.text,
   },
   policyIntro: {
@@ -434,12 +435,13 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(239, 68, 68, 0.2)',
   },
   cardTitle: {
-    ...theme.typography.h3,
+    fontSize: 20,
+    fontWeight: '600' as const,
     color: theme.colors.text,
     marginBottom: theme.spacing.sm,
   },
   cardSubtitle: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
     color: theme.colors.text,
     marginBottom: theme.spacing.md,
   },
@@ -452,7 +454,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   bulletTitle: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
     color: theme.colors.text,
   },
   bulletText: {
@@ -486,7 +488,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   numberedTitle: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
     color: theme.colors.text,
   },
   numberedText: {
@@ -500,7 +502,8 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   notesTitle: {
-    ...theme.typography.h3,
+    fontSize: 20,
+    fontWeight: '600' as const,
     color: theme.colors.text,
     marginBottom: theme.spacing.sm,
   },
@@ -519,7 +522,8 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
   },
   sectionTitle: {
-    ...theme.typography.h3,
+    fontSize: 20,
+    fontWeight: '600' as const,
     color: theme.colors.text,
     marginBottom: theme.spacing.sm,
   },
@@ -559,8 +563,9 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   contactButtonText: {
+    ...theme.typography.body,
+    fontWeight: '600' as const,
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
   },
 });
 

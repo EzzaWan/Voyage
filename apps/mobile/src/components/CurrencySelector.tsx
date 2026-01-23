@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, FlatList, Dimensions } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../theme';
 import { useCurrency, SUPPORTED_CURRENCIES } from '../context/CurrencyContext';
 
@@ -183,7 +184,8 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
   },
   selectorText: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body,
+    fontWeight: '500',
     color: theme.colors.text,
     marginRight: 6,
   },
@@ -234,6 +236,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     ...theme.typography.h3,
     color: theme.colors.text,
+    fontWeight: '600',
   },
   closeButton: {
     fontSize: 20,
@@ -255,7 +258,7 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.border,
   },
   currencyItemSelected: {
-    backgroundColor: theme.colors.primaryMuted,
+    backgroundColor: 'rgba(30, 144, 255, 0.15)',
     marginHorizontal: -theme.spacing.md,
     paddingHorizontal: theme.spacing.md * 2,
     borderRadius: theme.borderRadius.md,
@@ -265,7 +268,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   currencyCode: {
-    ...theme.typography.bodyBold,
+    ...theme.typography.body,
+    fontWeight: '600',
     color: theme.colors.text,
     marginBottom: 2,
   },

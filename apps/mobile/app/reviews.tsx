@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ActivityIndicator, Modal, Platform, StatusBar } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useUser } from '@clerk/clerk-expo';
 import { apiFetch } from '../src/api/client';
@@ -440,8 +441,9 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   writeReviewButtonText: {
+    ...theme.typography.body,
+    fontWeight: '600' as const,
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
   },
   
   // Filters
@@ -455,7 +457,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.card,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.round,
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
@@ -514,7 +516,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(34, 197, 94, 0.1)',
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.round,
     gap: 4,
   },
   verifiedIcon: {
@@ -559,7 +561,7 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.sm,
   },
   loadMoreText: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
     color: theme.colors.text,
   },
   
@@ -583,7 +585,8 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.lg,
   },
   modalTitle: {
-    ...theme.typography.h2,
+    fontSize: 24,
+    fontWeight: '700' as const,
     color: theme.colors.text,
   },
   modalClose: {
@@ -591,7 +594,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textMuted,
   },
   modalLabel: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
     color: theme.colors.text,
     marginBottom: theme.spacing.sm,
     marginTop: theme.spacing.md,
@@ -628,8 +631,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.border,
   },
   submitButtonText: {
+    ...theme.typography.body,
+    fontWeight: '600' as const,
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
   },
 });
 

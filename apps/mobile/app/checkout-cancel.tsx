@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
   },
   secondaryButton: {
     backgroundColor: theme.colors.backgroundLight,
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: theme.colors.text,
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
   },
   
   // Help

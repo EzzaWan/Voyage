@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { theme } from '../theme';
 import { getRecentlyViewed, clearRecentlyViewed, RecentlyViewedItem } from '../utils/recentlyViewed';
@@ -65,7 +66,7 @@ export function RecentlyViewed({ maxItems = 5, onNavigate }: RecentlyViewedProps
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.headerIcon}>🕐</Text>
+          <Ionicons name="time-outline" size={16} color={theme.colors.textMuted} style={styles.headerIcon} />
           <Text style={styles.headerTitle}>Recently Viewed</Text>
         </View>
         <TouchableOpacity onPress={handleClear} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
@@ -85,9 +86,13 @@ export function RecentlyViewed({ maxItems = 5, onNavigate }: RecentlyViewedProps
             onPress={() => handleItemPress(item)}
             activeOpacity={0.8}
           >
-            <Text style={styles.itemIcon}>
-              {item.type === 'country' ? getCountryFlag(item.code || '') : '🌐'}
-            </Text>
+            {item.type === 'country' ? (
+              <Text style={styles.itemIcon}>
+                {getCountryFlag(item.code || '')}
+              </Text>
+            ) : (
+              <Ionicons name="globe-outline" size={16} color={theme.colors.textMuted} style={styles.itemIcon} />
+            )}
             <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
           </TouchableOpacity>
         ))}
@@ -115,11 +120,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerIcon: {
-    fontSize: 16,
     marginRight: theme.spacing.xs,
   },
   headerTitle: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body,
+    fontWeight: '500',
     color: theme.colors.text,
   },
   clearButton: {
@@ -140,7 +145,6 @@ const styles = StyleSheet.create({
     marginRight: theme.spacing.sm,
   },
   itemIcon: {
-    fontSize: 16,
     marginRight: theme.spacing.xs,
   },
   itemName: {

@@ -299,7 +299,8 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   errorTitle: {
-    ...theme.typography.h2,
+    fontSize: 24,
+    fontWeight: '700' as const,
     color: theme.colors.text,
     marginBottom: theme.spacing.sm,
   },
@@ -316,8 +317,9 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.md,
   },
   retryButtonText: {
+    ...theme.typography.body,
+    fontWeight: '600' as const,
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
   },
   
   safeAreaSpacer: {
@@ -341,7 +343,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 16,
-    backgroundColor: theme.colors.primaryMuted,
+    backgroundColor: 'rgba(30, 144, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: theme.spacing.md,
@@ -350,7 +352,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    ...theme.typography.h3,
+    fontSize: 20,
+    fontWeight: '600' as const,
     color: theme.colors.text,
     marginBottom: 2,
   },
@@ -359,7 +362,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
   },
   iccidText: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.textMuted,
     fontFamily: 'monospace',
     marginTop: 4,
@@ -388,14 +391,14 @@ const styles = StyleSheet.create({
   },
   durationBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: theme.colors.primaryMuted,
+    backgroundColor: 'rgba(30, 144, 255, 0.15)',
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.round,
     marginBottom: theme.spacing.sm,
   },
   durationBadgeText: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.primary,
     fontWeight: '600',
   },
@@ -426,7 +429,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   specText: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.textMuted,
   },
   specDivider: {
@@ -441,7 +444,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   priceLabel: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.textMuted,
   },
   price: {
@@ -478,7 +481,8 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   emptyTitle: {
-    ...theme.typography.h2,
+    fontSize: 24,
+    fontWeight: '700' as const,
     color: theme.colors.text,
     marginBottom: theme.spacing.sm,
   },
@@ -498,8 +502,9 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
   },
   backButtonText: {
+    ...theme.typography.body,
+    fontWeight: '600' as const,
     color: theme.colors.text,
-    ...theme.typography.bodyBold,
   },
 });
 

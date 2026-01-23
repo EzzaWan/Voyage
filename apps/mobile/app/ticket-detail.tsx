@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
   },
   retryButtonText: {
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
   },
   
   // Header
@@ -391,15 +391,15 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.backgroundLight,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.round,
   },
   youBadgeText: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.text,
     fontWeight: '600',
   },
   messageDate: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.textMuted,
   },
   messageText: {
@@ -467,13 +467,13 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.backgroundLight,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.round,
   },
   replyBadgeAdmin: {
     backgroundColor: theme.colors.primary,
   },
   replyBadgeText: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.text,
     fontWeight: '600',
   },
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
     color: theme.colors.white,
   },
   replyDate: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.textMuted,
   },
   replyText: {
@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.sm,
   },
   charCount: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.textMuted,
   },
   sendButton: {
@@ -532,7 +532,7 @@ const styles = StyleSheet.create({
   },
   sendButtonText: {
     color: theme.colors.white,
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
   },
 });
 

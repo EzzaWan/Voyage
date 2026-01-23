@@ -573,7 +573,7 @@ const styles = StyleSheet.create({
   },
   signInButtonText: {
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
   },
   
   // Tabs
@@ -595,7 +595,7 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.primary,
   },
   tabText: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
     color: theme.colors.textSecondary,
   },
   tabTextActive: {
@@ -604,7 +604,7 @@ const styles = StyleSheet.create({
   
   // Balance Card
   balanceCard: {
-    backgroundColor: theme.colors.primaryMuted,
+    backgroundColor: 'rgba(30, 144, 255, 0.15)',
     borderRadius: theme.borderRadius.xl,
     padding: theme.spacing.lg,
     marginBottom: theme.spacing.md,
@@ -628,7 +628,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   balanceMin: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.textMuted,
   },
   
@@ -658,7 +658,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   inputLabel: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
     color: theme.colors.text,
     marginBottom: 8,
   },
@@ -676,7 +676,7 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
   },
   inputHint: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.textMuted,
     marginTop: 4,
   },
@@ -700,7 +700,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.primary,
   },
   methodTypeText: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
     color: theme.colors.textSecondary,
   },
   methodTypeTextActive: {
@@ -722,7 +722,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
   },
   buttonDisabled: {
     backgroundColor: theme.colors.border,
@@ -746,21 +746,21 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   historyAmount: {
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
     color: theme.colors.text,
   },
   statusBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.round,
   },
   statusText: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     fontWeight: '600',
     textTransform: 'uppercase',
   },
   historyDate: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.textMuted,
   },
   historyNote: {

@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   listContent: {
     paddingLeft: 16, // Explicit 16px padding
     paddingRight: 16, // Explicit 16px padding
-    paddingTop: theme.spacing.base,
+    paddingTop: theme.spacing.md,
     paddingBottom: 100,
   },
   // List Item (Redesigned)

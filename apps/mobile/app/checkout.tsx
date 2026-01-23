@@ -632,11 +632,12 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.sm,
   },
   backButtonText: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
     color: theme.colors.primary,
   },
   headerTitle: {
-    ...theme.typography.h3,
+    fontSize: 20,
+    fontWeight: '600' as const,
     color: theme.colors.text,
   },
   
@@ -664,7 +665,8 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   errorTitle: {
-    ...theme.typography.h2,
+    fontSize: 24,
+    fontWeight: '700' as const,
     color: theme.colors.text,
     marginBottom: theme.spacing.sm,
   },
@@ -681,8 +683,9 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.md,
   },
   retryButtonText: {
+    ...theme.typography.body,
+    fontWeight: '600' as const,
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
   },
   
   // Scroll content
@@ -715,7 +718,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary,
   },
   progressText: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.textMuted,
   },
   progressTextActive: {
@@ -740,7 +743,8 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
   },
   cardTitle: {
-    ...theme.typography.h3,
+    fontSize: 20,
+    fontWeight: '600' as const,
     color: theme.colors.text,
     marginBottom: theme.spacing.md,
   },
@@ -755,7 +759,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
   },
   orderInfoLabel: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.textMuted,
     marginBottom: 4,
   },
@@ -798,7 +802,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   emailHint: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.textMuted,
     marginTop: 2,
   },
@@ -831,8 +835,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.border,
   },
   applyPromoButtonText: {
+    ...theme.typography.body,
+    fontWeight: '600' as const,
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
   },
   appliedPromoContainer: {
     flexDirection: 'row',
@@ -853,7 +858,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   appliedPromoCode: {
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
     color: theme.colors.text,
   },
   appliedPromoDiscount: {
@@ -904,7 +909,7 @@ const styles = StyleSheet.create({
     marginVertical: theme.spacing.md,
   },
   totalLabel: {
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
     color: theme.colors.text,
   },
   totalValue: {

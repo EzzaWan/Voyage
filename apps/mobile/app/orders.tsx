@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
   },
   retryButtonText: {
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
   },
   
   // Sign In Card
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 28,
-    backgroundColor: theme.colors.primaryMuted,
+    backgroundColor: 'rgba(30, 144, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: theme.spacing.lg,
@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
   },
   signInButtonText: {
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
   },
   
   // Header
@@ -454,10 +454,10 @@ const styles = StyleSheet.create({
   statusBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.round,
   },
   statusText: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textMuted,
   },
   planName: {
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
     color: theme.colors.text,
     marginBottom: theme.spacing.sm,
   },
@@ -503,7 +503,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   viewEsimButton: {
-    backgroundColor: theme.colors.primaryMuted,
+    backgroundColor: 'rgba(30, 144, 255, 0.15)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: theme.borderRadius.sm,
@@ -550,7 +550,7 @@ const styles = StyleSheet.create({
   },
   browseButtonText: {
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
   },
 });
 

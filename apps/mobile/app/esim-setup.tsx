@@ -535,7 +535,7 @@ export default function EsimSetup() {
               <View style={styles.installButtonsContainer}>
                 <TouchableOpacity
                   style={styles.autoInstallButton}
-                  onPress={() => autoInstallEsim(activationCode)}
+                  onPress={() => autoInstallEsim(activationCode, toast)}
                   activeOpacity={0.8}
                 >
                   <Ionicons name="download-outline" size={20} color={theme.colors.white} />
@@ -905,7 +905,7 @@ const styles = StyleSheet.create({
     paddingLeft: 16, // Explicit 16px padding
     paddingRight: 16, // Explicit 16px padding
     paddingTop: theme.spacing.md,
-    paddingBottom: theme.spacing.xxxl,
+    paddingBottom: theme.spacing.xxl,
   },
   loadingContainer: {
     flex: 1,
@@ -1195,7 +1195,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginBottom: 12,
-    gap: 12,
+  },
+  noteBullet: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: theme.colors.primary,
+    marginRight: 12,
+    minWidth: 20,
   },
   noteBulletContainer: {
     width: 6,
@@ -1472,8 +1478,9 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   retryButtonText: {
+    ...theme.typography.body,
+    fontWeight: '600' as const,
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
   },
   staleDataBanner: {
     backgroundColor: theme.colors.warningBackground,

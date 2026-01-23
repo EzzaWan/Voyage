@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
   },
   retryButtonText: {
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
   },
   
   // Sign In Card
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 28,
-    backgroundColor: theme.colors.primaryMuted,
+    backgroundColor: 'rgba(30, 144, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: theme.spacing.lg,
@@ -508,7 +508,7 @@ const styles = StyleSheet.create({
   },
   signInButtonText: {
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
   },
   
   // Header
@@ -598,7 +598,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
   },
   codeLabel: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.textMuted,
     marginBottom: 4,
   },
@@ -615,7 +615,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   linkLabel: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.textMuted,
     marginBottom: 4,
   },
@@ -639,7 +639,7 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     color: theme.colors.white,
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
   },
   actionButtonSecondary: {
     flex: 1,
@@ -655,7 +655,7 @@ const styles = StyleSheet.create({
   },
   actionButtonSecondaryText: {
     color: theme.colors.text,
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
   },
   
   // Convert Card
@@ -692,7 +692,7 @@ const styles = StyleSheet.create({
   },
   convertButtonText: {
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
   },
   convertHint: {
     ...theme.typography.small,
@@ -707,7 +707,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   payoutLinkText: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
     color: theme.colors.primary,
   },
   
@@ -734,7 +734,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   emptyText: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
     color: theme.colors.textSecondary,
     marginBottom: 4,
   },
@@ -757,7 +757,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   purchaseUser: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
     color: theme.colors.text,
     marginBottom: 2,
   },

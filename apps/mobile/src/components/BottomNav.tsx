@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     // But Voyage used pill. I'll remove pill bg to match Saily's cleaner look.
   },
   tabLabel: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     fontSize: 11,
     color: theme.colors.textMuted,
     marginTop: 2,

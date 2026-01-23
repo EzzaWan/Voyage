@@ -154,11 +154,11 @@ export default function EsimDetail() {
 
   // Get status badge colors
   const getStatusBadgeColors = (status?: string | null) => {
-    if (!status) return { bg: theme.colors.primaryMuted, text: theme.colors.primary };
+    if (!status) return { bg: 'rgba(30, 144, 255, 0.15)', text: theme.colors.primary };
     const normalizedStatus = status.toUpperCase();
     
     if (normalizedStatus === 'GOT_RESOURCE' || normalizedStatus === 'DOWNLOAD') {
-      return { bg: theme.colors.primaryMuted, text: theme.colors.primary };
+      return { bg: 'rgba(30, 144, 255, 0.15)', text: theme.colors.primary };
     }
     if (normalizedStatus === 'INSTALLED' || normalizedStatus === 'INSTALLATION') {
       return { bg: theme.colors.warningBackground, text: theme.colors.warning };
@@ -175,7 +175,7 @@ export default function EsimDetail() {
     if (normalizedStatus === 'FAILED' || normalizedStatus === 'ERROR') {
       return { bg: theme.colors.errorBackground, text: theme.colors.error };
     }
-    return { bg: theme.colors.primaryMuted, text: theme.colors.primary };
+    return { bg: 'rgba(30, 144, 255, 0.15)', text: theme.colors.primary };
   };
 
   const statusBadgeColors = getStatusBadgeColors(profile.esimStatus);
@@ -364,8 +364,8 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingLeft: 16, // Explicit 16px padding
     paddingRight: 16, // Explicit 16px padding
-    paddingTop: theme.spacing.base,
-    paddingBottom: theme.spacing.base,
+    paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.md,
   },
   
   // Loading & Error
@@ -569,7 +569,7 @@ const styles = StyleSheet.create({
     borderTopColor: theme.colors.border,
   },
   activationLabel: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
     color: theme.colors.text,
     marginBottom: theme.spacing.sm,
   },
@@ -593,7 +593,7 @@ const styles = StyleSheet.create({
     marginLeft: theme.spacing.sm,
   },
   activationHint: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.textMuted,
     marginTop: 4,
     textAlign: 'center',
@@ -650,7 +650,7 @@ const styles = StyleSheet.create({
   },
   historyLeft: {},
   historyPlan: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
     color: theme.colors.text,
   },
   historyDate: {
@@ -661,14 +661,14 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   historyAmount: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
     color: theme.colors.text,
     marginBottom: 4,
   },
   historyStatusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.round,
     backgroundColor: 'rgba(156, 163, 175, 0.15)',
   },
   historyStatusCompleted: {
@@ -678,7 +678,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(251, 191, 36, 0.15)',
   },
   historyStatusText: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: '#9ca3af',
     textTransform: 'capitalize',
   },

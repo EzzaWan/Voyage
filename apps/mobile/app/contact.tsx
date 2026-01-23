@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   label: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
     color: theme.colors.text,
     marginBottom: 8,
   },
@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
     paddingTop: 14,
   },
   charCount: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.textMuted,
     textAlign: 'right',
     marginTop: 4,
@@ -508,7 +508,7 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.border,
   },
   pickerItemSelected: {
-    backgroundColor: theme.colors.primaryMuted,
+    backgroundColor: 'rgba(30, 144, 255, 0.15)',
   },
   pickerItemText: {
     ...theme.typography.body,
@@ -531,7 +531,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
   },
   secondaryButton: {
     backgroundColor: theme.colors.backgroundLight,
@@ -543,7 +543,7 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: theme.colors.text,
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
   },
   submitButton: {
     backgroundColor: theme.colors.primary,
@@ -562,7 +562,7 @@ const styles = StyleSheet.create({
   },
   submitButtonText: {
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
   },
 });
 

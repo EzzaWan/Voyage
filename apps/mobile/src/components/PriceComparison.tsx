@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../theme';
 
 export function PriceComparison() {
@@ -17,7 +18,7 @@ export function PriceComparison() {
           <Text style={styles.subtitle}>Vs leading providers on similar plans</Text>
         </View>
         <View style={styles.infoBadge}>
-          <Text style={styles.infoBadgeIcon}>ℹ️</Text>
+          <Ionicons name="information-circle-outline" size={12} color={theme.colors.textMuted} style={styles.infoBadgeIcon} />
           <Text style={styles.infoBadgeText}>Based on public prices</Text>
         </View>
       </View>
@@ -35,7 +36,7 @@ export function PriceComparison() {
         <View style={styles.voyageBox}>
           <Text style={styles.voyageName}>Voyage</Text>
           <View style={styles.bestBadge}>
-            <Text style={styles.bestBadgeIcon}>✓</Text>
+            <Ionicons name="checkmark" size={10} color={theme.colors.white} style={styles.bestBadgeIcon} />
             <Text style={styles.bestBadgeText}>Best</Text>
           </View>
         </View>
@@ -61,7 +62,8 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   title: {
-    ...theme.typography.h3,
+    fontSize: 20,
+    fontWeight: '600' as const,
     color: theme.colors.text,
     marginBottom: 4,
   },
@@ -75,12 +77,11 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.backgroundLight,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.round,
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
   infoBadgeIcon: {
-    fontSize: 10,
     marginRight: 4,
   },
   infoBadgeText: {
@@ -91,7 +92,6 @@ const styles = StyleSheet.create({
   // Grid
   grid: {
     flexDirection: 'row',
-    gap: theme.spacing.sm,
   },
   competitorBox: {
     flex: 1,
@@ -104,6 +104,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     opacity: 0.7,
     minHeight: 60,
+    marginRight: theme.spacing.sm,
   },
   competitorName: {
     fontSize: 10,
@@ -139,12 +140,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: theme.borderRadius.full,
-    gap: 4,
+    borderRadius: theme.borderRadius.round,
   },
   bestBadgeIcon: {
     fontSize: 10,
     color: theme.colors.white,
+    marginRight: 4,
   },
   bestBadgeText: {
     fontSize: 9,

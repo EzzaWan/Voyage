@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
   },
   retryButtonText: {
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
   },
   
   // Header
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   countryName: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
     color: theme.colors.text,
     textAlign: 'center',
     marginBottom: 4,
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
     marginLeft: theme.spacing.md,
   },
   globalCardTitle: {
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
     color: theme.colors.text,
   },
   globalCardSubtitle: {

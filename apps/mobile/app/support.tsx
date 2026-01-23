@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingLeft: 16, // Explicit 16px padding
     paddingRight: 16, // Explicit 16px padding
-    paddingTop: 16, // Use explicit 16px instead of theme.spacing.base
+    paddingTop: 16, // Use explicit 16px instead of theme.spacing.md
     paddingBottom: theme.spacing.xl * 2,
   },
   // Saily Header Style

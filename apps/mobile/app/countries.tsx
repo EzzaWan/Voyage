@@ -227,7 +227,8 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   errorTitle: {
-    ...theme.typography.heading,
+    fontSize: 20,
+    fontWeight: '600' as const,
     color: theme.colors.text,
     marginBottom: theme.spacing.sm,
   },
@@ -249,8 +250,9 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   retryButtonText: {
+    ...theme.typography.body,
+    fontWeight: '600' as const,
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
   },
   
   // Search
@@ -308,7 +310,7 @@ const styles = StyleSheet.create({
   listContent: {
     paddingLeft: 16, // Explicit 16px padding
     paddingRight: 16, // Explicit 16px padding
-    paddingTop: theme.spacing.base,
+    paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing.xl * 2,
   },
   countryItem: {
@@ -351,7 +353,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   countryName: {
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
     color: theme.colors.text,
     marginBottom: theme.spacing.xs,
   },
@@ -384,7 +386,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   emptyText: {
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
     color: theme.colors.text,
     marginBottom: theme.spacing.xs,
   },

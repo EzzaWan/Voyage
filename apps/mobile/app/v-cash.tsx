@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
     marginBottom: theme.spacing.lg,
     borderWidth: 1,
-    borderColor: theme.colors.primaryMuted,
+    borderColor: 'rgba(30, 144, 255, 0.15)',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,

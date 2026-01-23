@@ -522,7 +522,8 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   errorTitle: {
-    ...theme.typography.h2,
+    fontSize: 24,
+    fontWeight: '700' as const,
     color: theme.colors.text,
     marginBottom: theme.spacing.sm,
   },
@@ -542,8 +543,9 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
   },
   retryButtonText: {
+    ...theme.typography.body,
+    fontWeight: '600' as const,
     color: theme.colors.text,
-    ...theme.typography.bodyBold,
   },
   
   // Header Card
@@ -576,7 +578,8 @@ const styles = StyleSheet.create({
     fontSize: 32,
   },
   planTitle: {
-    ...theme.typography.h2,
+    fontSize: 24,
+    fontWeight: '700' as const,
     color: theme.colors.text,
     textAlign: 'center',
     marginBottom: theme.spacing.md,
@@ -631,13 +634,14 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   statLabel: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.textMuted,
     letterSpacing: 1,
     marginBottom: 4,
   },
   statValue: {
-    ...theme.typography.h3,
+    fontSize: 20,
+    fontWeight: '600' as const,
     color: theme.colors.text,
   },
   
@@ -676,7 +680,7 @@ const styles = StyleSheet.create({
     padding: 0,
   },
   daysLabel: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.textSecondary,
     marginTop: 4,
   },
@@ -695,7 +699,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   sectionTitle: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.textMuted,
     letterSpacing: 1,
   },
@@ -731,7 +735,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   coverageCountry: {
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
     color: theme.colors.text,
     marginBottom: 2,
   },
@@ -750,7 +754,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
   },
   orderSummaryTitle: {
-    ...theme.typography.tiny,
+    ...theme.typography.small,
     color: theme.colors.textMuted,
     letterSpacing: 1,
     textAlign: 'center',
@@ -767,7 +771,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
   },
   orderValue: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
     color: theme.colors.text,
     textAlign: 'right',
     flex: 1,
@@ -784,7 +788,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   orderTotalLabel: {
-    ...theme.typography.bodyBold,
+    ...theme.typography.body, fontWeight: '600' as const,
     color: theme.colors.text,
   },
   orderTotalValue: {

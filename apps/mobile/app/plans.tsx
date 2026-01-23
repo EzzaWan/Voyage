@@ -559,7 +559,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   countryName: {
-    ...theme.typography.heading,
+    fontSize: 20,
+    fontWeight: '600' as const,
     color: theme.colors.text,
     marginBottom: theme.spacing.xs,
   },
@@ -571,7 +572,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   priceFromText: {
-    ...theme.typography.captionMedium,
+    ...theme.typography.caption, fontWeight: '500' as const,
     color: theme.colors.white,
   },
   
@@ -596,7 +597,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.card,
   },
   tabText: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
     color: theme.colors.textMuted,
     fontSize: 15,
   },
@@ -613,7 +614,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tabBadgeActive: {
-    backgroundColor: theme.colors.primaryMuted,
+    backgroundColor: 'rgba(30, 144, 255, 0.15)',
   },
   tabBadgeText: {
     fontSize: 12,
@@ -673,7 +674,7 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.border,
   },
   sortDropdownItemActive: {
-    backgroundColor: theme.colors.primaryMuted,
+    backgroundColor: 'rgba(30, 144, 255, 0.15)',
   },
   sortDropdownItemText: {
     ...theme.typography.body,
@@ -747,9 +748,9 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: theme.borderRadius.md,
   },
   popularBadgeText: {
-    ...theme.typography.smallMedium,
+    ...theme.typography.small,
+    fontWeight: '700' as const,
     color: theme.colors.white,
-    fontWeight: '700',
     letterSpacing: 0.8,
     fontSize: 11,
   },
@@ -809,7 +810,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   paginationButtonText: {
-    ...theme.typography.captionMedium,
+    ...theme.typography.caption, fontWeight: '500' as const,
     color: theme.colors.text,
   },
   paginationButtonTextDisabled: {
@@ -834,7 +835,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.primary,
   },
   paginationPageText: {
-    ...theme.typography.captionMedium,
+    ...theme.typography.caption, fontWeight: '500' as const,
     color: theme.colors.text,
   },
   paginationPageTextActive: {
@@ -866,7 +867,8 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   errorTitle: {
-    ...theme.typography.heading,
+    fontSize: 20,
+    fontWeight: '600' as const,
     color: theme.colors.text,
     marginBottom: theme.spacing.sm,
   },
@@ -888,8 +890,9 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   retryButtonText: {
+    ...theme.typography.body,
+    fontWeight: '600' as const,
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
   },
   
   // Empty
@@ -905,7 +908,8 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   emptyTitle: {
-    ...theme.typography.heading,
+    fontSize: 20,
+    fontWeight: '600' as const,
     color: theme.colors.text,
     marginBottom: theme.spacing.sm,
   },
@@ -927,8 +931,9 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   browseButtonText: {
+    ...theme.typography.body,
+    fontWeight: '600' as const,
     color: theme.colors.white,
-    ...theme.typography.bodyBold,
   },
   
   // Tab Empty
@@ -951,7 +956,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
   },
   switchTabButtonText: {
-    ...theme.typography.bodyMedium,
+    ...theme.typography.body, fontWeight: '500' as const,
     color: theme.colors.primary,
   },
   
@@ -963,7 +968,7 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: theme.colors.errorBackground,
     borderTopWidth: 1,
-    borderTopColor: theme.colors.errorBorder,
+    borderTopColor: 'rgba(239, 68, 68, 0.25)',
     padding: theme.spacing.md,
   },
   errorBannerText: {
