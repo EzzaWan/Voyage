@@ -801,16 +801,12 @@ const styles = StyleSheet.create({
   completeOrderButton: {
     backgroundColor: theme.colors.primary,
     paddingVertical: 18,
-    borderRadius: theme.borderRadius.md,
+    borderRadius: theme.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 60,
     marginBottom: theme.spacing.md,
-    shadowColor: '#1E90FF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    ...theme.shadows.primaryGlow,
   },
   completeOrderButtonDisabled: {
     backgroundColor: theme.colors.border,

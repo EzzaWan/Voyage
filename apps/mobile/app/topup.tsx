@@ -338,6 +338,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.xl,
     borderWidth: 1,
     borderColor: theme.colors.border,
+    ...theme.shadows.soft,
   },
   headerIcon: {
     width: 56,
@@ -388,6 +389,7 @@ const styles = StyleSheet.create({
     padding: theme.spacing.md,
     borderWidth: 1,
     borderColor: theme.colors.border,
+    ...theme.shadows.soft,
   },
   durationBadge: {
     alignSelf: 'flex-start',
@@ -456,9 +458,10 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    borderRadius: theme.borderRadius.md,
+    borderRadius: theme.borderRadius.full,
     minWidth: 80,
     alignItems: 'center',
+    ...theme.shadows.primaryGlow,
   },
   topupButtonDisabled: {
     backgroundColor: theme.colors.border,
@@ -497,7 +500,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.card,
     paddingHorizontal: 28,
     paddingVertical: 14,
-    borderRadius: theme.borderRadius.md,
+    borderRadius: theme.borderRadius.full,
     borderWidth: 1,
     borderColor: theme.colors.border,
   },

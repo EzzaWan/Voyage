@@ -680,7 +680,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary,
     paddingHorizontal: 28,
     paddingVertical: 14,
-    borderRadius: theme.borderRadius.md,
+    borderRadius: theme.borderRadius.full,
   },
   retryButtonText: {
     ...theme.typography.body,
@@ -741,6 +741,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
     borderWidth: 1,
     borderColor: theme.colors.border,
+    ...theme.shadows.soft,
   },
   cardTitle: {
     fontSize: 20,
@@ -826,7 +827,7 @@ const styles = StyleSheet.create({
   applyPromoButton: {
     backgroundColor: theme.colors.primary,
     paddingHorizontal: 20,
-    borderRadius: theme.borderRadius.md,
+    borderRadius: theme.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
     minWidth: 80,
@@ -922,16 +923,12 @@ const styles = StyleSheet.create({
   paymentButton: {
     backgroundColor: theme.colors.primary,
     paddingVertical: 18,
-    borderRadius: theme.borderRadius.md,
+    borderRadius: theme.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 60,
     marginBottom: theme.spacing.md,
-    shadowColor: '#1E90FF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    ...theme.shadows.primaryGlow,
   },
   paymentButtonDisabled: {
     backgroundColor: theme.colors.border,

@@ -127,6 +127,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 60,
+    ...theme.shadows.primaryGlow,
   },
   voyageName: {
     fontSize: 14,

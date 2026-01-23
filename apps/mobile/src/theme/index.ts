@@ -11,6 +11,7 @@ export const theme = {
     primary: colors.primary.main,
     primarySoft: colors.primary.soft,
     primaryMuted: colors.primary.muted,
+    primaryGlow: colors.primary.glow,
     
     // Backgrounds
     background: colors.background.main,
@@ -70,7 +71,22 @@ export const theme = {
   
   shadows: {
     none: { shadowColor: 'transparent', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0 },
-    primaryGlow: { shadowColor: '#1E90FF', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4 },
+    // Subtle depth for cards
+    soft: { 
+      shadowColor: '#000000', 
+      shadowOffset: { width: 0, height: 4 }, 
+      shadowOpacity: 0.2, 
+      shadowRadius: 12, 
+      elevation: 4 
+    },
+    // Restrained glow for Primary Actions only
+    primaryGlow: { 
+      shadowColor: '#1E90FF', 
+      shadowOffset: { width: 0, height: 8 }, 
+      shadowOpacity: 0.35, 
+      shadowRadius: 16, 
+      elevation: 8 
+    },
     background: { shadowColor: '#000000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 },
     modal: { shadowColor: '#000000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 16, elevation: 12 },
   },
@@ -78,25 +94,25 @@ export const theme = {
   // Button presets (calm, reduced heights)
   buttons: {
     lg: {
-      height: 48,
-      paddingHorizontal: 20,
+      height: 52, // Taller for premium feel
+      paddingHorizontal: 24,
       fontSize: 16,
-      fontWeight: '600',
-      borderRadius: radius.sm,
+      fontWeight: '600' as const,
+      borderRadius: radius.full, // Rounder
     },
     md: {
       height: 44,
-      paddingHorizontal: 18,
+      paddingHorizontal: 20,
       fontSize: 15,
-      fontWeight: '600',
-      borderRadius: radius.sm,
+      fontWeight: '600' as const,
+      borderRadius: radius.full,
     },
     sm: {
       height: 36,
-      paddingHorizontal: 14,
+      paddingHorizontal: 16,
       fontSize: 14,
-      fontWeight: '500',
-      borderRadius: radius.sm,
+      fontWeight: '500' as const,
+      borderRadius: radius.full,
     },
   },
   
@@ -106,57 +122,39 @@ export const theme = {
       height: 52,
       paddingHorizontal: spacing.md,
       fontSize: 16,
-      borderRadius: radius.sm,
+      borderRadius: radius.md,
     },
     lg: {
       height: 56,
       paddingHorizontal: 20,
       fontSize: 17,
-      borderRadius: radius.md,
+      borderRadius: radius.lg,
     },
   },
   
   // List item presets
   listItem: {
-    minHeight: 64,
-    paddingVertical: 14,
-    paddingHorizontal: spacing.md,
+    minHeight: 64, // Increased height for luxury
+    paddingVertical: 16,
+    paddingHorizontal: spacing.base,
   },
   
   // Card presets (minimal, flat)
   cards: {
     default: {
-      borderRadius: radius.md,
-      padding: spacing.base,
+      borderRadius: radius.xl,
+      padding: spacing.lg,
       borderWidth: 1,
     },
     minimal: {
-      borderRadius: radius.sm,
+      borderRadius: radius.lg,
       padding: spacing.md,
       borderWidth: 0,
     },
     compact: {
-      borderRadius: radius.sm,
+      borderRadius: radius.md,
       padding: spacing.md,
       borderWidth: 1,
-    },
-  },
-  
-  // List presets (iOS-style)
-  list: {
-    section: {
-      paddingHorizontal: spacing.base,
-      paddingVertical: spacing.sm,
-    },
-    item: {
-      minHeight: 56,
-      paddingVertical: spacing.md,
-      paddingHorizontal: spacing.base,
-    },
-    itemCompact: {
-      minHeight: 44,
-      paddingVertical: spacing.sm,
-      paddingHorizontal: spacing.base,
     },
   },
 };

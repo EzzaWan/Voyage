@@ -13,8 +13,9 @@ export const colors = {
   primary: {
     main: '#1E90FF',        // Dodger blue - Voyage brand
     soft: '#4BA3FF',        // Lighter variant
-    muted: 'rgba(30, 144, 255, 0.15)',  // Background tints
-    border: 'rgba(30, 144, 255, 0.25)', // Border variants
+    muted: 'rgba(30, 144, 255, 0.10)',  // Lower opacity for subtler tints
+    border: 'rgba(30, 144, 255, 0.30)', // Border variants
+    glow: 'rgba(30, 144, 255, 0.40)',   // For restrained glows
   },
 
   // Backgrounds
@@ -34,17 +35,18 @@ export const colors = {
 
   // Text hierarchy
   text: {
-    primary: '#E9F1FF',     // Primary text (high contrast)
-    secondary: '#A8B5C8',   // Secondary text
+    primary: '#FFFFFF',     // Pure white for crispness
+    secondary: '#94A3B8',   // Cool grey, better readability than dark grey
     muted: '#64748B',       // Muted/disabled text
     inverse: '#0A1A2F',     // Text on light backgrounds
   },
 
-  // Borders
+  // Borders - Premium "Glass" feel
   border: {
-    default: '#1E3555',     // Default borders
-    light: '#253A5F',       // Lighter borders (inputs)
-    muted: 'rgba(30, 53, 85, 0.5)', // Subtle borders
+    default: 'rgba(255, 255, 255, 0.08)', // Subtle, glass-like edge
+    light: 'rgba(255, 255, 255, 0.12)',   // Slightly more visible
+    muted: 'rgba(30, 53, 85, 0.5)',       // Very subtle borders
+    active: 'rgba(255, 255, 255, 0.20)',  // Active states
   },
 
   // Status colors (muted, non-aggressive)
@@ -88,7 +90,7 @@ export const spacing = {
   sm: 8,    // 8px - Small gaps
   md: 12,   // 12px - Compact spacing (reduced from 16)
   base: 16, // 16px - Standard spacing
-  lg: 24,   // 24px - Large spacing (Saily uses generous spacing)
+  lg: 24,   // 24px - Large spacing
   xl: 32,   // 32px - Extra large spacing
   xxl: 40,  // 40px - Section spacing
   xxxl: 48, // 48px - Page-level spacing
@@ -128,67 +130,76 @@ export const typography = {
   styles: {
     title: {
       fontSize: 28,
-      fontWeight: '700' as const,
-      lineHeight: 36, // 1.29 ratio
-      letterSpacing: -0.3,
+      fontWeight: '600' as const,
+      lineHeight: 34,
+      letterSpacing: -0.5,
+      color: colors.text.primary,
+    },
+    h1: { // Adding h1 alias for title
+      fontSize: 28,
+      fontWeight: '600' as const,
+      lineHeight: 34,
+      letterSpacing: -0.5,
+      color: colors.text.primary,
     },
     heading: {
       fontSize: 22,
       fontWeight: '600' as const,
-      lineHeight: 28, // 1.27 ratio
+      lineHeight: 28,
+      letterSpacing: -0.3,
+      color: colors.text.primary,
+    },
+    h2: { // Adding h2 alias for heading
+      fontSize: 22,
+      fontWeight: '600' as const,
+      lineHeight: 28,
+      letterSpacing: -0.3,
+      color: colors.text.primary,
+    },
+    h3: {
+      fontSize: 20,
+      fontWeight: '600' as const,
+      lineHeight: 26,
       letterSpacing: -0.2,
+      color: colors.text.primary,
     },
     body: {
       fontSize: 16,
       fontWeight: '400' as const,
-      lineHeight: 24, // 1.5 ratio
+      lineHeight: 24,
+      letterSpacing: -0.1,
+      color: colors.text.primary,
     },
-    bodyMedium: {
+    bodyMedium: { // Kept for compatibility but refined
       fontSize: 16,
       fontWeight: '500' as const,
       lineHeight: 24,
-    },
-    bodyBold: {
-      fontSize: 16,
-      fontWeight: '600' as const,
-      lineHeight: 24,
+      letterSpacing: -0.1,
+      color: colors.text.primary,
     },
     caption: {
       fontSize: 14,
       fontWeight: '400' as const,
-      lineHeight: 20, // 1.43 ratio
-    },
-    captionMedium: {
-      fontSize: 14,
-      fontWeight: '500' as const,
       lineHeight: 20,
+      color: colors.text.secondary,
     },
     small: {
       fontSize: 12,
       fontWeight: '400' as const,
-      lineHeight: 16, // 1.33 ratio
-    },
-    smallMedium: {
-      fontSize: 12,
-      fontWeight: '500' as const,
       lineHeight: 16,
+      color: colors.text.secondary,
     },
     tiny: {
       fontSize: 11,
-      fontWeight: '400' as const,
+      fontWeight: '500' as const,
       lineHeight: 14,
-    },
-    display: {
-      fontSize: 32,
-      fontWeight: '700' as const,
-      lineHeight: 40,
-      letterSpacing: -0.5,
+      color: colors.text.muted,
     },
   },
 } as const;
 
 // ============================================================================
-// RADIUS TOKENS (Reduced for utility-first design)
+// RADIUS TOKENS
 // ============================================================================
 
 export const radius = {
@@ -201,13 +212,3 @@ export const radius = {
   round: 9999,
   full: 9999, // Alias for round
 } as const;
-
-// ============================================================================
-// TYPE EXPORTS
-// ============================================================================
-
-export type ColorToken = typeof colors;
-export type SpacingToken = keyof typeof spacing;
-export type TypographyToken = typeof typography;
-export type RadiusToken = keyof typeof radius;
-

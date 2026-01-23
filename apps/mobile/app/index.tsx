@@ -589,6 +589,8 @@ const styles = StyleSheet.create({
     height: 48, // Standard touch height
     borderRadius: theme.borderRadius.lg, // Rounded like Saily
     marginBottom: theme.spacing.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   searchIcon: {
     marginRight: theme.spacing.sm,
@@ -642,6 +644,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: theme.spacing.xl,
     marginHorizontal: 0, // Ensure no extra horizontal margin (padding is on parent)
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    ...theme.shadows.soft,
   },
   listItem: {
     flexDirection: 'row',

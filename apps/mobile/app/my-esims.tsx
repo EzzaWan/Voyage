@@ -317,11 +317,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
     borderWidth: 1,
     borderColor: theme.colors.border,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    ...theme.shadows.soft,
   },
   esimContent: {
     flex: 1,
@@ -472,7 +468,8 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary, // Yellow -> Blue
     paddingVertical: 14,
     paddingHorizontal: 32,
-    borderRadius: theme.borderRadius.md, // Pill or rounded
+    borderRadius: theme.borderRadius.full, // Pill or rounded
+    ...theme.shadows.primaryGlow,
   },
   browseButtonText: {
     color: theme.colors.white,
@@ -486,8 +483,9 @@ const styles = StyleSheet.create({
   signInButton: {
     backgroundColor: theme.colors.primary,
     paddingVertical: 12,
-    borderRadius: theme.borderRadius.sm,
+    borderRadius: theme.borderRadius.full,
     alignItems: 'center',
+    ...theme.shadows.primaryGlow,
   },
   signInButtonText: {
     color: theme.colors.white,
