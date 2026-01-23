@@ -85,12 +85,18 @@ export function getFinalPriceUSD(
 
 /**
  * Check if plan should be visible (>= $3 USD)
+ * Exception: 1GB 7 days plans are always visible regardless of price
  * Backend prices are already in USD, so we compare directly
  */
 export function isPlanVisible(
   plan: Plan,
   discountPercent?: number
 ): boolean {
+  // Always show 1GB 7 days plans regardless of price
+  if (is1GB7DaysPlan(plan)) {
+    return true;
+  }
+  
   const finalPriceUSD = getFinalPriceUSD(plan, discountPercent);
   return finalPriceUSD >= 3.0;
 }

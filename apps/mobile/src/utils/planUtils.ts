@@ -121,8 +121,14 @@ export function isDailyUnlimitedPlan(plan: Plan): boolean {
 
 /**
  * Check if plan should be visible (>= $3 USD)
+ * Exception: 1GB 7 days plans are always visible regardless of price
  */
 export function isPlanVisible(plan: Plan, discountPercent: number = 0): boolean {
+  // Always show 1GB 7 days plans regardless of price
+  if (is1GB7DaysPlan(plan)) {
+    return true;
+  }
+  
   const finalPrice = discountPercent > 0
     ? plan.price * (1 - discountPercent / 100)
     : plan.price;
