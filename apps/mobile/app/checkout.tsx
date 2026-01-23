@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, SafeAreaView, ScrollView, TextInput, Platform, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, SafeAreaView, ScrollView, TextInput, Platform, StatusBar, Switch } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
@@ -33,6 +33,11 @@ type PlanDetails = {
   durationUnit?: string;
 };
 
+type VCashBalance = {
+  balanceCents: number;
+  currency: string;
+};
+
 export default function Checkout() {
   const router = useRouter();
   const toast = useToast();
@@ -47,6 +52,10 @@ export default function Checkout() {
   const [email, setEmail] = useState('');
   const [updatingEmail, setUpdatingEmail] = useState(false);
   const [processing, setProcessing] = useState(false);
+  
+  // V-Cash state
+  const [vCashBalance, setVCashBalance] = useState<VCashBalance | null>(null);
+  const [useVCash, setUseVCash] = useState(false);
   
   // Promo code state
   const [promoCode, setPromoCode] = useState('');
@@ -67,12 +76,25 @@ export default function Checkout() {
     }
   }, [params.orderId]);
 
-  // Set email from logged-in user
+  // Set email from logged-in user and fetch V-Cash
   useEffect(() => {
     if (userLoaded && user?.primaryEmailAddress?.emailAddress) {
       setEmail(user.primaryEmailAddress.emailAddress);
+      fetchVCashBalance();
     }
   }, [userLoaded, user]);
+
+  async function fetchVCashBalance() {
+    try {
+      if (!user?.primaryEmailAddress?.emailAddress) return;
+      const balanceData = await apiFetch<VCashBalance>('/vcash', { 
+        headers: { 'x-user-email': user.primaryEmailAddress.emailAddress } 
+      });
+      setVCashBalance(balanceData);
+    } catch (err) {
+      console.warn('Failed to fetch V-Cash balance:', err);
+    }
+  }
 
   async function fetchOrder() {
     try {
@@ -245,7 +267,9 @@ export default function Checkout() {
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({}),
+          body: JSON.stringify({
+            useVCash: useVCash,
+          }),
         }
       );
 
@@ -253,6 +277,20 @@ export default function Checkout() {
         setCheckoutUrl(data.url);
         setStep('payment');
       } else {
+        // If no URL returned but success (e.g. fully paid with V-Cash), handle it
+        // Assuming the backend might return a success status or similar if fully paid
+        // For now, let's assume it always returns a URL or we redirect to success if paid
+        // If the order is already paid (status='paid'), we should redirect
+        const updatedOrder = await apiFetch<OrderData>(`/orders/${params.orderId}`);
+        if (updatedOrder.status === 'paid' || updatedOrder.status === 'completed') {
+           router.replace({
+            pathname: '/order-success',
+            params: {
+              orderId: params.orderId,
+            },
+          });
+          return;
+        }
         throw new Error('No checkout URL returned');
       }
     } catch (err) {
@@ -394,6 +432,19 @@ export default function Checkout() {
   const displayAmount = order.displayAmountCents || order.amountCents;
   const displayCurrency = order.displayCurrency || order.currency;
 
+  // Calculate V-Cash deduction for display
+  let vCashDeduction = 0;
+  let finalTotal = displayAmount;
+
+  if (useVCash && vCashBalance && vCashBalance.balanceCents > 0) {
+    // Ensure we're comparing cents to cents. 
+    // Note: This assumes V-Cash is in the same currency or USD. 
+    // If V-Cash is always USD, we might need conversion if displayCurrency is not USD.
+    // For now, we'll assume the backend handles the exact math, this is just for UI estimation.
+    vCashDeduction = Math.min(vCashBalance.balanceCents, displayAmount);
+    finalTotal = Math.max(0, displayAmount - vCashDeduction);
+  }
+
   return (
     <View style={styles.container}>
       {/* Safe area spacer - prevents content from scrolling behind status bar */}
@@ -427,35 +478,37 @@ export default function Checkout() {
 
         {/* Order Review Card */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Review Your Order</Text>
+          <Text style={styles.cardTitle}>Order Details</Text>
           
-          <View style={styles.orderInfoBox}>
-            <Text style={styles.orderInfoLabel}>Order ID</Text>
-            <Text style={styles.orderInfoValue}>{params.orderId}</Text>
-          </View>
-          
-          <View style={styles.orderInfoBox}>
+          <View style={styles.orderInfoRow}>
             <Text style={styles.orderInfoLabel}>Plan</Text>
             <Text style={styles.orderInfoValue}>{getDisplayName()}</Text>
+          </View>
+          
+          <View style={styles.divider} />
+          
+          <View style={styles.orderInfoRow}>
+            <Text style={styles.orderInfoLabel}>Order ID</Text>
+            <Text style={styles.orderInfoValue}>{params.orderId}</Text>
           </View>
         </View>
 
         {/* Email Section */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Email Address</Text>
+          <Text style={styles.cardTitle}>Contact Information</Text>
           
           {user?.primaryEmailAddress?.emailAddress ? (
             <View style={styles.emailDisplay}>
               <Ionicons name="mail-outline" size={20} color={theme.colors.textMuted} />
               <View>
                 <Text style={styles.emailText}>{user.primaryEmailAddress.emailAddress}</Text>
-                <Text style={styles.emailHint}>Your eSIM will be sent to this email</Text>
+                <Text style={styles.emailHint}>eSIM will be sent here</Text>
               </View>
             </View>
           ) : (
             <>
               <Text style={styles.emailDescription}>
-                Enter your email to receive your eSIM and order confirmation
+                Enter your email to receive your eSIM
               </Text>
               <TextInput
                 style={styles.emailInput}
@@ -472,6 +525,32 @@ export default function Checkout() {
           )}
         </View>
 
+        {/* V-Cash Section */}
+        {user && vCashBalance && vCashBalance.balanceCents > 0 && (
+          <View style={styles.card}>
+            <View style={styles.vCashHeader}>
+              <View style={styles.vCashTitleRow}>
+                <Ionicons name="wallet-outline" size={22} color={theme.colors.primary} />
+                <Text style={styles.cardTitleNoMargin}>Pay with V-Cash</Text>
+              </View>
+              <Switch
+                value={useVCash}
+                onValueChange={setUseVCash}
+                trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
+                thumbColor={theme.colors.white}
+              />
+            </View>
+            <Text style={styles.vCashBalance}>
+              Available balance: {formatPrice(vCashBalance.balanceCents, vCashBalance.currency)}
+            </Text>
+            {useVCash && (
+               <Text style={styles.vCashAppliedText}>
+                 Using {formatPrice(vCashDeduction, displayCurrency)} from your wallet
+               </Text>
+            )}
+          </View>
+        )}
+
         {/* Promo Code Card */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Promo Code</Text>
@@ -479,7 +558,7 @@ export default function Checkout() {
           {appliedPromo ? (
             <View style={styles.appliedPromoContainer}>
               <View style={styles.appliedPromoInfo}>
-                <Text style={styles.appliedPromoIcon}>🏷️</Text>
+                <Ionicons name="pricetag" size={16} color={theme.colors.primary} />
                 <Text style={styles.appliedPromoCode}>{appliedPromo}</Text>
                 <Text style={styles.appliedPromoDiscount}>-{promoDiscount?.percent}%</Text>
               </View>
@@ -488,7 +567,7 @@ export default function Checkout() {
                 onPress={handleRemovePromo}
                 activeOpacity={0.7}
               >
-                <Text style={styles.removePromoText}>✕</Text>
+                <Ionicons name="close" size={16} color={theme.colors.textMuted} />
               </TouchableOpacity>
             </View>
           ) : (
@@ -547,6 +626,15 @@ export default function Checkout() {
               </Text>
             </View>
           )}
+
+          {useVCash && vCashDeduction > 0 && (
+            <View style={styles.summaryRow}>
+              <Text style={styles.discountLabel}>V-Cash Credit</Text>
+              <Text style={styles.discountValue}>
+                -{formatPrice(vCashDeduction, displayCurrency)}
+              </Text>
+            </View>
+          )}
           
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Tax</Text>
@@ -557,7 +645,7 @@ export default function Checkout() {
           
           <View style={styles.summaryRow}>
             <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>{formatPrice(displayAmount, displayCurrency)}</Text>
+            <Text style={styles.totalValue}>{formatPrice(finalTotal, displayCurrency)}</Text>
           </View>
         </View>
 
@@ -581,8 +669,10 @@ export default function Checkout() {
             </View>
           ) : (
             <View style={styles.paymentButtonContent}>
-              <Ionicons name="card-outline" size={20} color={theme.colors.white} />
-              <Text style={styles.paymentButtonText}>Proceed to Payment</Text>
+              <Ionicons name={finalTotal === 0 ? "checkmark-circle-outline" : "card-outline"} size={20} color={theme.colors.white} />
+              <Text style={styles.paymentButtonText}>
+                {finalTotal === 0 ? 'Complete Order' : 'Proceed to Payment'}
+              </Text>
             </View>
           )}
         </TouchableOpacity>
@@ -751,24 +841,55 @@ const styles = StyleSheet.create({
   },
   
   // Order Info
-  orderInfoBox: {
-    backgroundColor: theme.colors.backgroundLight,
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
+  orderInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: theme.spacing.sm,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
   },
   orderInfoLabel: {
-    ...theme.typography.small,
-    color: theme.colors.textMuted,
-    marginBottom: 4,
+    ...theme.typography.body,
+    color: theme.colors.textSecondary,
   },
   orderInfoValue: {
     ...theme.typography.body,
+    fontWeight: '600' as const,
     color: theme.colors.text,
   },
+  divider: {
+    height: 1,
+    backgroundColor: theme.colors.border,
+    marginVertical: theme.spacing.md,
+  },
   
+  // V-Cash
+  vCashHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
+  },
+  vCashTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
+  cardTitleNoMargin: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: theme.colors.text,
+  },
+  vCashBalance: {
+    ...theme.typography.body,
+    color: theme.colors.textSecondary,
+    marginBottom: 4,
+  },
+  vCashAppliedText: {
+    ...theme.typography.small,
+    color: theme.colors.primary,
+    fontWeight: '600' as const,
+  },
+
   // Email
   emailDescription: {
     ...theme.typography.small,

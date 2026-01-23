@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Platform, StatusBar } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { apiFetch } from '../src/api/client';
@@ -127,6 +127,12 @@ export default function OrderSuccess() {
     const unit = durationUnit === 'day' ? 'day' : durationUnit === 'month' ? 'month' : 'day';
     return `${duration} ${unit}${duration !== 1 ? 's' : ''}`;
   };
+  
+  const formatStatus = (status: string) => {
+    if (!status) return '';
+    // Replace underscores with spaces and capitalize
+    return status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
 
   const handleViewInstructions = () => {
     if (order?.id) {
@@ -140,6 +146,8 @@ export default function OrderSuccess() {
   if (loading) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer */}
+        <View style={styles.safeAreaSpacer} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={styles.loadingText}>Loading order details...</Text>
@@ -151,6 +159,8 @@ export default function OrderSuccess() {
   if (error || !order) {
     return (
       <View style={styles.container}>
+        {/* Safe area spacer */}
+        <View style={styles.safeAreaSpacer} />
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <Text style={styles.errorTitle}>Error</Text>
           <Text style={styles.errorText}>{error || 'Order not found'}</Text>
@@ -164,14 +174,17 @@ export default function OrderSuccess() {
 
   return (
     <View style={styles.container}>
+      {/* Safe area spacer */}
+      <View style={styles.safeAreaSpacer} />
+      
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Success Header */}
         <View style={styles.successHeader}>
           <View style={styles.successIcon}>
-            <Ionicons name="checkmark-circle" size={80} color={theme.colors.success} />
+            <Ionicons name="checkmark" size={48} color={theme.colors.white} />
           </View>
-          <Text style={styles.successTitle}>Your eSIM is ready</Text>
-          <Text style={styles.successSubtitle}>Payment successful</Text>
+          <Text style={styles.successTitle}>Payment Successful</Text>
+          <Text style={styles.successSubtitle}>Your eSIM is ready to install</Text>
         </View>
 
         {/* Order Details */}
@@ -198,7 +211,7 @@ export default function OrderSuccess() {
 
           <View style={styles.orderRow}>
             <Text style={styles.orderLabel}>Order Number</Text>
-            <Text style={styles.orderValue}>{order.id}</Text>
+            <Text style={styles.orderValue}>{order.id.substring(0, 8)}...</Text>
           </View>
 
           <View style={styles.orderRow}>
@@ -213,7 +226,7 @@ export default function OrderSuccess() {
             <View style={styles.statusContainer}>
               <View style={styles.statusDot} />
               <Text style={styles.orderStatus}>
-                {order.status === 'paid' ? 'Paid' : order.status === 'pending' ? 'Pending' : order.status}
+                {formatStatus(order.status)}
               </Text>
             </View>
           </View>
@@ -223,10 +236,7 @@ export default function OrderSuccess() {
         <View style={styles.infoCard}>
           <Text style={styles.infoTitle}>What's Next?</Text>
           <Text style={styles.infoText}>
-            You will receive an email with your eSIM QR code and installation instructions shortly.
-          </Text>
-          <Text style={styles.infoText}>
-            Check your email inbox for order confirmation and setup instructions.
+            Install your eSIM now to get connected immediately. You can also find installation instructions in your email.
           </Text>
         </View>
 
@@ -236,7 +246,15 @@ export default function OrderSuccess() {
           onPress={handleViewInstructions}
           activeOpacity={0.8}
         >
-          <Text style={styles.ctaButtonText}>View eSIM setup instructions</Text>
+          <Text style={styles.ctaButtonText}>Install eSIM Now</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={styles.secondaryButton}
+          onPress={() => router.push('/')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.secondaryButtonText}>Return to Home</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -248,9 +266,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
+  safeAreaSpacer: {
+    height: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 8,
+    backgroundColor: theme.colors.background,
+  },
   scrollContent: {
-    paddingLeft: 16, // Explicit 16px padding
-    paddingRight: 16, // Explicit 16px padding
+    paddingLeft: 16,
+    paddingRight: 16,
     paddingTop: theme.spacing.lg,
     paddingBottom: theme.spacing.xxl,
   },
@@ -267,12 +289,12 @@ const styles = StyleSheet.create({
   successHeader: {
     alignItems: 'center',
     marginBottom: theme.spacing.xl,
-    marginTop: theme.spacing.lg,
+    marginTop: theme.spacing.md,
   },
   successIcon: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: theme.colors.success,
     justifyContent: 'center',
     alignItems: 'center',
@@ -283,24 +305,19 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 6,
   },
-  checkmark: {
-    fontSize: 44,
-    color: theme.colors.white,
-    fontWeight: '700',
-  },
   successTitle: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '700' as const,
-    lineHeight: 40,
-    letterSpacing: -0.5,
     color: theme.colors.text,
     marginBottom: theme.spacing.xs,
     textAlign: 'center',
+    fontFamily: 'Inter_700Bold',
   },
   successSubtitle: {
     ...theme.typography.body,
     color: theme.colors.textSecondary,
     textAlign: 'center',
+    fontFamily: 'Inter_400Regular',
   },
   orderCard: {
     backgroundColor: theme.colors.card,
@@ -309,14 +326,14 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
     borderWidth: 1,
     borderColor: theme.colors.border,
+    ...theme.shadows.soft,
   },
   cardTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '600' as const,
-    lineHeight: 28,
-    letterSpacing: -0.2,
     color: theme.colors.text,
     marginBottom: theme.spacing.md,
+    fontFamily: 'Inter_600SemiBold',
   },
   orderRow: {
     flexDirection: 'row',
@@ -329,20 +346,22 @@ const styles = StyleSheet.create({
   orderLabel: {
     ...theme.typography.caption,
     color: theme.colors.textSecondary,
+    fontFamily: 'Inter_400Regular',
   },
   orderValue: {
     fontSize: 16,
     fontWeight: '500' as const,
-    lineHeight: 24,
     color: theme.colors.text,
     flex: 1,
     textAlign: 'right',
     marginLeft: theme.spacing.md,
+    fontFamily: 'Inter_500Medium',
   },
   orderAmount: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '700' as const,
     color: theme.colors.primary,
+    fontFamily: 'Inter_700Bold',
   },
   statusContainer: {
     flexDirection: 'row',
@@ -358,63 +377,69 @@ const styles = StyleSheet.create({
   orderStatus: {
     fontSize: 16,
     fontWeight: '600' as const,
-    lineHeight: 24,
     color: theme.colors.success,
-    textTransform: 'capitalize',
+    fontFamily: 'Inter_600SemiBold',
   },
   infoCard: {
-    backgroundColor: (theme.colors as any).primaryMuted || (theme.colors as any).blueBackground || theme.colors.primarySoft,
+    backgroundColor: 'rgba(30, 144, 255, 0.1)',
     borderRadius: theme.borderRadius.xl,
     padding: theme.spacing.lg,
     marginBottom: theme.spacing.lg,
     borderWidth: 1,
-    borderColor: (theme.colors as any).blueBorder || theme.colors.primary,
+    borderColor: theme.colors.primary,
   },
   infoTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '600' as const,
-    lineHeight: 28,
-    letterSpacing: -0.2,
     color: theme.colors.text,
     marginBottom: theme.spacing.sm,
+    fontFamily: 'Inter_600SemiBold',
   },
   infoText: {
-    ...theme.typography.caption,
+    ...theme.typography.body,
     color: theme.colors.textSecondary,
     lineHeight: 22,
-    marginBottom: theme.spacing.sm,
+    fontFamily: 'Inter_400Regular',
   },
   ctaButton: {
     backgroundColor: theme.colors.primary,
     paddingVertical: 18,
-    borderRadius: theme.borderRadius.md,
+    borderRadius: theme.borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 56,
-    shadowColor: '#1E90FF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    marginBottom: theme.spacing.md,
+    ...theme.shadows.primaryGlow,
   },
   ctaButtonText: {
     color: theme.colors.white,
     fontSize: 16,
     fontWeight: '600' as const,
-    lineHeight: 24,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  secondaryButton: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryButtonText: {
+    color: theme.colors.textSecondary,
+    fontSize: 16,
+    fontWeight: '500' as const,
+    fontFamily: 'Inter_500Medium',
   },
   errorTitle: {
     fontSize: 28,
     fontWeight: '700' as const,
-    lineHeight: 36,
-    letterSpacing: -0.3,
     color: theme.colors.text,
     marginBottom: theme.spacing.md,
     textAlign: 'center',
+    fontFamily: 'Inter_700Bold',
   },
   errorText: {
     ...theme.typography.body,
     color: theme.colors.error,
     textAlign: 'center',
+    fontFamily: 'Inter_400Regular',
   },
 });
