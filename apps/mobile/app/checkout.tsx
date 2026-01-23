@@ -853,11 +853,15 @@ const styles = StyleSheet.create({
   orderInfoLabel: {
     ...theme.typography.body,
     color: theme.colors.textSecondary,
+    flexShrink: 0,
   },
   orderInfoValue: {
     ...theme.typography.body,
     fontWeight: '600' as const,
     color: theme.colors.text,
+    flex: 1,
+    marginLeft: theme.spacing.md,
+    textAlign: 'right',
   },
   divider: {
     height: 1,
