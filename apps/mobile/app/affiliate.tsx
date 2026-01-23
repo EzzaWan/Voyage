@@ -551,9 +551,9 @@ const styles = StyleSheet.create({
   
   // Explainer Card
   explainerCard: {
-    backgroundColor: 'rgba(74, 222, 128, 0.1)',
+    backgroundColor: theme.colors.card,
     borderWidth: 1,
-    borderColor: 'rgba(74, 222, 128, 0.3)',
+    borderColor: theme.colors.border,
     borderRadius: theme.borderRadius.lg,
     padding: theme.spacing.md,
     marginBottom: theme.spacing.md,
@@ -561,7 +561,7 @@ const styles = StyleSheet.create({
   explainerTitle: {
     ...theme.typography.body,
     fontWeight: '700' as const,
-    color: '#4ade80',
+    color: theme.colors.text,
     marginBottom: theme.spacing.sm,
   },
   explainerText: {
@@ -571,7 +571,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   highlightGreen: {
-    color: '#4ade80',
+    color: theme.colors.text,
     fontWeight: '600' as const,
   },
   highlightBlue: {
@@ -584,21 +584,21 @@ const styles = StyleSheet.create({
   },
   explainerStatBox: {
     flex: 1,
-    backgroundColor: 'rgba(74, 222, 128, 0.1)',
+    backgroundColor: theme.colors.backgroundLight,
     borderRadius: theme.borderRadius.md,
     padding: theme.spacing.sm,
     alignItems: 'center' as const,
     borderWidth: 1,
-    borderColor: 'rgba(74, 222, 128, 0.3)',
+    borderColor: theme.colors.border,
   },
   explainerStatBoxBlue: {
-    backgroundColor: 'rgba(30, 144, 255, 0.1)',
-    borderColor: 'rgba(30, 144, 255, 0.3)',
+    backgroundColor: theme.colors.backgroundLight,
+    borderColor: theme.colors.border,
   },
   explainerStatValue: {
     fontSize: 20,
     fontWeight: '700' as const,
-    color: '#4ade80',
+    color: theme.colors.text,
   },
   explainerStatValueBlue: {
     fontSize: 20,

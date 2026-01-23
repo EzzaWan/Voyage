@@ -494,13 +494,10 @@ export class OrdersService {
       let referralDiscountApplied = false;
       let referralId: string | null = null;
       
-      // Check if user has a referral and hasn't used their first-purchase discount
-      const userReferral = await this.prisma.referral.findUnique({
-        where: { referredUserId: order.userId },
-      });
-      
-      if (userReferral && !userReferral.firstPurchaseDiscountUsed) {
-        // Check if this is the user's first order (no other completed orders)
+      // Check if referral code is provided and user is eligible for first-purchase discount
+      if (referralCode) {
+        // PRIMARY PROTECTION: Check if this is the user's first purchase (no other completed orders)
+        // This is the main check - if they've purchased before, no discount regardless of flag
         const existingOrders = await this.prisma.order.count({
           where: {
             userId: order.userId,
@@ -509,14 +506,48 @@ export class OrdersService {
           },
         });
         
-        if (existingOrders === 0) {
-          // Apply 10% discount
-          amountUSD = amountUSD * 0.9;
-          referralDiscountApplied = true;
-          referralId = userReferral.id;
-          this.logger.log(`[CHECKOUT] Applied 10% referral discount for first purchase: $${originalAmountUSD.toFixed(2)} -> $${amountUSD.toFixed(2)}`);
+        if (existingOrders > 0) {
+          this.logger.log(`[CHECKOUT] User has ${existingOrders} previous completed orders, no first-purchase discount`);
         } else {
-          this.logger.log(`[CHECKOUT] User has ${existingOrders} previous orders, no first-purchase discount`);
+          // User has no previous purchases - check if they're eligible for discount
+          // Verify the referral code is valid
+          const affiliate = await this.affiliateService.findAffiliateByCode(referralCode);
+          if (!affiliate) {
+            this.logger.log(`[CHECKOUT] Invalid referral code: ${referralCode}`);
+          } else if (affiliate.userId === order.userId) {
+            this.logger.log(`[CHECKOUT] Self-referral detected, skipping discount`);
+          } else {
+            // Valid referral code - create referral record if it doesn't exist yet
+            let userReferral = await this.prisma.referral.findUnique({
+              where: { referredUserId: order.userId },
+            });
+            
+            if (!userReferral) {
+              try {
+                await this.handleReferral(referralCode, order.userId);
+                // Fetch the newly created referral
+                userReferral = await this.prisma.referral.findUnique({
+                  where: { referredUserId: order.userId },
+                });
+              } catch (error) {
+                this.logger.error(`[CHECKOUT] Failed to create referral record:`, error);
+              }
+            }
+            
+            // Apply discount if referral exists and discount hasn't been used
+            // Note: The existingOrders check above is the primary protection
+            // The flag is a secondary check for edge cases
+            if (userReferral && !userReferral.firstPurchaseDiscountUsed) {
+              // Apply 10% discount
+              // Flag will be marked as used AFTER successful payment
+              amountUSD = amountUSD * 0.9;
+              referralDiscountApplied = true;
+              referralId = userReferral.id;
+              this.logger.log(`[CHECKOUT] Applied 10% referral discount for first purchase: $${originalAmountUSD.toFixed(2)} -> $${amountUSD.toFixed(2)}`);
+            } else if (userReferral?.firstPurchaseDiscountUsed) {
+              this.logger.log(`[CHECKOUT] User has already used first-purchase discount (flag check)`);
+            }
+          }
         }
       }
 
@@ -613,7 +644,7 @@ export class OrdersService {
    * Check if user is eligible for the 10% first-purchase referral discount
    * Returns discount info for display in checkout UI
    */
-  async checkReferralDiscountEligibility(orderId: string): Promise<{
+  async checkReferralDiscountEligibility(orderId: string, referralCode?: string): Promise<{
     eligible: boolean;
     discountPercent: number;
     message: string;
@@ -627,20 +658,8 @@ export class OrdersService {
         return { eligible: false, discountPercent: 0, message: 'Order not found' };
       }
 
-      // Check if user has a referral
-      const userReferral = await this.prisma.referral.findUnique({
-        where: { referredUserId: order.userId },
-      });
-
-      if (!userReferral) {
-        return { eligible: false, discountPercent: 0, message: 'No referral found' };
-      }
-
-      if (userReferral.firstPurchaseDiscountUsed) {
-        return { eligible: false, discountPercent: 0, message: 'First-purchase discount already used' };
-      }
-
-      // Check if this is the user's first order
+      // PRIMARY CHECK: Check if this is the user's first purchase (no other completed orders)
+      // This is the main protection - if they've purchased before, no discount
       const existingOrders = await this.prisma.order.count({
         where: {
           userId: order.userId,
@@ -651,6 +670,42 @@ export class OrdersService {
 
       if (existingOrders > 0) {
         return { eligible: false, discountPercent: 0, message: 'Not a first-time purchase' };
+      }
+
+      // User has no previous purchases - check referral code
+      if (!referralCode) {
+        // Check if user already has a referral record
+        const userReferral = await this.prisma.referral.findUnique({
+          where: { referredUserId: order.userId },
+        });
+
+        if (!userReferral) {
+          return { eligible: false, discountPercent: 0, message: 'No referral found' };
+        }
+
+        if (userReferral.firstPurchaseDiscountUsed) {
+          return { eligible: false, discountPercent: 0, message: 'First-purchase discount already used' };
+        }
+      } else {
+        // Verify referral code is valid
+        const affiliate = await this.affiliateService.findAffiliateByCode(referralCode);
+        if (!affiliate) {
+          return { eligible: false, discountPercent: 0, message: 'Invalid referral code' };
+        }
+
+        // Prevent self-referral
+        if (affiliate.userId === order.userId) {
+          return { eligible: false, discountPercent: 0, message: 'Cannot use your own referral code' };
+        }
+
+        // Check if referral record exists and discount was already used
+        const userReferral = await this.prisma.referral.findUnique({
+          where: { referredUserId: order.userId },
+        });
+
+        if (userReferral?.firstPurchaseDiscountUsed) {
+          return { eligible: false, discountPercent: 0, message: 'First-purchase discount already used' };
+        }
       }
 
       return { 
@@ -972,7 +1027,8 @@ export class OrdersService {
       // Handle referral and affiliate setup
       await this.setupUserAffiliateAndReferral(user, referralCode);
 
-      // Mark first-purchase discount as used if it was applied
+      // Mark first-purchase discount as used AFTER successful payment
+      // This ensures users who abandon checkout don't lose their discount opportunity
       const referralDiscountApplied = session.metadata?.referralDiscountApplied === 'true';
       const referralIdFromMeta = session.metadata?.referralId;
       if (referralDiscountApplied && referralIdFromMeta) {
@@ -982,7 +1038,7 @@ export class OrdersService {
         }).catch((err) => {
           this.logger.error(`[CHECKOUT] Failed to mark first-purchase discount as used for referral ${referralIdFromMeta}:`, err);
         });
-        this.logger.log(`[CHECKOUT] Marked first-purchase discount as used for referral ${referralIdFromMeta}`);
+        this.logger.log(`[CHECKOUT] Marked first-purchase discount as used for referral ${referralIdFromMeta} after successful payment`);
       }
 
       // Continue with email sending and provisioning

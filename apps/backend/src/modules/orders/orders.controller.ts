@@ -182,9 +182,12 @@ export class OrdersController {
 
   @Get(':orderId/referral-discount')
   @RateLimit({ limit: 20, window: 60 })
-  async checkReferralDiscount(@Param('orderId') orderId: string) {
+  async checkReferralDiscount(
+    @Param('orderId') orderId: string,
+    @Query('referralCode') referralCode?: string,
+  ) {
     try {
-      return await this.ordersService.checkReferralDiscountEligibility(orderId);
+      return await this.ordersService.checkReferralDiscountEligibility(orderId, referralCode);
     } catch (error) {
       console.error('[CHECK_REFERRAL_DISCOUNT_ERROR]', error);
       throw error;

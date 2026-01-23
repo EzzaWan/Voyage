@@ -13,6 +13,7 @@ import { safeFetch } from "@/lib/safe-fetch";
 import { useToast } from "@/components/ui/use-toast";
 import { formatCurrency } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
+import { getStoredReferralCode } from "@/lib/referral";
 
 interface Order {
   id: string;
@@ -106,8 +107,12 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
 
         // Check referral discount eligibility (Give 10% Get 10%)
         try {
+          const referralCode = getStoredReferralCode();
+          const discountUrl = referralCode 
+            ? `${apiUrl}/orders/${params.orderId}/referral-discount?referralCode=${encodeURIComponent(referralCode)}`
+            : `${apiUrl}/orders/${params.orderId}/referral-discount`;
           const discountData = await safeFetch<{ eligible: boolean; discountPercent: number; message: string }>(
-            `${apiUrl}/orders/${params.orderId}/referral-discount`,
+            discountUrl,
             { showToast: false }
           );
           if (discountData) {
@@ -367,6 +372,7 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
       }
 
       // Create Stripe checkout session
+      const referralCode = getStoredReferralCode();
       const data = await safeFetch<{ url: string }>(
         `${apiUrl}/orders/${params.orderId}/checkout`,
         {
@@ -374,6 +380,7 @@ export default function CheckoutPage({ params }: { params: { orderId: string } }
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             promoCode: appliedPromo || undefined,
+            referralCode: referralCode || undefined,
           }),
           errorMessage: "Failed to start payment. Please try again.",
         }

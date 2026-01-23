@@ -7,6 +7,7 @@ import { apiFetch } from '../src/api/client';
 import { useUser } from '@clerk/clerk-expo';
 import { theme } from '../src/theme';
 import { useToast } from '../src/context/ToastContext';
+import { getStoredReferralCode } from '../src/utils/referral';
 
 type OrderData = {
   id: string;
@@ -119,8 +120,12 @@ export default function Checkout() {
       
       // Check referral discount eligibility (Give 10% Get 10%)
       try {
+        const referralCode = await getStoredReferralCode();
+        const discountUrl = referralCode 
+          ? `/orders/${params.orderId}/referral-discount?referralCode=${encodeURIComponent(referralCode)}`
+          : `/orders/${params.orderId}/referral-discount`;
         const discountData = await apiFetch<{ eligible: boolean; discountPercent: number; message: string }>(
-          `/orders/${params.orderId}/referral-discount`
+          discountUrl
         );
         if (discountData) {
           setReferralDiscount(discountData);
@@ -277,6 +282,7 @@ export default function Checkout() {
       }
 
       // Create Stripe checkout session
+      const referralCode = await getStoredReferralCode();
       const data = await apiFetch<{ url: string }>(
         `/orders/${params.orderId}/checkout`,
         {
@@ -284,6 +290,7 @@ export default function Checkout() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             useVCash: useVCash,
+            referralCode: referralCode || undefined,
           }),
         }
       );
