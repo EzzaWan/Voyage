@@ -97,6 +97,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supportsTablet: true,
   },
   android: {
+    package: 'com.voyo.mobile',
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#ffffff',
@@ -112,5 +113,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     apiBaseUrl: apiBaseUrlValue,
     clerkPublishableKey:
       envVars.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY || process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY,
+    eas: {
+      projectId: '4b33075c-53ed-487d-a2cc-37eedbfad152',
+    },
   },
 });

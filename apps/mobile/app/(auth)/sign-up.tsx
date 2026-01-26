@@ -1,18 +1,22 @@
 import { useState } from 'react';
 import { SafeAreaView, StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { useSignUp } from '@clerk/clerk-expo';
+import { useSignUp, useOAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { theme } from '../../src/theme';
 
 export default function SignUpScreen() {
   const router = useRouter();
   const { signUp, setActive, isLoaded } = useSignUp();
+  const { startOAuthFlow: startGoogleOAuth } = useOAuth({ strategy: 'oauth_google' });
+  const { startOAuthFlow: startAppleOAuth } = useOAuth({ strategy: 'oauth_apple' });
   const [emailAddress, setEmailAddress] = useState('');
   const [password, setPassword] = useState('');
   const [pendingVerification, setPendingVerification] = useState(false);
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState<'google' | 'apple' | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const onSignUpPress = async () => {
@@ -72,6 +76,87 @@ export default function SignUpScreen() {
       console.error('Verification error:', err.errors);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const onGooglePress = async () => {
+    try {
+      setOauthLoading('google');
+      setError(null);
+
+      const { createdSessionId, setActive: setActiveFromOAuth } = await startGoogleOAuth();
+
+      if (createdSessionId && setActiveFromOAuth) {
+        await setActiveFromOAuth({ session: createdSessionId });
+        router.replace('/');
+      } else if (createdSessionId) {
+        await setActive({ session: createdSessionId });
+        router.replace('/');
+      }
+    } catch (err: any) {
+      if (err.errors && err.errors.length > 0) {
+        const errorMessage = err.errors[0]?.longMessage || err.errors[0]?.message || 'Google sign-up failed';
+        setError(errorMessage);
+      } else {
+        setError('Google sign-up failed. Please try again.');
+      }
+    } finally {
+      setOauthLoading(null);
+    }
+  };
+
+  const onApplePress = async () => {
+    try {
+      setOauthLoading('apple');
+      setError(null);
+
+      // Check if Apple Authentication is available
+      const isAvailable = await AppleAuthentication.isAvailableAsync();
+      if (!isAvailable) {
+        setError('Apple Sign In is not available on this device');
+        setOauthLoading(null);
+        return;
+      }
+
+      // Start Apple authentication
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      if (!credential.identityToken) {
+        throw new Error('No identity token received from Apple');
+      }
+
+      // Start OAuth flow with Clerk using the Apple credential
+      const { createdSessionId, setActive: setActiveFromOAuth } = await startAppleOAuth({
+        idToken: credential.identityToken,
+        nonce: credential.nonce || undefined,
+        firstName: credential.fullName?.givenName || undefined,
+        lastName: credential.fullName?.familyName || undefined,
+      });
+
+      if (createdSessionId && setActiveFromOAuth) {
+        await setActiveFromOAuth({ session: createdSessionId });
+        router.replace('/');
+      } else if (createdSessionId) {
+        await setActive({ session: createdSessionId });
+        router.replace('/');
+      }
+    } catch (err: any) {
+      if (err.code === 'ERR_CANCELED' || err.code === 'ERR_REQUEST_CANCELED') {
+        // User canceled, don't show error
+        setError(null);
+      } else if (err.errors && err.errors.length > 0) {
+        const errorMessage = err.errors[0]?.longMessage || err.errors[0]?.message || 'Apple sign-up failed';
+        setError(errorMessage);
+      } else {
+        setError('Apple sign-up failed. Please try again.');
+      }
+    } finally {
+      setOauthLoading(null);
     }
   };
 
@@ -441,5 +526,57 @@ const styles = StyleSheet.create({
   footerLink: {
     ...theme.typography.caption, fontWeight: '500' as const,
     color: theme.colors.primary,
+  },
+  
+  // Divider
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: theme.spacing.lg,
+    gap: theme.spacing.md,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: theme.colors.border,
+  },
+  dividerText: {
+    ...theme.typography.caption,
+    color: theme.colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  
+  // Social Buttons
+  socialButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: theme.borderRadius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.card,
+    minHeight: 56,
+    marginBottom: theme.spacing.sm,
+    gap: theme.spacing.sm,
+  },
+  socialButtonDisabled: {
+    opacity: 0.6,
+  },
+  googleButton: {
+    backgroundColor: theme.colors.white,
+    borderColor: theme.colors.border,
+  },
+  appleButton: {
+    backgroundColor: theme.colors.text,
+    borderColor: theme.colors.text,
+  },
+  socialButtonText: {
+    ...theme.typography.body, fontWeight: '500' as const,
+    color: '#1F2937', // Dark gray for Google button text
+  },
+  appleButtonText: {
+    color: theme.colors.white,
   },
 });

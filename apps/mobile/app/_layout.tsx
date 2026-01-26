@@ -9,6 +9,7 @@ import { config } from '../src/config';
 import { theme } from '../src/theme';
 import { CurrencyProvider } from '../src/context/CurrencyContext';
 import { ToastProvider } from '../src/context/ToastContext';
+import FloatingChatButton from '../src/components/FloatingChatButton';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -46,13 +47,19 @@ export default function RootLayout() {
           <Stack
             screenOptions={screenOptions}
           />
+          <FloatingChatButton />
         </ToastProvider>
       </CurrencyProvider>
     );
   }
 
   return (
-    <ClerkProvider publishableKey={publishableKey}>
+    <ClerkProvider 
+      publishableKey={publishableKey}
+      // Configure OAuth redirect URLs for Expo
+      afterSignInUrl="/"
+      afterSignUpUrl="/"
+    >
       <CurrencyProvider>
         <ToastProvider>
           <StatusBar style="light" />
@@ -62,6 +69,7 @@ export default function RootLayout() {
               headerShown: false,
             }}
           />
+          <FloatingChatButton />
         </ToastProvider>
       </CurrencyProvider>
     </ClerkProvider>

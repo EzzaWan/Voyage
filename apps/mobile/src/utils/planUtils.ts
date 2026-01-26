@@ -122,6 +122,8 @@ export function isDailyUnlimitedPlan(plan: Plan): boolean {
 /**
  * Check if plan should be visible (>= $3 USD)
  * Exception: 1GB 7 days plans are always visible regardless of price
+ * Note: This function is called after filterVisiblePlans already handles 1GB 7 days,
+ * but kept here for consistency and as a safety check
  */
 export function isPlanVisible(plan: Plan, discountPercent: number = 0): boolean {
   // Always show 1GB 7 days plans regardless of price
@@ -208,10 +210,11 @@ export function filterCountrySpecificPlans(plans: Plan[], countryCode: string): 
 
 /**
  * Filter plans to only visible ones
- * - >= $3 USD
- * - Exclude 0.5GB, 1.5GB, 2GB (except unlimited)
- * - Exclude plans <= 1.5GB (except unlimited)
+ * - >= $3 USD (except 1GB 7 days plans which bypass price filter)
+ * - Exclude 0.5GB, 1.5GB, 2GB (except unlimited and 1GB 7 days)
+ * - Exclude plans <= 1.5GB (except unlimited and 1GB 7 days)
  * - Exclude 1-day plans (except unlimited)
+ * - 1GB 7 days plans are always included (excluding FUP and nonhkip variants)
  */
 export function filterVisiblePlans(plans: Plan[], getDiscount?: (packageCode: string, gb: number) => number): Plan[] {
   return plans.filter((plan) => {
@@ -222,9 +225,15 @@ export function filterVisiblePlans(plans: Plan[], getDiscount?: (packageCode: st
     
     const gb = calculateGB(plan.volume);
     const isUnlimited = isDailyUnlimitedPlan(plan);
+    const is1GB7Days = is1GB7DaysPlan(plan);
     
-    // Exclude all plans <= 1.5GB (except unlimited plans and 1GB 7 days)
-    if (gb <= MIN_GB_SIZE && !isUnlimited && !is1GB7DaysPlan(plan)) {
+    // Always include 1GB 7 days plans (they bypass all filters except FUP/nonhkip check)
+    if (is1GB7Days) {
+      return true;
+    }
+    
+    // Exclude all plans <= 1.5GB (except unlimited plans)
+    if (gb <= MIN_GB_SIZE && !isUnlimited) {
       return false;
     }
     
@@ -243,6 +252,7 @@ export function filterVisiblePlans(plans: Plan[], getDiscount?: (packageCode: st
     }
     
     // Filter by price (>= $3 USD)
+    // Note: 1GB 7 days plans already returned true above, so they bypass this
     const discountPercent = getDiscount ? getDiscount(plan.packageCode || '', gb) : 0;
     return isPlanVisible(plan, discountPercent);
   });
