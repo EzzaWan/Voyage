@@ -47,7 +47,10 @@ export default function BottomNav({ activeTab }: BottomNavProps) {
                   color={active ? theme.colors.primary : theme.colors.textMuted}
                 />
               </View>
-              <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
+              <Text 
+                style={[styles.tabLabel, active && styles.tabLabelActive]}
+                numberOfLines={1}
+              >
                 {tab.label}
               </Text>
             </TouchableOpacity>
@@ -77,7 +80,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
     paddingTop: 8,
-    paddingHorizontal: 8,
+    paddingHorizontal: 2,
     height: 64,
   },
   tab: {
@@ -85,7 +88,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 4,
+    paddingHorizontal: 2,
     minHeight: 56,
+    minWidth: 0, // Allow flex to work properly
   },
   iconContainer: {
     width: 40,
@@ -105,6 +110,8 @@ const styles = StyleSheet.create({
     color: theme.colors.textMuted,
     marginTop: 2,
     fontWeight: '500',
+    textAlign: 'center',
+    includeFontPadding: false, // Remove extra padding that can cause truncation
   },
   tabLabelActive: {
     color: theme.colors.primary,

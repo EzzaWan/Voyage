@@ -6,6 +6,9 @@ import { apiFetch } from '../src/api/client';
 import { theme } from '../src/theme';
 import { AnimatedListItem } from '../src/components/AnimatedListItem';
 import { AnimatedButton } from '../src/components/AnimatedButton';
+
+// Global icon for global plans
+const globalIcon = require('../assets/regions/global.png');
 import {
   Plan,
   processPlansForDisplay,
@@ -155,6 +158,9 @@ export default function Plans() {
     return `https://flagcdn.com/w160/${params.countryId?.toLowerCase()}.png`;
   };
 
+  // Check if this is a global plan
+  const isGlobalPlan = params.countryId?.startsWith('GL-') || params.countryId?.toUpperCase() === 'GLOBAL';
+
   const handleSelectPlan = (plan: Plan) => {
     if (!plan.packageCode) {
       setError('Plan code is missing');
@@ -182,7 +188,15 @@ export default function Plans() {
       {/* Country Header Card */}
       <View style={styles.countryHeader}>
         <View style={styles.flagContainer}>
-          {!imageError ? (
+          {isGlobalPlan ? (
+            <View style={styles.globalIconContainer}>
+              <Image
+                source={globalIcon}
+                style={styles.globalIconImage}
+                resizeMode="contain"
+              />
+            </View>
+          ) : !imageError ? (
             <Image
               source={{ uri: getFlagUrl() }}
               style={styles.flagImage}
@@ -579,6 +593,23 @@ const styles = StyleSheet.create({
   },
   flagFallback: {
     fontSize: 32,
+  },
+  globalIconContainer: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    // Drop shadow for iOS
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    // Drop shadow for Android
+    elevation: 4,
+  },
+  globalIconImage: {
+    width: 48,
+    height: 48,
   },
   countryInfo: {
     flex: 1,

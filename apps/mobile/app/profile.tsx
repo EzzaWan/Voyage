@@ -26,7 +26,6 @@ export default function Profile() {
   const { signOut, isSignedIn, isLoaded: authLoaded } = useAuth();
   const { selectedCurrency, setCurrency } = useCurrency();
   const [showCurrencyModal, setShowCurrencyModal] = useState(false);
-  const [marketingEnabled, setMarketingEnabled] = useState(true);
   
   const isLoaded = userLoaded && authLoaded;
 
@@ -84,14 +83,6 @@ export default function Profile() {
       onPress: () => setShowCurrencyModal(true),
       showArrow: true,
     },
-    {
-      id: 'marketing',
-      label: 'Marketing communication',
-      onPress: () => setMarketingEnabled(!marketingEnabled),
-      hasToggle: true,
-      toggleValue: marketingEnabled,
-      onToggle: setMarketingEnabled,
-    }
   ];
 
   // Group 3: Legal
@@ -124,12 +115,6 @@ export default function Profile() {
       onPress: handleSignOut,
       showArrow: true,
     },
-    {
-      id: 'delete',
-      label: 'Delete my account',
-      onPress: () => {}, // TODO: Implement delete
-      destructive: true,
-    },
   ] : [
     {
       id: 'login',
@@ -160,11 +145,6 @@ export default function Profile() {
               ]}>
                 {item.label}
               </Text>
-              {item.label === 'Marketing communication' && (
-                <Text style={styles.menuSubLabel}>
-                  Enable this option to receive exclusive Voyo offers and promotions.
-                </Text>
-              )}
             </View>
             
             {item.hasToggle && (

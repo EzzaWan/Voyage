@@ -119,11 +119,11 @@ export default function AdminBlogEditPage() {
       const payload = {
         title: formData.title.trim(),
         slug: formData.slug.trim(),
-        excerpt: formData.excerpt.trim() || null,
+        excerpt: formData.excerpt?.trim() || null,
         content: formData.content.trim(),
-        featuredImage: formData.featuredImage.trim() || null,
-        metaTitle: formData.metaTitle.trim() || null,
-        metaDescription: formData.metaDescription.trim() || null,
+        featuredImage: formData.featuredImage?.trim() || null,
+        metaTitle: formData.metaTitle?.trim() || null,
+        metaDescription: formData.metaDescription?.trim() || null,
         status: formData.status,
       };
 

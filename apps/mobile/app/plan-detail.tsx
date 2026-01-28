@@ -21,6 +21,9 @@ import {
   getDisplayDataSize,
 } from '../src/utils/planUtils';
 
+// Global icon for global plans
+const globalIcon = require('../assets/regions/global.png');
+
 type OrderResponse = {
   orderId: string;
   [key: string]: any;
@@ -134,10 +137,25 @@ export default function PlanDetail() {
     return isDailyUnlimitedPlan(plan);
   }, [plan]);
 
+  // Check if this is a global plan
+  const isGlobalPlan = useMemo(() => {
+    if (!plan?.location) return false;
+    const loc = plan.location.toUpperCase();
+    return loc.startsWith('GL-') || loc === 'GL-139' || params.countryName === 'Global';
+  }, [plan, params.countryName]);
+
   const displayName = useMemo(() => {
     if (!plan) return '';
+    
+    // For global plans, format as "Data Size Duration" (e.g., "1 GB 7 Days")
+    if (isGlobalPlan) {
+      const dataSize = getDisplayDataSize(plan);
+      const duration = formatValidity(plan.duration, plan.durationUnit);
+      return `${dataSize} ${duration}`;
+    }
+    
     return getDisplayName(plan);
-  }, [plan]);
+  }, [plan, isGlobalPlan]);
 
   const displayDataSize = useMemo(() => {
     if (!plan) return '';
@@ -291,8 +309,14 @@ export default function PlanDetail() {
         >
           {/* Header Card with Flag */}
           <View style={styles.headerCard}>
-          <View style={styles.flagContainer}>
-            {!imageError && locationCode ? (
+          <View style={[styles.flagContainer, isGlobalPlan && styles.globalIconContainer]}>
+            {isGlobalPlan ? (
+              <Image
+                source={globalIcon}
+                style={styles.globalIconImage}
+                resizeMode="contain"
+              />
+            ) : !imageError && locationCode ? (
               <Image
                 source={{ uri: getFlagUrl() }}
                 style={styles.flagImage}
@@ -378,7 +402,7 @@ export default function PlanDetail() {
           
           <View style={styles.statBox}>
             <Text style={styles.statLabel}>SPEED</Text>
-            <Text style={styles.statValue}>4G/LTE</Text>
+            <Text style={styles.statValue}>{plan.speed || '4G/LTE'}</Text>
           </View>
           <View style={styles.statBox}>
             <Text style={styles.statLabel}>ACTIVATION</Text>
@@ -389,13 +413,19 @@ export default function PlanDetail() {
         {/* Coverage Region */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionIcon}>🌍</Text>
+            <Ionicons name="globe-outline" size={16} color={theme.colors.textMuted} style={styles.sectionIcon} />
             <Text style={styles.sectionTitle}>COVERAGE REGION</Text>
           </View>
           
           <View style={styles.coverageCard}>
-            <View style={styles.coverageFlagContainer}>
-              {!imageError && locationCode ? (
+            <View style={[styles.coverageFlagContainer, isGlobalPlan && styles.globalIconContainer]}>
+              {isGlobalPlan ? (
+                <Image
+                  source={globalIcon}
+                  style={styles.globalIconImage}
+                  resizeMode="contain"
+                />
+              ) : !imageError && locationCode ? (
                 <Image
                   source={{ uri: getFlagUrl() }}
                   style={styles.coverageFlag}
@@ -407,8 +437,10 @@ export default function PlanDetail() {
               )}
             </View>
             <View style={styles.coverageInfo}>
-              <Text style={styles.coverageCountry}>{getCountryName(locationCode)}</Text>
-              <Text style={styles.coverageNetwork}>{getNetworkOperator(locationCode)}</Text>
+              <Text style={styles.coverageCountry}>{isGlobalPlan ? 'Global' : getCountryName(locationCode)}</Text>
+              {!isGlobalPlan && (
+                <Text style={styles.coverageNetwork}>{getNetworkOperator(locationCode)}</Text>
+              )}
             </View>
           </View>
         </View>
@@ -696,7 +728,7 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   sectionIcon: {
-    fontSize: 16,
+    // Icon component handles its own size
   },
   sectionTitle: {
     ...theme.typography.small,
@@ -730,6 +762,19 @@ const styles = StyleSheet.create({
     fontSize: 24,
     textAlign: 'center',
     lineHeight: 36,
+  },
+  globalIconContainer: {
+    // Drop shadow for iOS
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    // Drop shadow for Android
+    elevation: 4,
+  },
+  globalIconImage: {
+    width: 48,
+    height: 48,
   },
   coverageInfo: {
     flex: 1,

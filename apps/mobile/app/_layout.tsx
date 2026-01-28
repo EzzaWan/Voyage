@@ -17,6 +17,11 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const publishableKey = config.clerkPublishableKey;
   
+  if (!publishableKey) {
+    console.error('[RootLayout] WARNING: Clerk publishable key is missing! Authentication will not work.');
+    console.error('[RootLayout] Make sure EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY is set in .env.mobile');
+  }
+  
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -38,24 +43,11 @@ export default function RootLayout() {
     },
   };
 
-  if (!publishableKey) {
-    console.warn('Clerk publishable key not configured');
-    return (
-      <CurrencyProvider>
-        <ToastProvider>
-          <StatusBar style="light" />
-          <Stack
-            screenOptions={screenOptions}
-          />
-          <FloatingChatButton />
-        </ToastProvider>
-      </CurrencyProvider>
-    );
-  }
-
+  // Always render ClerkProvider, even if key is missing (it will show errors but won't crash)
+  // This prevents "useUser can only be used within ClerkProvider" errors
   return (
     <ClerkProvider 
-      publishableKey={publishableKey}
+      publishableKey={publishableKey || ''}
       // Configure OAuth redirect URLs for Expo
       afterSignInUrl="/"
       afterSignUpUrl="/"

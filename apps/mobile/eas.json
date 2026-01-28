@@ -1,9 +1,9 @@
 {
-    "cli": {
-      "version": ">= 5.9.0",
-      "appVersionSource": "remote"
-    },
-    "build": {
+  "cli": {
+    "version": ">= 5.9.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
     "development": {
       "developmentClient": true,
       "distribution": "internal",
@@ -31,8 +31,8 @@
         "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
       }
     }
-    },
-    "submit": {
-      "production": {}
-    }
+  },
+  "submit": {
+    "production": {}
   }
+}

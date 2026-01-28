@@ -209,8 +209,10 @@ export default function EsimSetup() {
   }
 
   const esimProfile = order?.EsimProfile?.[0];
-  const hasQrCode = !!esimProfile?.qrCodeUrl;
   const esimStatus = esimProfile?.esimStatus?.toUpperCase() || '';
+  // Hide QR code and activation for expired or canceled eSIMs
+  const isExpiredOrCanceled = esimStatus === 'EXPIRED' || esimStatus === 'UNUSED_EXPIRED' || esimStatus === 'USED_EXPIRED' || esimStatus === 'DISABLED' || esimStatus === 'CANCEL' || esimStatus === 'CANCELLED' || esimStatus === 'CANCELED';
+  const hasQrCode = !!esimProfile?.qrCodeUrl && !isExpiredOrCanceled;
   
   // Data usage calculations
   const totalData = formatDataSize(esimProfile?.totalVolume);
@@ -460,6 +462,39 @@ export default function EsimSetup() {
       );
     }
 
+    // Handle canceled status separately
+    if (esimStatus === 'CANCEL' || esimStatus === 'CANCELLED' || esimStatus === 'CANCELED') {
+      const statusColor = getStatusColor('CANCEL');
+      return (
+        <>
+          <View style={styles.header}>
+            <View style={[styles.statusBadge, { backgroundColor: statusColor + '10', borderColor: statusColor + '40' }]}>
+              <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+              <Text style={[styles.statusText, { color: statusColor }]}>{getStatusLabel('CANCEL')}</Text>
+            </View>
+            <Text style={styles.title}>eSIM Canceled</Text>
+            <Text style={styles.subtitle}>This eSIM has been canceled</Text>
+          </View>
+
+          <View style={styles.errorCard}>
+            <Ionicons name="close-circle" size={48} color={theme.colors.textMuted} />
+            <Text style={styles.errorMessage}>
+              This eSIM has been canceled and is no longer available.
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.buyAgainButton}
+            onPress={handleBuyAgain}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.buyAgainButtonText}>Buy New eSIM</Text>
+          </TouchableOpacity>
+        </>
+      );
+    }
+
+    // Handle expired status
     if (esimStatus === 'EXPIRED' || esimStatus === 'UNUSED_EXPIRED' || esimStatus === 'USED_EXPIRED' || esimStatus === 'DISABLED') {
       const statusColor = getStatusColor('EXPIRED');
       return (
@@ -1197,6 +1232,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     backgroundColor: theme.colors.primary,
     marginTop: 7,
+    marginRight: 10,
     flexShrink: 0,
   },
   noteText: {
@@ -1400,6 +1436,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 24,
     borderRadius: theme.borderRadius.full,
+    marginTop: theme.spacing.md,
     marginBottom: theme.spacing.md,
     gap: 8,
     ...theme.shadows.primaryGlow,

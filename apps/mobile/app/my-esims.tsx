@@ -42,8 +42,10 @@ export default function MyEsims() {
   const cachedEsimsRef = useRef<EsimProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [countryNames, setCountryNames] = useState<Record<string, string>>({});
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
 
   useEffect(() => {
     fetchCountries();
@@ -60,6 +62,20 @@ export default function MyEsims() {
     }
   }, [isLoaded, user?.primaryEmailAddress?.emailAddress]);
 
+  // Auto-refresh usage every 5 minutes when app is active
+  useEffect(() => {
+    if (!isLoaded || !user?.primaryEmailAddress?.emailAddress || esims.length === 0) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      // Silently refresh usage (don't show loading spinner)
+      fetchEsims(false, true); // Sync usage but don't show refresh spinner
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(interval);
+  }, [isLoaded, user?.primaryEmailAddress?.emailAddress, esims.length, fetchEsims]);
+
   async function fetchCountries() {
     try {
       const countries = await apiFetch<Array<{ code: string; name: string }>>('/countries');
@@ -73,7 +89,7 @@ export default function MyEsims() {
     }
   }
 
-  const fetchEsims = useCallback(async (isRefresh = false) => {
+  const fetchEsims = useCallback(async (isRefresh = false, syncUsage = false) => {
     const email = user?.primaryEmailAddress?.emailAddress;
     
     if (!email) {
@@ -87,6 +103,34 @@ export default function MyEsims() {
       else setLoading(true);
       setError(null);
       
+      // If refreshing, sync usage for all eSIMs first
+      if (syncUsage && isRefresh) {
+        // Fetch current eSIMs to get ICCIDs
+        const currentData = await apiFetch<EsimProfile[]>(`/user/esims?email=${encodeURIComponent(email)}`);
+        const currentEsims = Array.isArray(currentData) ? currentData : [];
+        
+        // Sync usage for each eSIM (in parallel, but limit to avoid rate limits)
+        const syncPromises = currentEsims
+          .filter(esim => esim.iccid) // Only sync if ICCID exists
+          .slice(0, 5) // Limit to 5 at a time to avoid rate limits
+          .map(esim => 
+            apiFetch(`/esim/${esim.iccid}/sync`, {
+              method: 'POST',
+              headers: {
+                'x-user-email': email,
+              },
+            }).catch(err => {
+              console.warn(`Failed to sync usage for ${esim.iccid}:`, err);
+              return null; // Don't fail if one sync fails
+            })
+          );
+        
+        // Wait for syncs to complete (but don't block if they fail)
+        await Promise.allSettled(syncPromises);
+        setLastSyncTime(new Date()); // Update last sync time
+      }
+      
+      // Fetch updated eSIM data
       const data = await apiFetch<EsimProfile[]>(`/user/esims?email=${encodeURIComponent(email)}`);
       const esimsData = Array.isArray(data) ? data : [];
       setEsims(esimsData);
@@ -106,8 +150,66 @@ export default function MyEsims() {
     }
   }, [user?.primaryEmailAddress?.emailAddress]);
 
+  const handleSyncNow = useCallback(async () => {
+    const email = user?.primaryEmailAddress?.emailAddress;
+    if (!email || syncing) return;
+
+    try {
+      setSyncing(true);
+      setError(null);
+      
+      // Fetch current eSIMs to get ICCIDs
+      const currentData = await apiFetch<EsimProfile[]>(`/user/esims?email=${encodeURIComponent(email)}`);
+      const currentEsims = Array.isArray(currentData) ? currentData : [];
+      
+      // Sync usage for each eSIM (in parallel, but limit to avoid rate limits)
+      const syncPromises = currentEsims
+        .filter(esim => esim.iccid) // Only sync if ICCID exists
+        .slice(0, 5) // Limit to 5 at a time to avoid rate limits
+        .map(esim => 
+          apiFetch(`/esim/${esim.iccid}/sync`, {
+            method: 'POST',
+            headers: {
+              'x-user-email': email,
+            },
+          }).catch(err => {
+            console.warn(`Failed to sync usage for ${esim.iccid}:`, err);
+            return null; // Don't fail if one sync fails
+          })
+        );
+      
+      // Wait for syncs to complete
+      await Promise.allSettled(syncPromises);
+      setLastSyncTime(new Date()); // Update last sync time
+      
+      // Refresh eSIM data to show updated usage
+      await fetchEsims(false, false);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to sync usage';
+      setError(errorMessage);
+    } finally {
+      setSyncing(false);
+    }
+  }, [user?.primaryEmailAddress?.emailAddress, syncing, fetchEsims]);
+
+  const formatTimeAgo = (date: Date | null): string => {
+    if (!date) return 'Never';
+    
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} minute${diffMins === 1 ? '' : 's'} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+    
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+  };
+
   const onRefresh = useCallback(() => {
-    fetchEsims(true);
+    fetchEsims(true, true); // Refresh and sync usage
   }, [fetchEsims]);
 
   const getCountryName = (locationCode?: string): string => {
@@ -251,6 +353,38 @@ export default function MyEsims() {
             )}
           </TouchableOpacity>
         </View>
+        
+        {/* Sync Status and Controls */}
+        <View style={styles.syncContainer}>
+          <View style={styles.syncInfo}>
+            <Ionicons name="time-outline" size={14} color={theme.colors.textMuted} />
+            <Text style={styles.syncText}>
+              Last synced: {formatTimeAgo(lastSyncTime)}
+            </Text>
+          </View>
+          <TouchableOpacity 
+            onPress={handleSyncNow} 
+            disabled={syncing || refreshing}
+            style={[styles.syncButton, (syncing || refreshing) && styles.syncButtonDisabled]}
+          >
+            {syncing ? (
+              <ActivityIndicator size="small" color={theme.colors.white} />
+            ) : (
+              <>
+                <Ionicons name="sync" size={14} color={theme.colors.white} />
+                <Text style={styles.syncButtonText}>Sync Now</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+        
+        {/* Provider Delay Note */}
+        <View style={styles.infoNote}>
+          <Ionicons name="information-circle-outline" size={14} color={theme.colors.textMuted} />
+          <Text style={styles.infoNoteText}>
+            Usage data updates every 2–3 hours from your carrier
+          </Text>
+        </View>
       </View>
 
       <FlatList
@@ -274,7 +408,7 @@ export default function MyEsims() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.backgroundLight,
+    backgroundColor: theme.colors.background,
   },
   safeAreaSpacer: {
     height: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 8,
@@ -284,7 +418,7 @@ const styles = StyleSheet.create({
     paddingBottom: theme.spacing.md,
     paddingLeft: 16, // Explicit 16px padding
     paddingRight: 16, // Explicit 16px padding
-    backgroundColor: theme.colors.backgroundLight,
+    backgroundColor: theme.colors.background,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
   },
@@ -302,6 +436,57 @@ const styles = StyleSheet.create({
   refreshButton: {
     padding: 8,
     marginRight: -8,
+  },
+  syncContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: theme.spacing.sm,
+    paddingTop: theme.spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border + '40',
+  },
+  syncInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flex: 1,
+  },
+  syncText: {
+    fontSize: 12,
+    color: theme.colors.textMuted,
+    fontWeight: '500',
+  },
+  syncButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: theme.borderRadius.md,
+    ...theme.shadows.primaryGlow,
+  },
+  syncButtonDisabled: {
+    opacity: 0.6,
+  },
+  syncButtonText: {
+    fontSize: 12,
+    color: theme.colors.white,
+    fontWeight: '600',
+  },
+  infoNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: theme.spacing.xs,
+    paddingTop: theme.spacing.xs,
+  },
+  infoNoteText: {
+    fontSize: 11,
+    color: theme.colors.textMuted,
+    flex: 1,
+    lineHeight: 16,
   },
   listContent: {
     paddingLeft: 16, // Explicit 16px padding

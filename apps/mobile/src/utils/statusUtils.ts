@@ -24,6 +24,10 @@ export function getStatusLabel(status?: string | null): string {
     case 'USED_EXPIRED':
     case 'DISABLED':
       return 'Expired';
+    case 'CANCEL':
+    case 'CANCELLED':
+    case 'CANCELED':
+      return 'Canceled';
     case 'PENDING':
     case 'PROVISIONING':
       return 'Pending';
@@ -53,6 +57,9 @@ export function getStatusColor(status?: string | null): string {
   }
   if (normalizedStatus === 'EXPIRED' || normalizedStatus === 'UNUSED_EXPIRED' || normalizedStatus === 'USED_EXPIRED' || normalizedStatus === 'DISABLED') {
     return theme.colors.textMuted; // Gray for expired
+  }
+  if (normalizedStatus === 'CANCEL' || normalizedStatus === 'CANCELLED' || normalizedStatus === 'CANCELED') {
+    return theme.colors.textMuted; // Gray for canceled
   }
   if (normalizedStatus === 'PENDING' || normalizedStatus === 'PROVISIONING') {
     return theme.colors.warning; // Orange for pending

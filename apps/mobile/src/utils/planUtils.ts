@@ -15,6 +15,7 @@ export interface Plan {
   location?: string;
   locationNetworkList?: { locationCode: string }[];
   currencyCode?: string;
+  speed?: string; // Speed information (e.g., "4G/LTE", "5G")
 }
 
 // GB sizes we don't sell - filter these out

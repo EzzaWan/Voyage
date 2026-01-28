@@ -248,6 +248,48 @@ export default function SignUpScreen() {
                   )}
                 </TouchableOpacity>
 
+                {/* Divider */}
+                <View style={styles.divider}>
+                  <View style={styles.dividerLine} />
+                  <Text style={styles.dividerText}>OR</Text>
+                  <View style={styles.dividerLine} />
+                </View>
+
+                {/* Social Login Buttons */}
+                <TouchableOpacity
+                  style={[styles.socialButton, styles.googleButton, oauthLoading === 'google' && styles.socialButtonDisabled]}
+                  onPress={onGooglePress}
+                  disabled={oauthLoading !== null || !isLoaded}
+                  activeOpacity={0.85}
+                >
+                  {oauthLoading === 'google' ? (
+                    <ActivityIndicator color="#4285F4" />
+                  ) : (
+                    <>
+                      <Ionicons name="logo-google" size={20} color="#4285F4" />
+                      <Text style={styles.socialButtonText}>Continue with Google</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+
+                {Platform.OS === 'ios' && (
+                  <TouchableOpacity
+                    style={[styles.socialButton, styles.appleButton, oauthLoading === 'apple' && styles.socialButtonDisabled]}
+                    onPress={onApplePress}
+                    disabled={oauthLoading !== null || !isLoaded}
+                    activeOpacity={0.85}
+                  >
+                    {oauthLoading === 'apple' ? (
+                      <ActivityIndicator color={theme.colors.white} />
+                    ) : (
+                      <>
+                        <Ionicons name="logo-apple" size={20} color={theme.colors.white} />
+                        <Text style={[styles.socialButtonText, styles.appleButtonText]}>Continue with Apple</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                )}
+
                 <Text style={styles.termsText}>
                   By signing up, you agree to our Terms of Service and Privacy Policy
                 </Text>

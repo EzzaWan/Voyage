@@ -46,16 +46,26 @@ const FILTER_TABS = [
 type Region = {
   code: string;
   name: string;
-  icon: string;
+  icon: any | null; // Image source (require() or null)
+  fallbackIcon: keyof typeof Ionicons.glyphMap; // Fallback Ionicons icon
 };
 
+// Local region icons
+const asiaIcon = require('../assets/regions/asia.png');
+const europeIcon = require('../assets/regions/europe.png');
+const northAmericaIcon = require('../assets/regions/north-america.png');
+const southAmericaIcon = require('../assets/regions/south-america.png');
+const africaIcon = require('../assets/regions/africa.png');
+const oceaniaIcon = require('../assets/regions/oceania.png');
+const globalIcon = require('../assets/regions/global.png');
+
 const REGIONS: Region[] = [
-  { code: 'asia', name: 'Asia', icon: '🌏' },
-  { code: 'europe', name: 'Europe', icon: '🇪🇺' },
-  { code: 'north-america', name: 'North America', icon: '🌎' },
-  { code: 'south-america', name: 'South America', icon: '🌎' },
-  { code: 'africa', name: 'Africa', icon: '🌍' },
-  { code: 'oceania', name: 'Oceania', icon: '🌏' },
+  { code: 'asia', name: 'Asia', icon: asiaIcon, fallbackIcon: 'globe-outline' },
+  { code: 'europe', name: 'Europe', icon: europeIcon, fallbackIcon: 'location-outline' },
+  { code: 'north-america', name: 'North America', icon: northAmericaIcon, fallbackIcon: 'map-outline' },
+  { code: 'south-america', name: 'South America', icon: southAmericaIcon, fallbackIcon: 'compass-outline' },
+  { code: 'africa', name: 'Africa', icon: africaIcon, fallbackIcon: 'earth-outline' },
+  { code: 'oceania', name: 'Oceania', icon: oceaniaIcon, fallbackIcon: 'water-outline' },
 ];
 
 // Country to region mapping
@@ -136,6 +146,8 @@ export default function Home() {
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
   const [regionCountries, setRegionCountries] = useState<Country[]>([]);
   const [loadingRegionCountries, setLoadingRegionCountries] = useState(false);
+  const [globalPlans, setGlobalPlans] = useState<Plan[]>([]);
+  const [loadingGlobalPlans, setLoadingGlobalPlans] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -225,7 +237,7 @@ export default function Home() {
     return `From ${formatCurrencyPrice(convertedPrice)}`;
   };
 
-  const handleTabPress = (tabId: string) => {
+  const handleTabPress = async (tabId: string) => {
     setActiveTab(tabId);
     // Reset region selection when switching tabs
     if (tabId !== 'regional') {
@@ -233,15 +245,81 @@ export default function Home() {
       setRegionCountries([]);
     }
     if (tabId === 'global') {
-      // Navigate to global plans page - try GL-120 first (most common)
-      router.push({
-        pathname: '/plans',
-        params: {
-          countryId: 'GL-120', // Global plan code (120+ countries)
-          countryName: 'Global',
-        },
-      });
+      // Load global plans within the tab
+      await fetchGlobalPlans();
     }
+  };
+
+  const fetchGlobalPlans = async () => {
+    if (globalPlans.length > 0) return; // Already loaded
+    
+    try {
+      setLoadingGlobalPlans(true);
+      // Fetch GL-139 global plans
+      const plans = await apiFetch<Plan[]>(`/countries/GL-139/plans`);
+      if (plans && plans.length > 0) {
+        // Filter out 1GB 365 day plans
+        const filtered = plans.filter(plan => {
+          // Check by plan name first (most reliable) - case insensitive
+          const planName = (plan.name || '').toLowerCase();
+          
+          // Check for "1gb" and "365" in the name
+          const has1GB = planName.includes('1gb') || planName.includes('1 gb');
+          const has365 = planName.includes('365') || planName.includes('365days') || planName.includes('365 days');
+          
+          if (has1GB && has365) {
+            return false; // Exclude this plan
+          }
+          
+          // Also check packageCode/slug for pattern like "GL-139_1_365"
+          const packageCode = (plan.packageCode || plan.id || '').toLowerCase();
+          if (packageCode.includes('_1_365') || packageCode.includes('-1-365')) {
+            return false;
+          }
+          
+          // Also check by volume and duration as backup
+          let gb = 0;
+          if (plan.volume) {
+            if (plan.volume > 1000000) {
+              // Bytes to GB
+              gb = plan.volume / 1024 / 1024 / 1024;
+            } else {
+              // MB to GB
+              gb = plan.volume / 1024;
+            }
+          }
+          
+          const duration = plan.duration || 0;
+          const durationUnit = (plan.durationUnit || 'day').toLowerCase();
+          
+          // Exclude 1GB 365 day plans (with some tolerance for rounding)
+          if (gb >= 0.9 && gb <= 1.1 && duration === 365 && durationUnit === 'day') {
+            return false;
+          }
+          
+          return true;
+        });
+        
+        // Sort by price ascending
+        const sorted = filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
+        
+        setGlobalPlans(sorted);
+      }
+    } catch (err) {
+      console.error('Error fetching global plans:', err);
+    } finally {
+      setLoadingGlobalPlans(false);
+    }
+  };
+
+  const handleGlobalPlanPress = (plan: Plan) => {
+    router.push({
+      pathname: '/plan-detail',
+      params: {
+        planId: plan.packageCode || plan.id || '',
+        countryName: 'Global',
+      },
+    });
   };
 
   const handleRegionPress = async (region: Region) => {
@@ -384,7 +462,16 @@ export default function Home() {
                     activeOpacity={0.7}
                   >
                     <View style={styles.regionIcon}>
-                      <Text style={styles.regionIconText}>{region.icon}</Text>
+                      {region.icon ? (
+                        <Image 
+                          source={region.icon} 
+                          style={styles.regionIconImage}
+                          resizeMode="contain"
+                          defaultSource={region.icon}
+                        />
+                      ) : (
+                        <Ionicons name={region.fallbackIcon} size={24} color={theme.colors.primary} />
+                      )}
                     </View>
                     <Text style={styles.regionName}>{region.name}</Text>
                     <Text style={[
@@ -547,6 +634,89 @@ export default function Home() {
                   <Ionicons name="chevron-forward" size={20} color={theme.colors.textMuted} />
                 </TouchableOpacity>
               ))}
+            </View>
+          </>
+        )}
+
+        {/* Global Tab Content */}
+        {activeTab === 'global' && !searchQuery && (
+          <>
+            <Text style={styles.sectionTitle}>Global Plans</Text>
+            <View style={styles.groupedList}>
+              {loadingGlobalPlans ? (
+                <ActivityIndicator size="small" color={theme.colors.primary} style={{ margin: 20 }} />
+              ) : globalPlans.length > 0 ? (
+                globalPlans.map((plan, index) => {
+                  const planPrice = plan.price || 0;
+                  const planCurrency = plan.currency || 'USD';
+                  
+                  // Format data size (handle both MB and bytes)
+                  let dataSize = '';
+                  if (plan.volume) {
+                    if (plan.volume > 1000000) {
+                      // Bytes to GB
+                      const gb = plan.volume / 1024 / 1024 / 1024;
+                      dataSize = gb % 1 === 0 ? `${gb} GB` : `${gb.toFixed(1)} GB`;
+                    } else {
+                      // MB to GB
+                      const gb = plan.volume / 1024;
+                      if (gb >= 1) {
+                        dataSize = gb % 1 === 0 ? `${gb} GB` : `${gb.toFixed(1)} GB`;
+                      } else {
+                        dataSize = `${plan.volume} MB`;
+                      }
+                    }
+                  }
+                  
+                  // Format duration
+                  const duration = plan.duration 
+                    ? `${plan.duration} ${plan.durationUnit === 'month' ? 'Month' : 'Day'}${plan.duration !== 1 ? 's' : ''}` 
+                    : '';
+                  
+                  // Plan name is just data size and duration
+                  const planName = dataSize && duration ? `${dataSize} ${duration}` : (dataSize || duration || 'Global Plan');
+                  
+                  return (
+                    <TouchableOpacity
+                      key={plan.packageCode || plan.id || index}
+                      style={[
+                        styles.listItem,
+                        index === globalPlans.length - 1 && styles.lastListItem
+                      ]}
+                      onPress={() => handleGlobalPlanPress(plan)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={[styles.flagContainer, styles.globalIconContainer]}>
+                        <Image 
+                          source={globalIcon} 
+                          style={styles.globalIconImage}
+                          resizeMode="contain"
+                        />
+                      </View>
+                      
+                      <View style={styles.listItemContent}>
+                        <Text style={styles.countryName}>{planName}</Text>
+                        {planPrice > 0 && (
+                          <Text style={styles.priceText}>
+                            {planCurrency && planCurrency !== 'USD' 
+                              ? new Intl.NumberFormat('en-US', {
+                                  style: 'currency',
+                                  currency: planCurrency.toUpperCase(),
+                                }).format(convertFromCurrency(planPrice, planCurrency))
+                              : formatCurrencyPrice(convert(planPrice))}
+                          </Text>
+                        )}
+                      </View>
+                      
+                      <Ionicons name="chevron-forward" size={20} color={theme.colors.textMuted} />
+                    </TouchableOpacity>
+                  );
+                })
+              ) : (
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>No global plans available</Text>
+                </View>
+              )}
             </View>
           </>
         )}
@@ -722,9 +892,9 @@ const styles = StyleSheet.create({
     width: 20,
   },
   regionIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: theme.colors.backgroundLight,
     justifyContent: 'center',
     alignItems: 'center',
@@ -732,8 +902,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
-  regionIconText: {
-    fontSize: 20,
+  regionIconImage: {
+    width: 32,
+    height: 32,
+    // Using 256px source images for crisp rendering on high-DPI displays
   },
   regionName: {
     flex: 1,
@@ -757,5 +929,18 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 14,
     color: theme.colors.textMuted,
+  },
+  globalIconContainer: {
+    // Drop shadow for iOS
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    // Drop shadow for Android
+    elevation: 4,
+  },
+  globalIconImage: {
+    width: 24,
+    height: 24,
   },
 });
