@@ -236,7 +236,7 @@ export default function AdminBlogEditPage() {
                 <Label htmlFor="excerpt">Excerpt</Label>
                 <Textarea
                   id="excerpt"
-                  value={formData.excerpt}
+                  value={formData.excerpt || ""}
                   onChange={(e) =>
                     setFormData({ ...formData, excerpt: e.target.value })
                   }
@@ -298,7 +298,7 @@ export default function AdminBlogEditPage() {
                 <Input
                   id="featuredImage"
                   type="url"
-                  value={formData.featuredImage}
+                  value={formData.featuredImage || ""}
                   onChange={(e) =>
                     setFormData({ ...formData, featuredImage: e.target.value })
                   }
@@ -311,7 +311,7 @@ export default function AdminBlogEditPage() {
                 <Label htmlFor="metaTitle">SEO Meta Title</Label>
                 <Input
                   id="metaTitle"
-                  value={formData.metaTitle}
+                  value={formData.metaTitle || ""}
                   onChange={(e) =>
                     setFormData({ ...formData, metaTitle: e.target.value })
                   }
@@ -324,7 +324,7 @@ export default function AdminBlogEditPage() {
                 <Label htmlFor="metaDescription">SEO Meta Description</Label>
                 <Textarea
                   id="metaDescription"
-                  value={formData.metaDescription}
+                  value={formData.metaDescription || ""}
                   onChange={(e) =>
                     setFormData({ ...formData, metaDescription: e.target.value })
                   }
