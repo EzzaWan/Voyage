@@ -24,6 +24,7 @@ interface ExpiryCountdownProps {
   className?: string;
   iccid?: string;
   onExpired?: () => void;
+  userEmail?: string;
 }
 
 export function ExpiryCountdown({
@@ -31,6 +32,7 @@ export function ExpiryCountdown({
   className,
   iccid,
   onExpired,
+  userEmail,
 }: ExpiryCountdownProps) {
   const [now, setNow] = useState(Date.now());
   const [time, setTime] = useState<TimeRemaining | null>(null);
@@ -79,11 +81,20 @@ export function ExpiryCountdown({
   const handleSync = async () => {
     if (!iccid || isSyncing) return;
 
+    // Skip sync if user email is not available (required by backend)
+    if (!userEmail) {
+      console.warn("Sync skipped: user email not available");
+      return;
+    }
+
     setIsSyncing(true);
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
       await safeFetch(`${apiUrl}/esim/${iccid}/sync`, {
         method: "POST",
+        headers: {
+          "x-user-email": userEmail,
+        },
         showToast: false,
       });
 
@@ -103,11 +114,11 @@ export function ExpiryCountdown({
   };
 
   useEffect(() => {
-    if (time && time.totalMs <= 0 && iccid && !isSyncing && !hasNotifiedExpiry) {
+    if (time && time.totalMs <= 0 && iccid && !isSyncing && !hasNotifiedExpiry && userEmail) {
       handleSync();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [time?.totalMs, iccid, isSyncing, hasNotifiedExpiry]);
+  }, [time?.totalMs, iccid, isSyncing, hasNotifiedExpiry, userEmail]);
 
   if (!expiry) {
     return (

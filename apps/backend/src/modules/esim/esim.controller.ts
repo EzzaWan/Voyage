@@ -239,6 +239,16 @@ export class EsimController {
       });
     }
 
+    // Also sync usage data if esimTranNo is available
+    if (profile.esimTranNo) {
+      try {
+        await this.usageService.syncUsageForProfile(profile.id, profile.esimTranNo);
+      } catch (err) {
+        // Log but don't fail the sync if usage sync fails
+        console.warn(`Failed to sync usage for profile ${profile.id}:`, err);
+      }
+    }
+
     // Check and mark as expired if status indicates
     if (providerProfile.esimStatus === 'EXPIRED' || providerProfile.esimStatus === 'UNUSED_EXPIRED' || providerProfile.esimStatus === 'USED_EXPIRED') {
       await this.prisma.esimProfile.update({

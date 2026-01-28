@@ -23,7 +23,6 @@ export class CreateSupportTicketDto {
 
   @IsString()
   @IsNotEmpty({ message: 'Message is required' })
-  @MinLength(10, { message: 'Message must be at least 10 characters long' })
   @MaxLength(1000, { message: 'Message must be no more than 1000 characters long' })
   message: string;
 }

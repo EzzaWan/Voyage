@@ -129,6 +129,7 @@ export default function MyEsimsPage() {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     // Wait for Clerk to load
@@ -160,6 +161,8 @@ export default function MyEsimsPage() {
           setLoading(false);
           return;
         }
+
+        setUserEmail(userEmail);
 
         const data = await safeFetch<EsimProfile[]>(
           `${process.env.NEXT_PUBLIC_API_URL}/user/esims?email=${encodeURIComponent(userEmail)}`,
@@ -254,10 +257,11 @@ export default function MyEsimsPage() {
              const timeRemaining = getTimeRemaining(esim.expiredTime);
              const urgency = getUrgencyLevel(timeRemaining);
              const isExpired = timeRemaining === null || timeRemaining.totalMs <= 0;
+             const isCancelled = esim.order?.status?.toLowerCase() === "cancelled" || esim.order?.status?.toLowerCase() === "canceled";
+             const isExpiredOrCancelled = isExpired || esim.esimStatus === "EXPIRED" || isCancelled;
              
-             return (
-               <Link key={esim.id} href={`/my-esims/${esim.iccid}`} className="block">
-                 <Card className="bg-[var(--voyo-card)] border border-[var(--voyo-border)] overflow-hidden hover:border-[var(--voyo-accent)] transition-colors cursor-pointer">
+             const cardContent = (
+                 <Card className={`bg-[var(--voyo-card)] border border-[var(--voyo-border)] overflow-hidden transition-colors ${isExpiredOrCancelled ? '' : 'hover:border-[var(--voyo-accent)] cursor-pointer'}`}>
                     <div className="h-2 bg-gradient-to-r from-[var(--voyo-accent)] to-purple-500" />
                     <CardHeader className="flex flex-row items-start justify-between pb-2">
                        <div className="flex-1 min-w-0 pr-2">
@@ -283,7 +287,7 @@ export default function MyEsimsPage() {
                               ) : (
                                 <span className="text-xs text-[var(--voyo-muted)] flex items-center gap-1">
                                   <Calendar className="h-3 w-3" />
-                                  <ExpiryCountdown expiry={esim.expiredTime} iccid={esim.iccid} className="text-xs" />
+                                  <ExpiryCountdown expiry={esim.expiredTime} iccid={esim.iccid} className="text-xs" userEmail={userEmail} />
                                 </span>
                               )}
                             </div>
@@ -344,34 +348,64 @@ export default function MyEsimsPage() {
                                 <Calendar className="h-4 w-4 text-[var(--voyo-muted)]" />
                                 <span className="text-sm text-[var(--voyo-muted)]">Expires</span>
                              </div>
-                             <ExpiryCountdown expiry={esim.expiredTime} iccid={esim.iccid} className="text-sm font-medium" />
+                             <ExpiryCountdown expiry={esim.expiredTime} iccid={esim.iccid} className="text-sm font-medium" userEmail={userEmail} />
                           </div>
                         )}
                      </div>
                      
-                     {esim.qrCodeUrl && (
-                        <Button 
-                          className="w-full bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setSelectedEsim(esim);
-                          }}
-                        >
-                           <QrCode className="mr-2 h-4 w-4" /> View QR Code
-                        </Button>
-                     )}
+                     {!isExpiredOrCancelled && (
+                       <>
+                         {esim.qrCodeUrl && (
+                            <Button 
+                              className="w-full bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setSelectedEsim(esim);
+                              }}
+                            >
+                               <QrCode className="mr-2 h-4 w-4" /> View QR Code
+                            </Button>
+                         )}
 
-                     <Button 
-                        className="w-full h-10 text-md font-bold bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white shadow-[0_0_20px_rgba(30,144,255,0.3)] transition-all mt-2"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          router.push(`/my-esims/${esim.iccid}/topup`);
-                        }}
-                     >
-                        Top Up
-                     </Button>
+                         <Button 
+                            className="w-full h-10 text-md font-bold bg-[var(--voyo-accent)] hover:bg-[var(--voyo-accent-soft)] text-white shadow-[0_0_20px_rgba(30,144,255,0.3)] transition-all mt-2"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              router.push(`/my-esims/${esim.iccid}/topup`);
+                            }}
+                         >
+                            Top Up
+                         </Button>
+                         
+                         {esim.ac && (
+                            <Button 
+                              variant="outline"
+                              className="w-full bg-[var(--voyo-bg-light)] hover:bg-[var(--voyo-border)] text-white border border-[var(--voyo-border)]"
+                              onClick={async (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                if (esim.ac) {
+                                  await navigator.clipboard.writeText(esim.ac);
+                                  setCopied(true);
+                                  setTimeout(() => setCopied(false), 2000);
+                                }
+                              }}
+                            >
+                               {copied ? (
+                                  <>
+                                     <CheckCircle2 className="mr-2 h-4 w-4" /> Copied!
+                                  </>
+                               ) : (
+                                  <>
+                                     <Copy className="mr-2 h-4 w-4" /> Copy Activation Code
+                                  </>
+                               )}
+                            </Button>
+                         )}
+                       </>
+                     )}
 
                      <Button 
                         variant="outline"
@@ -384,34 +418,17 @@ export default function MyEsimsPage() {
                      >
                         <Star className="mr-2 h-4 w-4" /> Review
                      </Button>
-                     
-                     {esim.ac && (
-                        <Button 
-                          variant="outline"
-                          className="w-full bg-[var(--voyo-bg-light)] hover:bg-[var(--voyo-border)] text-white border border-[var(--voyo-border)]"
-                          onClick={async (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            if (esim.ac) {
-                              await navigator.clipboard.writeText(esim.ac);
-                              setCopied(true);
-                              setTimeout(() => setCopied(false), 2000);
-                            }
-                          }}
-                        >
-                           {copied ? (
-                              <>
-                                 <CheckCircle2 className="mr-2 h-4 w-4" /> Copied!
-                              </>
-                           ) : (
-                              <>
-                                 <Copy className="mr-2 h-4 w-4" /> Copy Activation Code
-                              </>
-                           )}
-                        </Button>
-                     )}
                   </CardContent>
                  </Card>
+             );
+             
+             return isExpiredOrCancelled ? (
+               <div key={esim.id} className="block">
+                 {cardContent}
+               </div>
+             ) : (
+               <Link key={esim.id} href={`/my-esims/${esim.iccid}`} className="block">
+                 {cardContent}
                </Link>
              );
            })}

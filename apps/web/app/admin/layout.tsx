@@ -21,7 +21,8 @@ import {
   ChevronDown,
   ChevronRight,
   Store,
-  Star
+  Star,
+  BookOpen
 } from "lucide-react";
 
 export default function AdminLayout({
@@ -39,6 +40,7 @@ export default function AdminLayout({
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     "Store": true,
     "Affiliates": true,
+    "Content": true,
     "System": true,
     "Users": true
   });
@@ -172,12 +174,20 @@ export default function AdminLayout({
     },
     {
       type: "group",
+      label: "Content",
+      icon: BookOpen,
+      children: [
+        { href: "/admin/blog", label: "Blog Posts", icon: BookOpen },
+        { href: "/admin/reviews", label: "Reviews", icon: Star },
+      ]
+    },
+    {
+      type: "group",
       label: "System",
       icon: Settings,
       children: [
         { href: "/admin/discounts", label: "Discounts", icon: Percent },
         { href: "/admin/support", label: "Support Tickets", icon: MessageSquare },
-        { href: "/admin/reviews", label: "Reviews", icon: Star },
         { href: "/admin/settings", label: "Settings", icon: Settings },
         { href: "/admin/emails", label: "Email Logs", icon: Mail },
         { href: "/admin/logs", label: "Logs", icon: FileText },

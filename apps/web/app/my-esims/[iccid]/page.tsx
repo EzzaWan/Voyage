@@ -258,6 +258,7 @@ export default function EsimDetailPage() {
               iccid={profile.iccid}
               onExpired={fetchData}
               className="text-2xl font-bold"
+              userEmail={user?.primaryEmailAddress?.emailAddress}
             />
          </div>
          <div className="bg-[var(--voyo-card)] rounded-xl p-5 border border-[var(--voyo-border)] flex flex-col items-center justify-center text-center">

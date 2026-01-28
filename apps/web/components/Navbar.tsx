@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { SearchDropdown } from "@/components/SearchDropdown";
-import { Menu, X, Globe, LifeBuoy, LogIn, UserPlus, ShoppingBag, User, Smartphone, LogOut } from "lucide-react";
+import { Menu, X, Globe, BookOpen, LogIn, UserPlus, ShoppingBag, User, Smartphone, LogOut } from "lucide-react";
 import { CurrencySelector } from "@/components/CurrencySelector";
 import { SignedIn, SignedOut, useClerk } from "@clerk/nextjs";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -38,7 +38,7 @@ export function Navbar() {
 
   const navLinks = [
     { name: "eSIM Plans", href: "/", icon: <ShoppingBag className="h-4 w-4" /> },
-    { name: "Support", href: "/support", icon: <LifeBuoy className="h-4 w-4" /> },
+    { name: "Blog", href: "/blog", icon: <BookOpen className="h-4 w-4" /> },
   ];
 
   const isActive = (path: string) => pathname === path;

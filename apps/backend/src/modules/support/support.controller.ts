@@ -29,9 +29,6 @@ export class SupportController {
       if (!body.message || !body.message.trim()) {
         throw new BadRequestException('Message is required');
       }
-      if (body.message.trim().length < 10) {
-        throw new BadRequestException('Message must be at least 10 characters long');
-      }
       if (body.message.trim().length > 1000) {
         throw new BadRequestException('Message must be no more than 1000 characters long');
       }
@@ -108,10 +105,6 @@ export class SupportController {
 
     if (!body.message || !body.message.trim()) {
       throw new BadRequestException('Message is required');
-    }
-
-    if (body.message.trim().length < 10) {
-      throw new BadRequestException('Message must be at least 10 characters long');
     }
 
     if (body.message.trim().length > 1000) {
