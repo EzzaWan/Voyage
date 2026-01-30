@@ -427,7 +427,9 @@ export default function Checkout() {
   // Payment step - Show Stripe WebView
   if (step === 'payment' && checkoutUrl) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
+        {/* Safe area spacer - prevents content from scrolling behind status bar */}
+        <View style={styles.safeAreaSpacer} />
         <View style={styles.header}>
           <TouchableOpacity onPress={() => { setStep('summary'); setCheckoutUrl(null); }} style={styles.backButton}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -451,7 +453,7 @@ export default function Checkout() {
           javaScriptEnabled={true}
           domStorageEnabled={true}
         />
-      </SafeAreaView>
+      </View>
     );
   }
 

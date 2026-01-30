@@ -803,53 +803,55 @@ export default function EsimSetup() {
           </View>
         )}
         
-        {/* Troubleshooting Section */}
-        <View style={styles.troubleshootingSection}>
-          <TouchableOpacity
-            style={styles.troubleshootingHeader}
-            onPress={() => setTroubleshootingExpanded(!troubleshootingExpanded)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.troubleshootingTitle}>Troubleshooting</Text>
-            <Ionicons 
-              name={troubleshootingExpanded ? "chevron-down" : "chevron-forward"} 
-              size={18} 
-              color={theme.colors.textMuted} 
-            />
-          </TouchableOpacity>
-          
-          {troubleshootingExpanded && (
-            <View style={styles.troubleshootingContent}>
-              <View style={styles.troubleshootingItem}>
-                <Text style={styles.troubleshootingItemTitle}>QR code won't scan?</Text>
-                <Text style={styles.troubleshootingItemText}>
-                  • Make sure your camera has permission to scan QR codes{'\n'}
-                  • Try increasing screen brightness{'\n'}
-                  • Use the QR code from your email if scanning fails{'\n'}
-                  • Manually enter the activation code if available
-                </Text>
+        {/* Troubleshooting Section - Hidden for expired/canceled eSIMs */}
+        {!isExpiredOrCanceled && (
+          <View style={styles.troubleshootingSection}>
+            <TouchableOpacity
+              style={styles.troubleshootingHeader}
+              onPress={() => setTroubleshootingExpanded(!troubleshootingExpanded)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.troubleshootingTitle}>Troubleshooting</Text>
+              <Ionicons 
+                name={troubleshootingExpanded ? "chevron-down" : "chevron-forward"} 
+                size={18} 
+                color={theme.colors.textMuted} 
+              />
+            </TouchableOpacity>
+            
+            {troubleshootingExpanded && (
+              <View style={styles.troubleshootingContent}>
+                <View style={styles.troubleshootingItem}>
+                  <Text style={styles.troubleshootingItemTitle}>QR code won't scan?</Text>
+                  <Text style={styles.troubleshootingItemText}>
+                    • Make sure your camera has permission to scan QR codes{'\n'}
+                    • Try increasing screen brightness{'\n'}
+                    • Use the QR code from your email if scanning fails{'\n'}
+                    • Manually enter the activation code if available
+                  </Text>
+                </View>
+                
+                <View style={styles.troubleshootingItem}>
+                  <Text style={styles.troubleshootingItemTitle}>eSIM won't activate?</Text>
+                  <Text style={styles.troubleshootingItemText}>
+                    • Enable Data Roaming for this eSIM in Settings{'\n'}
+                    • Make sure you're in the correct country/region{'\n'}
+                    • Restart your device{'\n'}
+                    • Check if your device supports eSIM
+                  </Text>
+                </View>
+                
+                <TouchableOpacity
+                  style={styles.troubleshootingSupportButton}
+                  onPress={handleContactSupport}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.troubleshootingSupportButtonText}>Contact Support</Text>
+                </TouchableOpacity>
               </View>
-              
-              <View style={styles.troubleshootingItem}>
-                <Text style={styles.troubleshootingItemTitle}>eSIM won't activate?</Text>
-                <Text style={styles.troubleshootingItemText}>
-                  • Enable Data Roaming for this eSIM in Settings{'\n'}
-                  • Make sure you're in the correct country/region{'\n'}
-                  • Restart your device{'\n'}
-                  • Check if your device supports eSIM
-                </Text>
-              </View>
-              
-              <TouchableOpacity
-                style={styles.troubleshootingSupportButton}
-                onPress={handleContactSupport}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.troubleshootingSupportButtonText}>Contact Support</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
+            )}
+          </View>
+        )}
         
         <View style={styles.orderInfoSection}>
           <Text style={styles.orderInfoSectionTitle}>Order Information</Text>
@@ -875,25 +877,27 @@ export default function EsimSetup() {
             </TouchableOpacity>
           </View>
 
-          {/* Action Buttons */}
-          <TouchableOpacity
-            style={styles.topUpButton}
-            onPress={() => {
-              const iccid = esimProfile?.iccid;
-              if (iccid) {
-                router.push({
-                  pathname: '/topup',
-                  params: { iccid },
-                });
-              } else {
-                toast.error('Error', 'eSIM ICCID not found');
-              }
-            }}
-            activeOpacity={0.85}
-          >
-            <Ionicons name="flash" size={20} color={theme.colors.white} />
-            <Text style={styles.topUpButtonText}>Top Up Data</Text>
-          </TouchableOpacity>
+          {/* Action Buttons - Hidden for expired/canceled eSIMs */}
+          {!isExpiredOrCanceled && (
+            <TouchableOpacity
+              style={styles.topUpButton}
+              onPress={() => {
+                const iccid = esimProfile?.iccid;
+                if (iccid) {
+                  router.push({
+                    pathname: '/topup',
+                    params: { iccid },
+                  });
+                } else {
+                  toast.error('Error', 'eSIM ICCID not found');
+                }
+              }}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="flash" size={20} color={theme.colors.white} />
+              <Text style={styles.topUpButtonText}>Top Up Data</Text>
+            </TouchableOpacity>
+          )}
 
           <View style={styles.orderActionsContainer}>
             <TouchableOpacity

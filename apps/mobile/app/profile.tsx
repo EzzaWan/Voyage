@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, FlatList, Dimensions, Switch, Platform, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, FlatList, Dimensions, Switch, Platform, StatusBar, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUser, useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
@@ -182,7 +182,15 @@ export default function Profile() {
         {isLoaded && isSignedIn && user && (
           <View style={styles.profileCard}>
             <View style={styles.avatarContainer}>
-              <Text style={styles.avatarText}>{getInitial()}</Text>
+              {user.imageUrl ? (
+                <Image 
+                  source={{ uri: user.imageUrl }} 
+                  style={styles.avatarImage}
+                  defaultSource={require('../assets/icon.png')}
+                />
+              ) : (
+                <Text style={styles.avatarText}>{getInitial()}</Text>
+              )}
             </View>
             <View style={styles.profileInfo}>
               <Text style={styles.profileName}>{getName()}</Text>
@@ -315,6 +323,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: theme.spacing.md,
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
   },
   avatarText: {
     fontSize: 24,

@@ -88,7 +88,7 @@ export default function PlanDetail() {
   const router = useRouter();
   const toast = useToast();
   const { user } = useUser();
-  const { convert, formatPrice } = useCurrency();
+  const { convert, formatPrice, selectedCurrency } = useCurrency();
   const params = useLocalSearchParams<{
     planId: string;
     countryName?: string;
@@ -214,14 +214,16 @@ export default function PlanDetail() {
         currency: string;
         planName: string;
         paymentMethod: string;
+        displayCurrency?: string;
         email?: string;
         duration?: number;
       } = {
         planCode: plan.packageCode,
         amount: totalPrice,
-        currency: 'USD',
+        currency: selectedCurrency, // Pass selected currency so backend uses it for Stripe
         planName: plan.name,
         paymentMethod: 'stripe',
+        displayCurrency: selectedCurrency, // Also pass as displayCurrency for clarity
       };
 
       if (userEmail) {
@@ -647,11 +649,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: theme.spacing.sm,
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.xxxl, // Extra large spacing to push coverage region down
   },
   statBox: {
     flex: 1,
     minWidth: '45%',
+    maxWidth: '48%', // Ensure boxes don't exceed 48% to prevent wrapping issues
     backgroundColor: theme.colors.card,
     borderRadius: theme.borderRadius.md,
     padding: theme.spacing.md,
@@ -660,10 +663,12 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     minHeight: 90,
     justifyContent: 'center',
+    overflow: 'hidden', // Prevent content overflow
   },
   statBoxEditable: {
     borderColor: theme.colors.primary,
     borderWidth: 2,
+    minHeight: 100, // Slightly taller for editable content
   },
   statLabel: {
     ...theme.typography.small,
@@ -719,6 +724,7 @@ const styles = StyleSheet.create({
   
   // Section
   section: {
+    marginTop: theme.spacing.lg, // Add extra top margin for additional spacing
     marginBottom: theme.spacing.md,
   },
   sectionHeader: {

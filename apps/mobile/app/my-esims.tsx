@@ -343,47 +343,40 @@ export default function MyEsims() {
       {/* Safe area spacer - prevents content from scrolling behind status bar */}
       <View style={styles.safeAreaSpacer} />
       <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <Text style={styles.title}>My eSIMs</Text>
-          <TouchableOpacity onPress={onRefresh} disabled={refreshing} style={styles.refreshButton}>
-            {refreshing ? (
-              <ActivityIndicator size="small" color={theme.colors.primary} />
-            ) : (
-              <Ionicons name="refresh" size={22} color={theme.colors.primary} />
-            )}
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.title}>My eSIMs</Text>
         
-        {/* Sync Status and Controls */}
-        <View style={styles.syncContainer}>
-          <View style={styles.syncInfo}>
-            <Ionicons name="time-outline" size={14} color={theme.colors.textMuted} />
-            <Text style={styles.syncText}>
-              Last synced: {formatTimeAgo(lastSyncTime)}
+        {/* Sync Status and Controls - Redesigned */}
+        <View style={styles.syncSection}>
+          <View style={styles.syncRow}>
+            <View style={styles.syncInfoContainer}>
+              <Ionicons name="time-outline" size={16} color={theme.colors.textMuted} />
+              <Text style={styles.syncText}>
+                Last synced: {formatTimeAgo(lastSyncTime)}
+              </Text>
+            </View>
+            <TouchableOpacity 
+              onPress={handleSyncNow} 
+              disabled={syncing || refreshing}
+              style={[styles.syncButton, (syncing || refreshing) && styles.syncButtonDisabled]}
+            >
+              {syncing ? (
+                <ActivityIndicator size="small" color={theme.colors.white} />
+              ) : (
+                <>
+                  <Ionicons name="sync" size={16} color={theme.colors.white} />
+                  <Text style={styles.syncButtonText}>Sync Now</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+          
+          {/* Provider Delay Note */}
+          <View style={styles.infoNote}>
+            <Ionicons name="information-circle-outline" size={13} color={theme.colors.textMuted} />
+            <Text style={styles.infoNoteText}>
+              Usage data updates every 2–3 hours from your carrier
             </Text>
           </View>
-          <TouchableOpacity 
-            onPress={handleSyncNow} 
-            disabled={syncing || refreshing}
-            style={[styles.syncButton, (syncing || refreshing) && styles.syncButtonDisabled]}
-          >
-            {syncing ? (
-              <ActivityIndicator size="small" color={theme.colors.white} />
-            ) : (
-              <>
-                <Ionicons name="sync" size={14} color={theme.colors.white} />
-                <Text style={styles.syncButtonText}>Sync Now</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
-        
-        {/* Provider Delay Note */}
-        <View style={styles.infoNote}>
-          <Ionicons name="information-circle-outline" size={14} color={theme.colors.textMuted} />
-          <Text style={styles.infoNoteText}>
-            Usage data updates every 2–3 hours from your carrier
-          </Text>
         </View>
       </View>
 
@@ -416,44 +409,40 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingBottom: theme.spacing.md,
-    paddingLeft: 16, // Explicit 16px padding
-    paddingRight: 16, // Explicit 16px padding
+    paddingLeft: 16,
+    paddingRight: 16,
     backgroundColor: theme.colors.background,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
   },
   title: {
     fontSize: 28,
     fontWeight: '700',
     color: theme.colors.text,
     letterSpacing: -0.5,
+    marginBottom: theme.spacing.md,
   },
-  refreshButton: {
-    padding: 8,
-    marginRight: -8,
+  syncSection: {
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border + '40',
   },
-  syncContainer: {
+  syncRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: theme.spacing.sm,
-    paddingTop: theme.spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border + '40',
+    marginBottom: theme.spacing.xs,
   },
-  syncInfo: {
+  syncInfoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     flex: 1,
   },
   syncText: {
-    fontSize: 12,
+    fontSize: 13,
     color: theme.colors.textMuted,
     fontWeight: '500',
   },
@@ -462,8 +451,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     backgroundColor: theme.colors.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: theme.borderRadius.md,
     ...theme.shadows.primaryGlow,
   },
@@ -471,16 +460,18 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   syncButtonText: {
-    fontSize: 12,
+    fontSize: 13,
     color: theme.colors.white,
     fontWeight: '600',
   },
   infoNote: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 6,
     marginTop: theme.spacing.xs,
     paddingTop: theme.spacing.xs,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border + '30',
   },
   infoNoteText: {
     fontSize: 11,

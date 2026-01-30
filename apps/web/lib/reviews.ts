@@ -14,11 +14,11 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 // Convert backend review format to frontend format
 const formatReview = (review: any): Review => ({
   id: review.id,
-  userName: review.userName,
+  userName: review.userName || 'Anonymous',
   rating: review.rating,
-  comment: review.comment,
-  date: new Date(review.createdAt).toISOString().split('T')[0],
-  verified: review.verified,
+  comment: review.comment || '',
+  date: review.date ? review.date.split('T')[0] : (review.createdAt ? new Date(review.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]),
+  verified: review.verified !== undefined ? review.verified : true,
 });
 
 export const getReviews = async (limit?: number): Promise<Review[]> => {
@@ -27,8 +27,17 @@ export const getReviews = async (limit?: number): Promise<Review[]> => {
       ? `${apiUrl}/reviews?limit=${limit}`
       : `${apiUrl}/reviews`;
     
-    const response = await safeFetch<{ reviews: any[] }>(url, { showToast: false });
-    return response.reviews.map(formatReview);
+    const response = await safeFetch<{ reviews: any[]; total?: number }>(url, { showToast: false });
+    
+    // Handle both response formats: { reviews: [...] } or direct array
+    const reviewsArray = Array.isArray(response) ? response : (response.reviews || []);
+    
+    if (!Array.isArray(reviewsArray)) {
+      console.error('Invalid reviews response format:', response);
+      return [];
+    }
+    
+    return reviewsArray.map(formatReview);
   } catch (error) {
     console.error('Failed to fetch reviews:', error);
     return [];
