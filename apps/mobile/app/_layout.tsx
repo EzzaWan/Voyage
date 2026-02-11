@@ -10,6 +10,7 @@ import { theme } from '../src/theme';
 import { CurrencyProvider } from '../src/context/CurrencyContext';
 import { ToastProvider } from '../src/context/ToastContext';
 import FloatingChatButton from '../src/components/FloatingChatButton';
+import { tokenCache } from '../src/utils/tokenCache';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -48,6 +49,7 @@ export default function RootLayout() {
   return (
     <ClerkProvider 
       publishableKey={publishableKey || ''}
+      tokenCache={tokenCache}
       // Configure OAuth redirect URLs for Expo
       afterSignInUrl="/"
       afterSignUpUrl="/"

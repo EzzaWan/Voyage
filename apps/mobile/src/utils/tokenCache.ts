@@ -1,7 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 
-// Token cache implementation for Clerk
-// Note: This uses the legacy tokenCache API - Clerk Expo handles caching automatically in newer versions
+// Token cache implementation for Clerk using SecureStore
+// This ensures session tokens persist securely across app restarts and force-closes
 export const tokenCache = {
   async getToken(key: string): Promise<string | null> {
     try {
