@@ -2,6 +2,7 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    "skipLibCheck": true,
     "types": [
       "expo-router"
     ],
@@ -15,5 +16,12 @@
   "include": [
     "**/*.ts",
     "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/node_modules/**",
+    ".expo",
+    "dist",
+    "build"
   ]
 }

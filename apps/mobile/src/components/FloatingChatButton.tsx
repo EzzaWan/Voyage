@@ -90,15 +90,19 @@ export default function FloatingChatButton() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.optionButton}
-                onPress={handleWhatsApp}
-                activeOpacity={0.8}
+                style={[styles.optionButton, styles.disabledButton]}
+                onPress={() => {}} // Disabled - no action
+                activeOpacity={1} // No press effect
+                disabled={true}
               >
-                <View style={[styles.optionIconContainer, styles.whatsappIconContainer]}>
-                  <Ionicons name="logo-whatsapp" size={24} color="#25D366" />
+                <View style={[styles.optionIconContainer, styles.whatsappIconContainer, styles.disabledIconContainer]}>
+                  <Ionicons name="logo-whatsapp" size={24} color="#999999" />
                 </View>
-                <Text style={styles.optionText}>Chat on WhatsApp</Text>
-                <Ionicons name="chevron-forward" size={20} color={theme.colors.textMuted} />
+                <View style={styles.optionTextContainer}>
+                  <Text style={[styles.optionText, styles.disabledText]}>Chat on WhatsApp</Text>
+                  <Text style={styles.comingSoonText}>Coming soon</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#CCCCCC" />
               </TouchableOpacity>
             </View>
           </View>
@@ -193,6 +197,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600' as const,
     color: theme.colors.text,
+  },
+  optionTextContainer: {
+    flex: 1,
+  },
+  disabledButton: {
+    opacity: 0.6,
+    backgroundColor: theme.colors.background,
+  },
+  disabledIconContainer: {
+    backgroundColor: 'rgba(153, 153, 153, 0.1)',
+  },
+  disabledText: {
+    color: '#999999',
+  },
+  comingSoonText: {
+    fontSize: 12,
+    color: '#999999',
+    fontStyle: 'italic',
+    marginTop: 2,
   },
 });
 
