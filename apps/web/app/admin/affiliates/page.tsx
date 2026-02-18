@@ -20,8 +20,8 @@ interface Affiliate {
     createdAt: string;
   };
   _count: {
-    referrals: number;
-    commissions: number;
+    Referral: number;
+    Commission: number;
   };
 }
 
@@ -87,11 +87,11 @@ export default function AdminAffiliatesPage() {
       },
       {
         header: "Referrals",
-        accessor: (row: Affiliate) => (row._count?.referrals || 0).toString(),
+        accessor: (row: Affiliate) => (row._count?.Referral || 0).toString(),
       },
       {
         header: "Commissions",
-        accessor: (row: Affiliate) => (row._count?.commissions || 0).toString(),
+        accessor: (row: Affiliate) => (row._count?.Commission || 0).toString(),
       },
       {
         header: "Created",
