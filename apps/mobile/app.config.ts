@@ -96,6 +96,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.voyo.mobile',
+    buildNumber: '2',
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
     },
@@ -112,7 +113,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   web: {
     favicon: './assets/favicon.png',
   },
-  plugins: ['expo-router'],
+  plugins: ['expo-router', 'expo-apple-authentication'],
   extra: {
     apiBaseUrl: apiBaseUrlValue,
     clerkPublishableKey:

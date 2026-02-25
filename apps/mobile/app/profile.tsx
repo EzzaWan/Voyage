@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, FlatList, Dimensions, Switch, Platform, StatusBar, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, FlatList, Dimensions, Switch, Platform, StatusBar, Image, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUser, useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import BottomNav from '../src/components/BottomNav';
 import { theme } from '../src/theme';
 import { useCurrency, SUPPORTED_CURRENCIES } from '../src/context/CurrencyContext';
+import { apiFetch } from '../src/api/client';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -26,7 +27,10 @@ export default function Profile() {
   const { signOut, isSignedIn, isLoaded: authLoaded } = useAuth();
   const { selectedCurrency, setCurrency } = useCurrency();
   const [showCurrencyModal, setShowCurrencyModal] = useState(false);
-  
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   const isLoaded = userLoaded && authLoaded;
 
   const handleSignOut = async () => {
@@ -40,6 +44,28 @@ export default function Profile() {
 
   const handleSignIn = () => {
     router.push('/(auth)/sign-in');
+  };
+
+  const handleDeleteAccountPress = () => setShowDeleteConfirm(true);
+
+  const handleDeleteAccountConfirm = async () => {
+    if (!user?.id || !user?.primaryEmailAddress?.emailAddress) return;
+    setDeleteError(null);
+    setDeleteLoading(true);
+    try {
+      await apiFetch<{ success: boolean }>('/user/delete-account', {
+        method: 'POST',
+        headers: { 'x-user-email': user.primaryEmailAddress.emailAddress },
+        body: JSON.stringify({ clerkUserId: user.id }),
+      });
+      setShowDeleteConfirm(false);
+      await signOut();
+      router.replace('/');
+    } catch (err: any) {
+      setDeleteError(err?.message || 'Failed to delete account. Please try again.');
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   const getInitial = () => {
@@ -114,6 +140,13 @@ export default function Profile() {
       label: 'Log out',
       onPress: handleSignOut,
       showArrow: true,
+    },
+    {
+      id: 'delete-account',
+      label: 'Delete account',
+      onPress: handleDeleteAccountPress,
+      showArrow: true,
+      destructive: true,
     },
   ] : [
     {
@@ -269,6 +302,54 @@ export default function Profile() {
                 </TouchableOpacity>
               )}
             />
+          </View>
+        </View>
+      </Modal>
+
+      {/* Delete Account Confirmation Modal */}
+      <Modal
+        visible={showDeleteConfirm}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => !deleteLoading && setShowDeleteConfirm(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.modalBackdrop}
+            onPress={() => !deleteLoading && setShowDeleteConfirm(false)}
+            activeOpacity={1}
+          />
+          <View style={[styles.modalContent, styles.deleteModalContent]}>
+            <Text style={styles.deleteModalTitle}>Delete account?</Text>
+            <Text style={styles.deleteModalText}>
+              Your account and all associated data will be permanently deleted. This cannot be undone.
+            </Text>
+            <Text style={styles.deleteModalSubtext}>
+              If you signed in with Apple, you can revoke this app's access in your Apple ID settings.
+            </Text>
+            {deleteError && (
+              <Text style={styles.deleteModalError}>{deleteError}</Text>
+            )}
+            <View style={styles.deleteModalButtons}>
+              <TouchableOpacity
+                style={styles.deleteModalCancel}
+                onPress={() => !deleteLoading && setShowDeleteConfirm(false)}
+                disabled={deleteLoading}
+              >
+                <Text style={styles.deleteModalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.deleteModalConfirm, deleteLoading && styles.deleteModalConfirmDisabled]}
+                onPress={handleDeleteAccountConfirm}
+                disabled={deleteLoading}
+              >
+                {deleteLoading ? (
+                  <ActivityIndicator color={theme.colors.white} size="small" />
+                ) : (
+                  <Text style={styles.deleteModalConfirmText}>Delete my account</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -450,5 +531,68 @@ const styles = StyleSheet.create({
   checkmark: {
     color: theme.colors.primary,
     fontSize: 16,
+  },
+  // Delete account modal
+  deleteModalContent: {
+    marginHorizontal: 24,
+    padding: theme.spacing.lg,
+    maxHeight: undefined,
+  },
+  deleteModalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: theme.colors.text,
+    marginBottom: theme.spacing.md,
+  },
+  deleteModalText: {
+    fontSize: 15,
+    color: theme.colors.textSecondary,
+    lineHeight: 22,
+    marginBottom: theme.spacing.sm,
+  },
+  deleteModalSubtext: {
+    fontSize: 13,
+    color: theme.colors.textMuted,
+    lineHeight: 18,
+    marginBottom: theme.spacing.lg,
+  },
+  deleteModalError: {
+    fontSize: 14,
+    color: theme.colors.error,
+    marginBottom: theme.spacing.md,
+  },
+  deleteModalButtons: {
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+    marginTop: theme.spacing.sm,
+  },
+  deleteModalCancel: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: theme.borderRadius.md,
+    backgroundColor: theme.colors.border,
+    alignItems: 'center',
+  },
+  deleteModalCancelText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.colors.text,
+  },
+  deleteModalConfirm: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: theme.borderRadius.md,
+    backgroundColor: theme.colors.error,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
+  },
+  deleteModalConfirmDisabled: {
+    opacity: 0.7,
+  },
+  deleteModalConfirmText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.colors.white,
   },
 });

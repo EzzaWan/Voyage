@@ -1,8 +1,9 @@
-import { Controller, Get, Query, Headers } from '@nestjs/common';
+import { Controller, Get, Post, Query, Headers, Body, Req, UseGuards, BadRequestException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { PrismaService } from '../../prisma.service';
-import { getUserIdFromEmail } from '../../common/utils/get-user-id';
-import { assertOwnership } from '../../common/utils/assert-ownership';
+import { ClerkAuthGuard } from '../../common/guards/clerk-auth.guard';
+import { CsrfGuard } from '../../common/guards/csrf.guard';
+import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
 
 @Controller('user')
 export class UsersController {
@@ -10,6 +11,20 @@ export class UsersController {
     private readonly usersService: UsersService,
     private readonly prisma: PrismaService,
   ) {}
+
+  @Post('delete-account')
+  @UseGuards(RateLimitGuard, CsrfGuard, ClerkAuthGuard)
+  async deleteAccount(
+    @Req() req: { userId: string; userEmail: string },
+    @Body() body: { clerkUserId?: string },
+  ) {
+    const clerkUserId = body?.clerkUserId?.trim();
+    if (!clerkUserId) {
+      throw new BadRequestException('clerkUserId is required');
+    }
+    await this.usersService.deleteAccount(req.userId!, clerkUserId);
+    return { success: true, message: 'Account has been deleted.' };
+  }
 
   @Get('esims')
   async getEsims(

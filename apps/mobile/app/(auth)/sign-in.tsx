@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { SafeAreaView, StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { useSignIn, useOAuth } from '@clerk/clerk-expo';
+import { useSignIn, useOAuth, useSignInWithApple } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { theme } from '../../src/theme';
@@ -12,7 +12,7 @@ export default function SignInScreen() {
   const router = useRouter();
   const { signIn, setActive, isLoaded } = useSignIn();
   const { startOAuthFlow: startGoogleOAuth } = useOAuth({ strategy: 'oauth_google' });
-  const { startOAuthFlow: startAppleOAuth } = useOAuth({ strategy: 'oauth_apple' });
+  const { startAppleAuthenticationFlow } = useSignInWithApple();
   const [emailAddress, setEmailAddress] = useState('');
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
@@ -116,7 +116,7 @@ export default function SignInScreen() {
       if (createdSessionId && setActiveFromOAuth) {
         await setActiveFromOAuth({ session: createdSessionId });
         router.replace('/');
-      } else if (createdSessionId) {
+      } else if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
         router.replace('/');
       }
@@ -137,50 +137,25 @@ export default function SignInScreen() {
       setOauthLoading('apple');
       setError(null);
 
-      // Check if Apple Authentication is available
-      const isAvailable = await AppleAuthentication.isAvailableAsync();
-      if (!isAvailable) {
-        setError('Apple Sign In is not available on this device');
-        setOauthLoading(null);
-        return;
-      }
-
-      // Start Apple authentication
-      const credential = await AppleAuthentication.signInAsync({
-        requestedScopes: [
-          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-          AppleAuthentication.AppleAuthenticationScope.EMAIL,
-        ],
-      });
-
-      if (!credential.identityToken) {
-        throw new Error('No identity token received from Apple');
-      }
-
-      // Start OAuth flow with Clerk using the Apple credential
-      const { createdSessionId, setActive: setActiveFromOAuth } = await startAppleOAuth({
-        idToken: credential.identityToken,
-        nonce: credential.nonce || undefined,
-        firstName: credential.fullName?.givenName || undefined,
-        lastName: credential.fullName?.familyName || undefined,
-      });
+      const { createdSessionId, setActive: setActiveFromOAuth } = await startAppleAuthenticationFlow();
 
       if (createdSessionId && setActiveFromOAuth) {
         await setActiveFromOAuth({ session: createdSessionId });
         router.replace('/');
-      } else if (createdSessionId) {
-        await setActive({ session: createdSessionId });
-        router.replace('/');
+        return;
+      }
+
+      if (!createdSessionId) {
+        setError('Apple sign-in did not complete. Please try again.');
       }
     } catch (err: any) {
-      if (err.code === 'ERR_CANCELED' || err.code === 'ERR_REQUEST_CANCELED') {
-        // User canceled, don't show error
+      if (err?.code === 'ERR_REQUEST_CANCELED' || err?.code === 'ERR_CANCELED') {
         setError(null);
-      } else if (err.errors && err.errors.length > 0) {
-        const errorMessage = err.errors[0]?.longMessage || err.errors[0]?.message || 'Apple sign-in failed';
-        setError(errorMessage);
+      } else if (err?.errors?.length > 0) {
+        const msg = err.errors[0]?.longMessage || err.errors[0]?.message || 'Apple sign-in failed';
+        setError(msg);
       } else {
-        setError('Apple sign-in failed. Please try again.');
+        setError(err?.message || 'Apple sign-in failed. Please try again.');
       }
     } finally {
       setOauthLoading(null);
@@ -297,21 +272,19 @@ export default function SignInScreen() {
                 </TouchableOpacity>
 
                 {Platform.OS === 'ios' && (
-                  <TouchableOpacity
-                    style={[styles.socialButton, styles.appleButton, oauthLoading === 'apple' && styles.socialButtonDisabled]}
-                    onPress={onApplePress}
-                    disabled={oauthLoading !== null || !isLoaded}
-                    activeOpacity={0.85}
-                  >
-                    {oauthLoading === 'apple' ? (
+                  oauthLoading === 'apple' ? (
+                    <View style={styles.appleButtonLoading}>
                       <ActivityIndicator color={theme.colors.white} />
-                    ) : (
-                      <>
-                        <Ionicons name="logo-apple" size={20} color={theme.colors.white} />
-                        <Text style={[styles.socialButtonText, styles.appleButtonText]}>Continue with Apple</Text>
-                      </>
-                    )}
-                  </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <AppleAuthentication.AppleAuthenticationButton
+                      buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+                      buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+                      cornerRadius={theme.borderRadius.md}
+                      style={styles.appleAuthButton}
+                      onPress={onApplePress}
+                    />
+                  )
                 )}
               </>
             ) : (
@@ -405,10 +378,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingLeft: 16, // Explicit 16px padding
-    paddingRight: 16, // Explicit 16px padding
+    paddingLeft: 16,
+    paddingRight: 16,
     paddingTop: theme.spacing.lg,
-    paddingBottom: theme.spacing.lg,
     paddingBottom: theme.spacing.xxl,
   },
   
@@ -427,7 +399,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.lg,
   },
   title: {
-    ...theme.typography.display,
+    ...theme.typography.title,
     color: theme.colors.text,
     marginBottom: theme.spacing.xs,
     textAlign: 'center',
@@ -606,15 +578,22 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.white,
     borderColor: theme.colors.border,
   },
-  appleButton: {
-    backgroundColor: theme.colors.text,
-    borderColor: theme.colors.text,
+  appleAuthButton: {
+    width: '100%',
+    minHeight: 56,
+    marginBottom: theme.spacing.sm,
+  },
+  appleButtonLoading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 56,
+    borderRadius: theme.borderRadius.md,
+    backgroundColor: '#000000',
+    marginBottom: theme.spacing.sm,
   },
   socialButtonText: {
     ...theme.typography.body, fontWeight: '500' as const,
     color: '#1F2937', // Dark gray for Google button text
-  },
-  appleButtonText: {
-    color: theme.colors.white,
   },
 });
