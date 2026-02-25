@@ -175,8 +175,8 @@ export class UsersService {
       }
       await tx.order.deleteMany({ where: { userId } });
 
-      await tx.supportTicket.updateMany({ where: { userId } }, { data: { userId: null } });
-      await tx.review.updateMany({ where: { userId } }, { data: { userId: null, userName: 'Deleted User' } });
+      await tx.supportTicket.updateMany({ where: { userId }, data: { userId: null } });
+      await tx.review.updateMany({ where: { userId }, data: { userId: null, userName: 'Deleted User' } });
       await tx.vCashTransaction.deleteMany({ where: { userId } });
       await tx.vCashBalance.deleteMany({ where: { userId } });
       await tx.mobileToken.deleteMany({ where: { userId } });
