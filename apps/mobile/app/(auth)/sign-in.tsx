@@ -137,17 +137,23 @@ export default function SignInScreen() {
       setOauthLoading('apple');
       setError(null);
 
-      const { createdSessionId, setActive: setActiveFromOAuth } = await startAppleAuthenticationFlow();
+      const result = await startAppleAuthenticationFlow();
 
-      if (createdSessionId && setActiveFromOAuth) {
-        await setActiveFromOAuth({ session: createdSessionId });
-        router.replace('/');
-        return;
+      const { createdSessionId, setActive: setActiveFromOAuth } = result;
+      const signInStatus = (result.signIn as any)?.status;
+      const signUpStatus = (result.signUp as any)?.status;
+
+      if (createdSessionId) {
+        const activeFn = setActiveFromOAuth || setActive;
+        if (activeFn) {
+          await activeFn({ session: createdSessionId });
+          router.replace('/');
+          return;
+        }
       }
 
-      if (!createdSessionId) {
-        setError('Apple sign-in did not complete. Please try again.');
-      }
+      // createdSessionId is null — include status in error so it can be diagnosed
+      setError(`Apple sign-in incomplete [si:${signInStatus ?? '-'} su:${signUpStatus ?? '-'}]. Please try again or use a different method.`);
     } catch (err: any) {
       if (err?.code === 'ERR_REQUEST_CANCELED' || err?.code === 'ERR_CANCELED') {
         setError(null);

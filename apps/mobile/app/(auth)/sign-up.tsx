@@ -53,7 +53,7 @@ export default function SignUpScreen() {
   };
 
   const onPressVerify = async () => {
-    if (!isLoaded) return;
+    if (!isLoaded || !signUp) return;
 
     if (!code) {
       setError('Please enter the verification code');
@@ -68,12 +68,16 @@ export default function SignUpScreen() {
         code: code.trim(),
       });
 
-      await setActive({ session: completeSignUp.createdSessionId });
-      router.replace('/');
+      if (completeSignUp.status === 'complete' && completeSignUp.createdSessionId && setActive) {
+        await setActive({ session: completeSignUp.createdSessionId });
+        router.replace('/');
+      } else {
+        const missing = (completeSignUp as any)?.missingFields?.join(', ') || '-';
+        setError(`Sign-up incomplete [status:${completeSignUp.status ?? '-'} missing:${missing}]. Please try again.`);
+      }
     } catch (err: any) {
       const errorMessage = err.errors?.[0]?.longMessage || err.errors?.[0]?.message || 'An error occurred during verification';
       setError(errorMessage);
-      console.error('Verification error:', err.errors);
     } finally {
       setLoading(false);
     }
@@ -110,17 +114,23 @@ export default function SignUpScreen() {
       setOauthLoading('apple');
       setError(null);
 
-      const { createdSessionId, setActive: setActiveFromOAuth } = await startAppleAuthenticationFlow();
+      const result = await startAppleAuthenticationFlow();
 
-      if (createdSessionId && setActiveFromOAuth) {
-        await setActiveFromOAuth({ session: createdSessionId });
-        router.replace('/');
-        return;
+      const { createdSessionId, setActive: setActiveFromOAuth } = result;
+      const signInStatus = (result.signIn as any)?.status;
+      const signUpStatus = (result.signUp as any)?.status;
+
+      if (createdSessionId) {
+        const activeFn = setActiveFromOAuth || setActive;
+        if (activeFn) {
+          await activeFn({ session: createdSessionId });
+          router.replace('/');
+          return;
+        }
       }
 
-      if (!createdSessionId) {
-        setError('Apple sign-up did not complete. Please try again.');
-      }
+      // createdSessionId is null — include status in error so it can be diagnosed
+      setError(`Apple sign-up incomplete [si:${signInStatus ?? '-'} su:${signUpStatus ?? '-'}]. Please try again or use a different method.`);
     } catch (err: any) {
       if (err?.code === 'ERR_REQUEST_CANCELED' || err?.code === 'ERR_CANCELED') {
         setError(null);

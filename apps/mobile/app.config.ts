@@ -80,6 +80,7 @@ console.log('[app.config] Setting extra.apiBaseUrl to:', apiBaseUrlValue);
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
+  owner: 'human-intelligence-studio-limited',
   name: 'Voyo',
   slug: 'voyo-mobile',
   scheme: 'voyo',
@@ -96,7 +97,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.voyo.mobile',
-    buildNumber: '3',
+    buildNumber: '5',
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
     },

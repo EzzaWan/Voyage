@@ -1,37 +1,50 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
 import { theme } from '../src/theme';
 
+const CALLBACK_TIMEOUT_MS = 8000;
+
 /**
- * OAuth callback handler for Clerk
- * This route handles the OAuth redirect after Google/Apple sign-in
+ * OAuth callback handler for Clerk.
+ * After Apple/Google redirect, Clerk may set the session asynchronously.
+ * Wait for isSignedIn or session in params; otherwise timeout and go to sign-in.
  */
 export default function OAuthCallback() {
   const router = useRouter();
   const { isSignedIn, isLoaded } = useAuth();
   const params = useLocalSearchParams();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!isLoaded) return;
 
-    // If we have a session ID in params, Clerk has already handled the OAuth
-    // Just redirect to home
-    if (params.created_session_id || isSignedIn) {
-      // Small delay to ensure session is fully set
-      const timer = setTimeout(() => {
-        router.replace('/');
-      }, 100);
-      return () => clearTimeout(timer);
+    const hasSession = Boolean(params.created_session_id ?? params.createdSessionId) || isSignedIn;
+
+    if (hasSession) {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      const t = setTimeout(() => router.replace('/'), 100);
+      return () => clearTimeout(t);
     }
 
-    // If not signed in and no session ID, redirect to sign-in
-    const timer = setTimeout(() => {
-      router.replace('/(auth)/sign-in');
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [isLoaded, isSignedIn, params.created_session_id, router]);
+    if (!timeoutRef.current) {
+      timeoutRef.current = setTimeout(() => {
+        timeoutRef.current = null;
+        router.replace('/(auth)/sign-in');
+      }, CALLBACK_TIMEOUT_MS);
+    }
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, [isLoaded, isSignedIn, params.created_session_id, params.createdSessionId, router]);
 
   return (
     <View style={styles.container}>
