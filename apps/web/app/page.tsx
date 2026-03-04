@@ -8,6 +8,7 @@ import { CountrySkeleton } from "@/components/skeletons";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { ReviewsSection } from "@/components/ReviewsSection";
+import { AppStoreBadge } from "@/components/AppStoreBadge";
 import { Globe, ArrowRight, Shield, Lock, Clock, CheckCircle2, Star, Quote, Zap, Smartphone, Wifi, Plane, HelpCircle } from "lucide-react";
 import { safeFetch } from "@/lib/safe-fetch";
 import { getRegionForCountry, REGION_NAMES, Region } from "@/lib/regions";
@@ -144,36 +145,29 @@ export default function Home() {
 
   return (
     <div className="min-h-[80vh] flex flex-col space-y-8">
-       {/* Hero Section with Travel Imagery */}
-       <div className="relative overflow-hidden rounded-3xl border border-[var(--voyo-border)] bg-gradient-to-br from-[var(--voyo-bg)] via-[var(--voyo-bg-light)] to-[#051020]">
-         {/* Background Pattern */}
-         <div className="absolute inset-0 opacity-10">
-           <div className="absolute top-0 right-0 w-96 h-96 bg-[var(--voyo-accent)] rounded-full blur-3xl"></div>
-           <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500 rounded-full blur-3xl"></div>
-         </div>
-         
-         <div className="relative flex flex-col items-center text-center max-w-4xl mx-auto py-16 md:py-24 px-6 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="inline-flex items-center justify-center p-2 rounded-full bg-[var(--voyo-bg-light)] border border-[var(--voyo-border)] mb-4">
-               <span className="flex items-center gap-2 text-sm font-medium text-[var(--voyo-text)] px-2">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                  </span>
-                  Active in 190+ Countries
+       {/* Hero Section — borderless, fluid */}
+       <div className="relative">
+         <div className="relative flex flex-col items-center text-center max-w-3xl mx-auto pt-8 pb-12 md:pt-12 md:pb-16 px-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <span className="inline-flex items-center gap-2 text-[13px] font-medium text-[var(--voyo-muted)] tracking-wide uppercase mb-8">
+               <span className="relative flex h-1.5 w-1.5">
+                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400/60"></span>
+                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                </span>
-            </div>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-6 leading-tight">
-               Connectivity without <br />
+               Active in 190+ countries
+            </span>
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white leading-[1.1]">
+               Connectivity without{" "}
                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--voyo-accent)] to-purple-400">boundaries.</span>
             </h1>
-            <p className="text-xl md:text-2xl text-[var(--voyo-muted)] max-w-2xl mx-auto leading-relaxed">
-               Instant eSIM delivery for global travelers. Connect in seconds, avoid roaming fees, and travel with confidence.
+            <p className="mt-5 text-lg md:text-xl text-[var(--voyo-muted)] max-w-xl leading-relaxed">
+               Instant eSIM delivery for global travelers. Connect in seconds, avoid roaming fees.
             </p>
-            
-            <div className="pt-8 flex justify-center w-full">
-               <div className="w-full max-w-xl">
-                 <SearchBar value={search} onChange={setSearch} />
-               </div>
+
+            <div className="mt-10 w-full max-w-md">
+              <SearchBar value={search} onChange={setSearch} />
+            </div>
+            <div className="mt-6">
+              <AppStoreBadge height={38} />
             </div>
          </div>
        </div>

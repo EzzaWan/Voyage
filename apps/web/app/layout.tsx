@@ -88,7 +88,7 @@ export default function RootLayout({
                     gtag('config', 'AW-17806579060');
                   `}
                 </Script>
-                <div className="fixed inset-0 bg-gradient-to-br from-[var(--voyo-bg)] via-[var(--voyo-bg)] to-[#051020] -z-10" />
+                <div className="fixed inset-0 bg-[var(--voyo-bg)] -z-10" />
                 
                 <KeyboardNavigationProvider>
                   <div className="flex flex-col min-h-screen">

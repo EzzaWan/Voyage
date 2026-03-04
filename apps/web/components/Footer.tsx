@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { Facebook, Instagram, Linkedin } from "lucide-react";
+import Image from "next/image";
+import { Instagram, Linkedin } from "lucide-react";
+import { AppStoreBadge } from "@/components/AppStoreBadge";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -10,8 +12,8 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand Column */}
           <div className="space-y-4">
-            <Link href="/" className="text-2xl font-bold tracking-tight text-[var(--voyo-accent)]">
-              Voyo
+            <Link href="/" className="flex items-center">
+              <Image src="/images/logo.png" alt="Voyo" width={110} height={34} className="h-8 w-auto" />
             </Link>
             <p className="text-[var(--voyo-muted)] text-sm leading-relaxed">
               Global connectivity made simple. Instant eSIM activation for over 190+ countries worldwide.
@@ -36,6 +38,7 @@ export function Footer() {
                 <Linkedin className="h-5 w-5" />
               </a>
             </div>
+            <AppStoreBadge height={36} />
           </div>
 
           {/* Links Column 1 */}

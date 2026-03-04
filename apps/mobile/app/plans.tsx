@@ -22,6 +22,7 @@ import {
 import { fetchDiscounts, getDiscount, areDiscountsLoaded, calculateDiscountedPrice } from '../src/utils/discountUtils';
 import { useCurrency } from '../src/context/CurrencyContext';
 import { addToRecentlyViewed } from '../src/utils/recentlyViewed';
+import BottomNav from '../src/components/BottomNav';
 
 const PLANS_PER_PAGE = 12;
 
@@ -378,6 +379,7 @@ export default function Plans() {
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={styles.loadingText}>Loading plans...</Text>
         </View>
+        <BottomNav activeTab="store" />
       </View>
     );
   }
@@ -399,6 +401,7 @@ export default function Plans() {
             <Text style={styles.retryButtonText}>Try Again</Text>
           </TouchableOpacity>
         </View>
+        <BottomNav activeTab="store" />
       </View>
     );
   }
@@ -424,6 +427,7 @@ export default function Plans() {
             <Text style={styles.browseButtonText}>Browse Countries</Text>
           </TouchableOpacity>
         </View>
+        <BottomNav activeTab="store" />
       </View>
     );
   }
@@ -462,6 +466,7 @@ export default function Plans() {
             )}
           </View>
         </ScrollView>
+        <BottomNav activeTab="store" />
       </View>
     );
   }
@@ -540,6 +545,7 @@ export default function Plans() {
           <Text style={styles.errorBannerText}>{error}</Text>
         </View>
       )}
+      <BottomNav activeTab="store" />
     </View>
   );
 }
@@ -749,7 +755,7 @@ const styles = StyleSheet.create({
   // List
   listContent: {
     paddingTop: theme.spacing.md,
-    paddingBottom: theme.spacing.xl * 2,
+    paddingBottom: (theme.spacing.xl * 2) + 80, // Extra space for bottom nav
     paddingLeft: 16, // Explicit 16px padding
     paddingRight: 16, // Explicit 16px padding
   },

@@ -6,7 +6,8 @@ import { usePathname } from "next/navigation";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { SearchDropdown } from "@/components/SearchDropdown";
-import { Menu, X, Globe, BookOpen, LogIn, UserPlus, ShoppingBag, User, Smartphone, LogOut } from "lucide-react";
+import Image from "next/image";
+import { Menu, X, BookOpen, LogIn, UserPlus, ShoppingBag, User, Smartphone, LogOut } from "lucide-react";
 import { CurrencySelector } from "@/components/CurrencySelector";
 import { SignedIn, SignedOut, useClerk } from "@clerk/nextjs";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -50,9 +51,8 @@ export function Navbar() {
         <div className="hidden md:grid grid-cols-3 items-center h-full">
           {/* Left Section: Logo + Nav Links */}
           <div className="flex items-center gap-8 justify-start">
-            <Link href="/" className="text-2xl font-bold tracking-tight text-[var(--voyo-accent)] flex items-center gap-2">
-              <Globe className="h-6 w-6" />
-              Voyo
+            <Link href="/" className="flex items-center">
+              <Image src="/images/logo.png" alt="Voyo" width={140} height={44} className="h-11 w-auto" priority />
             </Link>
             <div className="flex items-center gap-6 text-sm font-medium">
               {navLinks.map((link) => (
@@ -114,9 +114,8 @@ export function Navbar() {
 
         {/* Mobile Layout */}
         <div className="md:hidden flex items-center justify-between h-full w-full">
-          <Link href="/" className="text-2xl font-bold tracking-tight text-[var(--voyo-accent)] flex items-center gap-2">
-            <Globe className="h-6 w-6" />
-            Voyo
+          <Link href="/" className="flex items-center">
+            <Image src="/images/logo.png" alt="Voyo" width={140} height={44} className="h-11 w-auto" priority />
           </Link>
 
           {/* Mobile Menu Trigger */}
@@ -141,9 +140,8 @@ export function Navbar() {
               </SheetTrigger>
               <SheetContent side="right" className="bg-[var(--voyo-bg)] border-l border-[var(--voyo-border)] w-[300px]">
               <SheetHeader className="text-left border-b border-[var(--voyo-border)] pb-4 mb-4">
-                <SheetTitle className="text-[var(--voyo-accent)] text-xl font-bold flex items-center gap-2">
-                  <Globe className="h-5 w-5" />
-                  Voyo
+                <SheetTitle className="flex items-center">
+                  <Image src="/images/logo.png" alt="Voyo" width={120} height={36} className="h-9 w-auto" />
                 </SheetTitle>
               </SheetHeader>
               

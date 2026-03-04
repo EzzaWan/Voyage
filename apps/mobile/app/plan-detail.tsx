@@ -10,6 +10,7 @@ import { SharePlanButton } from '../src/components/ShareButton';
 import { useCurrency } from '../src/context/CurrencyContext';
 import { AnimatedButton } from '../src/components/AnimatedButton';
 import { FadeInView } from '../src/components/FadeInView';
+import BottomNav from '../src/components/BottomNav';
 import { useToast } from '../src/context/ToastContext';
 import {
   Plan,
@@ -273,6 +274,7 @@ export default function PlanDetail() {
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={styles.loadingText}>Loading plan details...</Text>
         </View>
+        <BottomNav activeTab="store" />
       </View>
     );
   }
@@ -296,6 +298,7 @@ export default function PlanDetail() {
             <Text style={styles.retryButtonText}>Go Back</Text>
           </TouchableOpacity>
         </View>
+        <BottomNav activeTab="store" />
       </View>
     );
   }
@@ -507,10 +510,11 @@ export default function PlanDetail() {
           <Text style={styles.securityText}>Secure Checkout • Instant Delivery</Text>
         </View>
 
-        {/* Spacer for bottom */}
-        <View style={{ height: 40 }} />
+        {/* Spacer for bottom nav */}
+        <View style={{ height: 100 }} />
       </ScrollView>
       </FadeInView>
+      <BottomNav activeTab="store" />
     </View>
   );
 }
