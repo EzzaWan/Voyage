@@ -1,4 +1,5 @@
-import { Controller, Get, Param, Post, Body, Query, Inject, forwardRef, NotFoundException, UseGuards, Headers, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, Query, Inject, forwardRef, NotFoundException, UseGuards, Headers, BadRequestException, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { EsimService } from './esim.service';
 import { UsageService } from './usage.service';
 import { OrdersService } from '../orders/orders.service';
@@ -24,8 +25,9 @@ export class EsimController {
   ) {}
 
   @Get('countries')
-  async getCountries() {
+  async getCountries(@Res({ passthrough: true }) res: Response) {
     const data = await this.esimService.getLocations();
+    res.setHeader('X-ESIM-Provider', this.esimService.getProviderName());
     return data.locationList;
   }
 

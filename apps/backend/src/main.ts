@@ -54,6 +54,7 @@ async function bootstrap() {
   // CORS configuration - supports multiple origins for production
   const allowedOrigins = [
     'http://localhost:3000',
+    'http://localhost:3002', // Voyage frontend when run separately (e.g. dev:esimlaunch)
     'https://voyoesim.com',
     'https://www.voyoesim.com',
     'https://voyage-data.com', // Keep for redirect transition
@@ -67,8 +68,9 @@ async function bootstrap() {
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
-      
-      if (allowedOrigins.includes(origin)) {
+      // In development, allow any localhost origin (e.g. 3000, 3002)
+      const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+      if (isLocalhost || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));

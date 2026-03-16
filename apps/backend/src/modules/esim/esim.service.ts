@@ -1,13 +1,15 @@
 import { Injectable, NotFoundException, Inject, forwardRef, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EsimAccess } from '../../../../../libs/esim-access';
+import { EsimLaunch } from '../../lib/esimlaunch-client';
 import { AdminSettingsService } from '../admin/admin-settings.service';
 import { CurrencyConverterService } from '../admin/currency-converter.service';
 import { QueryProfilesResponse, BaseResponse, LocationListResponse } from '../../../../../libs/esim-access/types';
 
 @Injectable()
 export class EsimService {
-  private esimAccess: EsimAccess;
+  private esimProvider: EsimAccess | EsimLaunch;
+  private readonly providerName: 'esimlaunch' | 'esimaccess';
   private readonly logger = new Logger(EsimService.name);
 
   constructor(
@@ -17,16 +19,34 @@ export class EsimService {
     @Inject(forwardRef(() => CurrencyConverterService))
     private currencyConverter: CurrencyConverterService,
   ) {
-    this.esimAccess = new EsimAccess({
-      accessCode: this.config.get<string>('ESIM_ACCESS_CODE')!,
-      secretKey: this.config.get<string>('ESIM_SECRET_KEY')!,
-      baseUrl: this.config.get<string>('ESIM_API_BASE')!,
-    });
+    const provider = this.config.get<string>('ESIM_PROVIDER') || 'esimaccess';
+    if (provider === 'esimlaunch') {
+      this.providerName = 'esimlaunch';
+      const baseUrl = this.config.get<string>('ESIMLAUNCH_API_BASE') || 'https://api.esimlaunch.com';
+      const apiKey = this.config.get<string>('ESIMLAUNCH_API_KEY');
+      if (!apiKey) {
+        throw new Error('ESIMLAUNCH_API_KEY is required when ESIM_PROVIDER=esimlaunch');
+      }
+      this.esimProvider = new EsimLaunch({ baseUrl, apiKey });
+      this.logger.log('Using eSIM provider: esimlaunch');
+    } else {
+      this.providerName = 'esimaccess';
+      this.esimProvider = new EsimAccess({
+        accessCode: this.config.get<string>('ESIM_ACCESS_CODE')!,
+        secretKey: this.config.get<string>('ESIM_SECRET_KEY')!,
+        baseUrl: this.config.get<string>('ESIM_API_BASE')!,
+      });
+      this.logger.log('Using eSIM provider: esimaccess');
+    }
   }
 
-  // Expose esimAccess for controller use
-  getEsimAccess(): EsimAccess {
-    return this.esimAccess;
+  getProviderName(): 'esimlaunch' | 'esimaccess' {
+    return this.providerName;
+  }
+
+  // Expose provider for controller use (same shape as EsimAccess)
+  getEsimAccess(): EsimAccess | EsimLaunch {
+    return this.esimProvider;
   }
 
   // Check if mock mode is enabled
@@ -120,14 +140,14 @@ export class EsimService {
     }
 
     // Real provider request
-    return this.esimAccess.client.request(method, endpoint, data);
+    return this.esimProvider.client.request(method, endpoint, data);
   }
 
   // ---- 1. GET SUPPORTED REGIONS ----
   async getLocations() {
     // Always fetch real locations (not mocked) - locations are read-only data
     // Mock mode only affects order/query/topup operations, not data fetching
-    const result = await this.esimAccess.client.request('POST', '/location/list', {}) as any;
+    const result = await this.esimProvider.client.request('POST', '/location/list', {}) as any;
     const locationData = result?.obj as LocationListResponse | undefined;
     const rawLocationList: any[] = locationData?.locationList || [];
     
@@ -193,7 +213,7 @@ export class EsimService {
 
   // ---- 2. GET PACKAGES FOR A COUNTRY ----
   async getPackages(locationCode: string) {
-    const result = await this.esimAccess.packages.getPackagesByLocation(locationCode);
+    const result = await this.esimProvider.packages.getPackagesByLocation(locationCode);
     const isMock = await this.mockEnabled();
 
     // Convert prices from provider format (1/10000th units) to dollars
@@ -250,7 +270,7 @@ export class EsimService {
     if (locationCode) {
       params.locationCode = locationCode;
     }
-    const result = await this.esimAccess.packages.getTopupPlans(params);
+    const result = await this.esimProvider.packages.getTopupPlans(params);
     const isMock = await this.mockEnabled();
 
     // Convert prices from provider format (1/10000th units) to dollars
@@ -304,7 +324,7 @@ export class EsimService {
 
   // ---- 3. GET SINGLE PLAN ----
   async getPlan(packageCode: string) {
-    const result = await this.esimAccess.packages.getPackageDetails(packageCode);
+    const result = await this.esimProvider.packages.getPackageDetails(packageCode);
     const isMock = await this.mockEnabled();
 
     const plan = result?.obj?.packageList?.[0];
@@ -359,7 +379,7 @@ export class EsimService {
     const service = this;
     
     // Create proxied client
-    const proxiedClient = new Proxy(this.esimAccess.client, {
+    const proxiedClient = new Proxy(this.esimProvider.client, {
       get(clientTarget, clientProp) {
         if (clientProp === 'request' || clientProp === 'post' || clientProp === 'get') {
           return async function(methodOrUrl: string, urlOrData?: any, data?: any) {
@@ -402,7 +422,7 @@ export class EsimService {
     });
 
     // Return proxy that intercepts both client and service access
-    return new Proxy(this.esimAccess, {
+    return new Proxy(this.esimProvider, {
       get(target, prop) {
         if (prop === 'client') {
           return proxiedClient;
